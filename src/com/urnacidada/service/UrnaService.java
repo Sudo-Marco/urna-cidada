@@ -11,12 +11,13 @@ import com.urnacidada.repository.VotoRepository;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Regras e fluxo da votação (SEM interface gráfica e SEM Firestore).
- * A tela Swing apenas chama estes métodos e mostra o que eles retornam.
+ * Regras e fluxo da votação, desacoplados da interface e da tecnologia de persistência.
+ * A tela Swing chama estes métodos e apresenta o estado ao participante.
  *
  * Regras adotadas (rascunho, validar com o grupo/professor):
  *  - o eleitor digita o número do candidato, dígito a dígito;
@@ -39,8 +40,8 @@ public class UrnaService {
     private boolean finalizada = false;
 
     public UrnaService(Eleicao eleicao, VotoRepository repositorio) {
-        this.eleicao = eleicao;
-        this.repositorio = repositorio;
+        this.eleicao = Objects.requireNonNull(eleicao, "eleicao");
+        this.repositorio = Objects.requireNonNull(repositorio, "repositorio");
     }
 
     // ---------- consulta de estado (a tela usa para se desenhar) ----------
@@ -48,6 +49,20 @@ public class UrnaService {
     public Cargo getCargoAtual() {
         verificarEmAndamento();
         return eleicao.cargos().get(indiceCargo);
+    }
+
+    /** Posição do cargo atual na sequência, começando em 1. */
+    public int getNumeroCargoAtual() {
+        return indiceCargo + 1;
+    }
+
+    public int getTotalCargos() {
+        return eleicao.cargos().size();
+    }
+
+    /** Identificador aleatório e anônimo desta votação. */
+    public String getSessaoId() {
+        return sessaoId;
     }
 
     public String getDigitado() {

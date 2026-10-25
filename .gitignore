@@ -1,16 +1,16 @@
-# Compiled class file
+# Arquivos compilados
 *.class
 
-# Log file
+# Logs
 *.log
 
-# BlueJ files
+# BlueJ
 *.ctxt
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
-# Package Files #
+# Pacotes
 *.jar
 *.war
 *.nar
@@ -19,6 +19,28 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+# Logs de falha da JVM
 hs_err_pid*
 replay_pid*
+
+# Saída de compilação e execução
+target/
+out/
+
+# Votos gravados localmente (dados dos testes e da oficina; não versionar)
+dados/
+
+# Credenciais e segredos: NUNCA enviar ao GitHub
+serviceAccountKey.json
+*service-account*.json
+*.pem
+.env
+.env.*
+!.env.example
+
+# Editores e sistema operacional
+.vscode/
+.idea/
+*.iml
+.DS_Store
+Thumbs.db

@@ -1,0 +1,128 @@
+package com.urnacidada.view;
+
+import com.urnacidada.model.Eleicao;
+import com.urnacidada.repository.VotoRepository;
+
+import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JRootPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/** Janela principal: junta o painel, o controlador e as teclas do computador. */
+@SuppressWarnings("serial")
+public final class TelaUrna extends JFrame {
+
+    private static final String DICAS = """
+            PARE, CONFIRA, COMPARTILHE COM CUIDADO
+
+            1. Confira quem publicou e procure a fonte original.
+            2. Compare a informação com fontes independentes.
+            3. Verifique data, contexto e se a imagem ou o vídeo aparece em notícias antigas.
+            4. Áudios, imagens e vídeos podem ser editados ou gerados por IA.
+            5. Desconfie de urgência e de afirmações sem evidência.
+            6. Na dúvida, não compartilhe; consulte fontes oficiais e serviços de checagem.
+
+            Esta urna usa candidatos fictícios e serve apenas para fins educativos.
+            """;
+
+    private final VotoRepository repositorio;
+    private final ExecutorService gravacao = Executors.newSingleThreadExecutor(tarefa -> {
+        Thread t = new Thread(tarefa, "gravacao-de-votos");
+        t.setDaemon(true);
+        return t;
+    });
+    private final PainelUrna painel;
+    private ControladorUrna controlador;
+
+    public TelaUrna(Eleicao eleicao, VotoRepository repositorio) {
+        super("Urna Cidadã · Simulador educativo");
+        this.repositorio = repositorio;
+
+        painel = new PainelUrna(new RepasseDeAcoes(), repositorio.descricao());
+        controlador = new ControladorUrna(eleicao, repositorio, gravacao, SwingUtilities::invokeLater,
+                painel::exibir, this::mostrarDicas);
+
+        setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setContentPane(painel);
+        setMinimumSize(new Dimension(840, 600));
+        setSize(920, 640);
+        setLocationRelativeTo(null);
+        configurarTeclado();
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosed(WindowEvent e) {
+                encerrar();
+            }
+        });
+
+        controlador.novaVotacao();
+    }
+
+    /** O painel é criado antes do controlador; este objeto liga os dois sem referência circular. */
+    private final class RepasseDeAcoes implements AcoesUrna {
+        @Override public void digitar(char digito) { controlador.digitar(digito); }
+        @Override public void branco() { controlador.branco(); }
+        @Override public void corrigir() { controlador.corrigir(); }
+        @Override public void confirmar() { controlador.confirmar(); }
+        @Override public void novaVotacao() { controlador.novaVotacao(); }
+        @Override public void mostrarDicas() { controlador.mostrarDicas(); }
+    }
+
+    private void configurarTeclado() {
+        JRootPane raiz = getRootPane();
+        for (char d = '0'; d <= '9'; d++) {
+            char digito = d;
+            vincular(raiz, KeyStroke.getKeyStroke(digito), "digito-" + digito, () -> controlador.digitar(digito));
+        }
+        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "confirma", () -> controlador.confirmar());
+        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "corrige", () -> controlador.corrigir());
+        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "branco", () -> controlador.branco());
+    }
+
+    private static void vincular(JRootPane raiz, KeyStroke tecla, String nome, Runnable acao) {
+        raiz.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(tecla, nome);
+        raiz.getActionMap().put(nome, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                acao.run();
+            }
+        });
+    }
+
+    private void mostrarDicas() {
+        JTextArea area = new JTextArea(DICAS, 15, 46);
+        area.setWrapStyleWord(true);
+        area.setLineWrap(true);
+        area.setEditable(false);
+        area.setFont(new Font("SansSerif", Font.PLAIN, 15));
+        area.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        JOptionPane.showMessageDialog(this, new JScrollPane(area), "Dicas de verificação",
+                JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    private void encerrar() {
+        gravacao.shutdown();
+        if (repositorio instanceof AutoCloseable recurso) {
+            try {
+                recurso.close();
+            } catch (Exception ignorada) {
+                // a janela já foi fechada; não há o que mostrar ao participante
+            }
+        }
+    }
+}
