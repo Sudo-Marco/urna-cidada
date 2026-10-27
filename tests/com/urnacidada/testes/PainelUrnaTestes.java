@@ -1,6 +1,10 @@
 package com.urnacidada.testes;
 
 import com.urnacidada.model.Eleicao;
+import com.urnacidada.repository.RepositorioException;
+import com.urnacidada.repository.VotoRepository;
+import com.urnacidada.repository.VotoRepositoryComReserva;
+import com.urnacidada.repository.VotoRepositoryEmArquivo;
 import com.urnacidada.repository.VotoRepositoryEmMemoria;
 import com.urnacidada.view.AcoesUrna;
 import com.urnacidada.view.ControladorUrna;
@@ -10,12 +14,14 @@ import com.urnacidada.view.EstadoTela.TipoMensagem;
 import com.urnacidada.view.PainelUrna;
 
 import javax.swing.AbstractButton;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +82,10 @@ final class PainelUrnaTestes {
 
     /** Desenha o painel numa imagem; qualquer erro de layout ou de desenho vira exceção. */
     private static void desenhar(PainelUrna painel) {
-        Dimension tamanho = new Dimension(920, 640);
+        desenhar(painel, new Dimension(920, 640));
+    }
+
+    private static void desenhar(PainelUrna painel, Dimension tamanho) {
         painel.setSize(tamanho);
         ajustar(painel);
         organizar(painel);
@@ -113,6 +122,46 @@ final class PainelUrnaTestes {
         }
     }
 
+    /** Altura que o texto precisa na largura atual do componente (ignora o tamanho preferido fixado). */
+    private static int alturaNecessaria(JTextPane texto) {
+        return texto.getUI().getPreferredSize(texto).height;
+    }
+
+    /** Falha se algum texto visível não cabe na área que recebeu (ficaria cortado na tela). */
+    private static void conferirSemCortes(Container raiz, String contexto) {
+        for (Component c : raiz.getComponents()) {
+            if (c instanceof JTextPane texto && texto.isVisible() && !texto.getText().isBlank()) {
+                int necessario = alturaNecessaria(texto);
+                verdade(necessario <= texto.getHeight(), contexto + ": texto cortado ("
+                        + necessario + " px necessários, " + texto.getHeight() + " px disponíveis): "
+                        + texto.getText().replace('\n', ' '));
+            }
+            if (c instanceof Container filho) {
+                conferirSemCortes(filho, contexto);
+            }
+        }
+    }
+
+    /** O aviso real que a reserva local mostra quando a internet cai. */
+    private static String avisoDaReserva() throws Exception {
+        VotoRepository principalFora = new VotoRepository() {
+            @Override
+            public void salvarSessao(String sessaoId, java.util.List<com.urnacidada.model.Voto> votos)
+                    throws RepositorioException {
+                throw new RepositorioException("sem rede", null);
+            }
+
+            @Override
+            public String descricao() {
+                return "Cloud Firestore (projeto urnacidada-f8b55)";
+            }
+        };
+        VotoRepositoryComReserva repo = new VotoRepositoryComReserva(principalFora,
+                new VotoRepositoryEmArquivo(Files.createTempDirectory("urna-testes").resolve("p.tsv"), "reserva"));
+        repo.salvarSessao("s1", java.util.List.of());
+        return repo.avisoDaUltimaGravacao().orElseThrow();
+    }
+
     static void executar() {
         grupo("Visão Swing (PainelUrna), sem janela");
 
@@ -124,6 +173,34 @@ final class PainelUrnaTestes {
                             "Detalhe", "Explicação do cargo", "Mensagem de teste", tipo, true));
                     desenhar(painel);
                 }
+            }
+        });
+
+        caso("nenhum texto fica cortado, nem o aviso mais longo, em janela normal e no tamanho mínimo", () -> {
+            String avisoReal = avisoDaReserva();
+            String erroLongo = "Não foi possível gravar os votos nem na reserva local. Confirme novamente.";
+            Dimension[] tamanhos = {new Dimension(920, 640), new Dimension(840, 600)};
+            for (Dimension tamanho : tamanhos) {
+                String ctx = tamanho.width + "x" + tamanho.height;
+                PainelUrna painel = new PainelUrna(new Gravador(), "Cloud Firestore (projeto urnacidada-f8b55) + reserva local");
+
+                painel.exibir(new EstadoTela(Modo.FIM, "VOTAÇÃO CONCLUÍDA", "", 0, "", "FIM",
+                        "Obrigado por participar da simulação.", "", avisoReal, TipoMensagem.AVISO, false));
+                desenhar(painel, tamanho);
+                conferirSemCortes(painel, ctx + " / FIM com aviso da reserva");
+
+                painel.exibir(new EstadoTela(Modo.DIGITANDO, "VEREADOR", "CARGO 1 DE 2", 5, "12",
+                        "Digite o número do candidato", "", "", erroLongo, TipoMensagem.ERRO, true));
+                desenhar(painel, tamanho);
+                conferirSemCortes(painel, ctx + " / erro de gravação");
+
+                painel.exibir(new EstadoTela(Modo.CANDIDATO, "VEREADOR", "CARGO 1 DE 2", 5, "12345",
+                        "Ana Exemplo", "Partido Fictício A",
+                        "Cargo proporcional: as vagas são distribuídas conforme os votos recebidos pelos partidos e candidatos.",
+                        "Número não cadastrado. Confirme para registrar voto nulo ou corrija.",
+                        TipoMensagem.AVISO, true));
+                desenhar(painel, tamanho);
+                conferirSemCortes(painel, ctx + " / candidato com explicação");
             }
         });
 

@@ -11,7 +11,7 @@ scripts\testar.bat
 Não precisa de Maven nem de internet: o script compila só o que os testes usam e roda tudo. O resultado esperado termina com:
 
 ```text
-66 passaram, 0 falharam
+67 passaram, 0 falharam
 ```
 
 Se algum teste falhar, o script mostra `FALHA` com o nome do teste e o motivo.
@@ -30,8 +30,8 @@ Os testes de tela rodam **sem abrir janela** (modo *headless*). O que depende de
 | `UrnaServiceTestes` | 19 | Regras de votação: digitar, branco, corrigir, confirmar, nulo, fim, repetir gravação |
 | `RepositorioTestes` | 13 | Memória, arquivo local, reserva automática e sincronização |
 | `ControladorUrnaTestes` | 18 | O que a tela mostra em cada situação, cores das mensagens, gravação em segundo plano |
-| `PainelUrnaTestes` | 5 | A tela monta e desenha todos os estados; cada botão dispara a ação certa |
-| **Total** | **66** | |
+| `PainelUrnaTestes` | 6 | A tela monta e desenha todos os estados; cada botão dispara a ação certa; nenhum texto fica cortado |
+| **Total** | **67** | |
 
 ## Requisito → teste
 
@@ -55,12 +55,12 @@ Para conferir que os testes realmente detectam erros, foram introduzidos defeito
 
 ## Roteiro de verificação manual
 
-Execute com a janela aberta (`scripts\demo.bat`) e marque o que foi conferido. **Ninguém marcou estes itens ainda.**
+Execute com a janela aberta (`scripts\demo.bat`) e marque o que foi conferido. Os itens marcados foram comprovados (com a data); os demais continuam pendentes.
 
 ### Tela e teclado
 
-- [ ] A janela abre com título, aviso "SIMULAÇÃO EDUCATIVA · NÃO É UMA URNA OFICIAL" e teclado completo.
-- [ ] Nenhum texto aparece cortado em tela cheia e em janela pequena.
+- [x] A janela abre com título, aviso "SIMULAÇÃO EDUCATIVA · NÃO É UMA URNA OFICIAL" e teclado completo (24/10/2026).
+- [ ] Nenhum texto aparece cortado em tela cheia e em janela pequena. *(Em 25/10 o aviso da reserva local apareceu cortado; foi corrigido e há um teste automático. Conferir de novo na janela real.)*
 - [ ] Votar Vereador `12345` mostra "Ana Exemplo", partido e a explicação do cargo.
 - [ ] Digitar `99999` mostra "NÚMERO ERRADO / VOTO NULO" em vermelho e o aviso em âmbar.
 - [ ] BRANCO sem digitar mostra "VOTO EM BRANCO".
@@ -80,10 +80,10 @@ Execute com a janela aberta (`scripts\demo.bat`) e marque o que foi conferido. *
 
 ### Firestore real
 
-- [ ] Projeto criado no Firebase, Firestore habilitado e autenticação configurada ([operacao-oficina.md](operacao-oficina.md)).
-- [ ] Depois de votar, o documento aparece em `sessoes` no console do Firebase, com dois votos e sem dados pessoais.
-- [ ] Sem internet: a votação termina, aparece o aviso âmbar e existe `dados\votos-pendentes.tsv`.
-- [ ] Com a internet de volta: ao votar de novo (ou reabrir a urna), a sessão pendente aparece no Firebase e o arquivo de pendentes fica vazio.
+- [x] Projeto criado no Firebase, Firestore habilitado e autenticação configurada ([operacao-oficina.md](operacao-oficina.md)) (25/10/2026).
+- [x] Depois de votar, o documento aparece em `sessoes` no console do Firebase, com dois votos e sem dados pessoais (25/10/2026).
+- [x] Sem internet: a votação termina, aparece o aviso âmbar e existe `dados\votos-pendentes.tsv` (25/10/2026).
+- [x] Com a internet de volta: ao votar de novo (ou reabrir a urna), a sessão pendente aparece no Firebase e o arquivo de pendentes fica vazio (25/10/2026).
 
 ### Equipamento da oficina
 

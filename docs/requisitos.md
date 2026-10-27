@@ -32,7 +32,7 @@ Legenda: ✅ implementado e coberto por teste automático · 🖥️ implementad
 | RF06 | Confirmar o voto antes de avançar | ✅ | Botão CONFIRMA exige número completo ou branco |
 | RF07 | Corrigir, votar em branco e voto nulo | ✅ | Regras adotadas em [regras-de-votacao.md](regras-de-votacao.md), **a validar com o professor** |
 | RF08 | Encerrar com mensagem de conclusão | ✅ | Tela "VOTAÇÃO CONCLUÍDA / FIM" |
-| RF09 | Persistir os dados no Cloud Firestore | ☁️ | `FirestoreVotoRepository`, coleção `sessoes`. **Ainda não foi testado com um projeto Firestore real** |
+| RF09 | Persistir os dados no Cloud Firestore | ☁️ | `FirestoreVotoRepository`, coleção `sessoes`. **Verificado manualmente com um projeto Firestore real em 25/10/2026** (gravação anônima e reenvio depois de falta de internet); ver [testes.md](testes.md) |
 | RF10 | Material educativo sobre desinformação e deepfakes | 🖥️ | Botão "Dicas contra desinformação" na tela e [material-oficina.md](material-oficina.md) |
 | RF11 | Não perder votos se a internet cair *(extensão do grupo)* | ✅ | `VotoRepositoryComReserva` guarda em `dados/votos-pendentes.tsv` e envia depois |
 
@@ -45,7 +45,7 @@ Legenda: ✅ implementado e coberto por teste automático · 🖥️ implementad
 | RNF03 | Privacidade: sem dados pessoais | ✅ | O voto guarda apenas cargo, tipo, número e data/hora |
 | RNF04 | Segurança de configuração | ✅ | `.gitignore` bloqueia credenciais e a pasta `dados/` |
 | RNF05 | Documentação | ✅ | README e esta pasta `docs/` |
-| RNF06 | Testabilidade sem depender de cliques | ✅ | 66 testes automáticos ([testes.md](testes.md)) |
+| RNF06 | Testabilidade sem depender de cliques | ✅ | 67 testes automáticos ([testes.md](testes.md)) |
 | RNF07 | Escopo educativo claro | ✅ | Aviso permanente no topo da tela e no README |
 | RNF08 | Portabilidade | ✅ | Java 17+; scripts `.bat` para Windows e comandos Maven para outros sistemas |
 
@@ -68,7 +68,7 @@ Estas decisões **substituem** a antiga lista de pendências. Continuam sujeitas
 | Pendência | Quem resolve |
 |---|---|
 | Validar as regras de votação com o grupo e o professor | Grupo |
-| Criar o projeto no Firebase, habilitar o Firestore, autenticar e testar a gravação real | Quem fizer a frente de persistência |
+| Conferir o acesso ao Firestore no computador da oficina (autenticar a conta nele) | Grupo |
 | Conferir a tela, o teclado do computador e o projetor no equipamento da oficina | Grupo |
 | Confirmar escola, data e autorizações da oficina | Grupo e professor |
 | Revisar o material educativo com a escola | Grupo |

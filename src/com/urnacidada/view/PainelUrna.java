@@ -138,11 +138,11 @@ public final class PainelUrna extends JPanel {
         linha(tela, progresso, 0, 0, 0, 0);
         linha(tela, cargo, 1, 0, 0, 6);
         linha(tela, caixas, 2, 0, 0, 10);
-        linha(tela, titulo, 3, 0, 52, 0);
-        linha(tela, detalhe, 4, 0, 30, 4);
-        linha(tela, explicacao, 5, 0, 42, 0);
+        linha(tela, titulo, 3, 0, 66, 0);
+        linha(tela, detalhe, 4, 0, 34, 4);
+        linha(tela, explicacao, 5, 0, 56, 0);
         linha(tela, new JLabel(), 6, 1.0, 0, 0); // empurra a mensagem para o rodapé da tela
-        linha(tela, mensagem, 7, 0, 46, 6);
+        linha(tela, mensagem, 7, 0, 84, 6);
         return tela;
     }
 
