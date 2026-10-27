@@ -8,7 +8,8 @@
 ![Interface](https://img.shields.io/badge/Interface-Swing-blue)
 ![Banco](https://img.shields.io/badge/Banco-Cloud%20Firestore-FFCA28?logo=firebase&logoColor=black)
 ![Build](https://img.shields.io/badge/Build-Maven-C71A36?logo=apachemaven&logoColor=white)
-![Status](https://img.shields.io/badge/Status-em%20desenvolvimento-yellow)
+![Status](https://img.shields.io/badge/Software-conclu%C3%ADdo-brightgreen)
+![Extens%C3%A3o](https://img.shields.io/badge/Oficina-a%20realizar-lightgrey)
 
 </div>
 
@@ -25,6 +26,7 @@
 - [Documentação](#-documentação)
 - [Privacidade e segurança](#-privacidade-e-segurança)
 - [Limitações conhecidas](#️-limitações-conhecidas)
+- [Resultados da ação de extensão](#-resultados-da-ação-de-extensão)
 - [Como contribuir](#-como-contribuir)
 - [Equipe](#-equipe)
 
@@ -37,14 +39,18 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 ## 🚧 Situação do projeto
 
+**O software está concluído e funcionando.** A ação de extensão (oficina com estudantes) ainda será realizada.
+
 | Parte | Situação |
 |---|---|
-| Votação em dois cargos (Vereador e Prefeito) com branco, nulo e correção | ✅ Pronta, com 66 testes automáticos |
-| Interface Swing (teclado na tela e do computador, avisos por cor, dicas) | ✅ Pronta. Falta conferir na janela real e no projetor ([roteiro](docs/testes.md#roteiro-de-verificação-manual)) |
-| Gravação local em arquivo e reserva automática sem internet | ✅ Pronta e testada |
-| Gravação no Cloud Firestore | ☁️ Implementada, **ainda não testada com um projeto Firestore real** |
-| Material educativo e questionário | 📝 Modelos prontos, ainda não aplicados |
-| Oficina com estudantes | ⬜ Ainda não realizada |
+| Votação em dois cargos (Vereador e Prefeito) com branco, nulo e correção | ✅ Concluída, com testes automáticos |
+| Interface Swing (teclado na tela e do computador, avisos por cor, dicas) | ✅ Concluída; janela aberta e conferida no computador de desenvolvimento |
+| Gravação local em arquivo e reserva automática sem internet | ✅ Concluída e testada |
+| Gravação no Cloud Firestore | ✅ Testada com um projeto real em 25/10/2026: gravação anônima e reenvio dos votos guardados quando a internet cai |
+| Documentação (requisitos, regras, casos de uso, arquitetura, testes, operação da oficina) | ✅ Concluída |
+| Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
+| Oficina com estudantes | ⬜ A realizar |
+| Resultados e avaliação de impacto | ⬜ Depois da oficina |
 
 ## ▶️ Como executar
 
@@ -115,9 +121,9 @@ Detalhes em [regras-de-votacao.md](docs/regras-de-votacao.md) e [casos-de-uso.md
 scripts\testar.bat
 ```
 
-Não precisa de Maven nem de internet. O resultado esperado termina com `66 passaram, 0 falharam`.
+Não precisa de Maven nem de internet. Todos os testes devem passar: o resultado termina com `N passaram, 0 falharam`.
 
-Os testes cobrem as regras de votação, a persistência (memória, arquivo e reserva), o que a tela mostra em cada situação e a montagem da interface sem abrir janela. **Não comprovam** a conexão com o Firestore, a aparência em todos os computadores, a realização da oficina nem o impacto educativo. Ver [testes.md](docs/testes.md).
+Os testes cobrem as regras de votação, a persistência (memória, arquivo e reserva), o que a tela mostra em cada situação e a montagem da interface sem abrir janela. **Não comprovam** a aparência em todos os computadores, a realização da oficina nem o impacto educativo. A conexão com o Firestore foi conferida manualmente (ver [testes.md](docs/testes.md)). Ver [testes.md](docs/testes.md).
 
 ## 📁 Estrutura
 
@@ -131,7 +137,7 @@ urna-cidada/
 │   ├── service/              UrnaService (regras da votação)
 │   ├── repository/           VotoRepository e suas implementações
 │   └── view/                 ControladorUrna, PainelUrna, TelaUrna
-├── tests/com/urnacidada/testes/   66 testes em Java puro
+├── tests/com/urnacidada/testes/   testes automáticos em Java puro
 └── docs/                     requisitos, regras, casos de uso, arquitetura, testes e oficina
 ```
 
@@ -160,11 +166,23 @@ A regra de votação não conhece a tela nem o banco de dados. Diagramas em [dia
 
 ## ⚠️ Limitações conhecidas
 
-- A gravação real no Firestore ainda não foi testada.
-- A aparência foi verificada por desenho em modo sem janela; falta conferir na janela real e no projetor.
+- O Firestore foi testado com um projeto real, mas em um único computador (o de desenvolvimento). O uso em outro computador, como o da escola, exige autenticar a conta nele.
+- A janela foi conferida no computador de desenvolvimento; falta conferir no projetor e no computador da oficina.
 - Candidatos e cargos são de exemplo (`Eleicao.exemplo()`).
-- As regras de votação ainda precisam ser validadas pelo grupo e pelo professor.
-- A oficina e a avaliação de impacto ainda não aconteceram; os arquivos em `docs/` são modelos de trabalho.
+- As regras de votação adotadas ainda dependem de validação formal do professor.
+- A oficina e a avaliação de impacto ainda não aconteceram; os arquivos de `docs/` são modelos de trabalho.
+
+## 📊 Resultados da ação de extensão
+
+> **A preencher depois da oficina.** Não registrar aqui nada que ainda não tenha acontecido.
+
+| Item | Registro |
+|---|---|
+| Data e local | _a preencher_ |
+| Escola parceira | _a preencher_ |
+| Número de participantes | _a preencher_ |
+| Principais resultados do questionário | _a preencher_ |
+| Aprendizados e melhorias | _a preencher_ |
 
 ## 🤝 Como contribuir
 
@@ -180,10 +198,8 @@ Antes de enviar: rode `scripts\testar.bat` e confira o `git status`.
 
 ## 👥 Equipe
 
-| Integrante | Frente |
+| Integrante | Frentes de atuação |
 |---|---|
-| _a preencher_ | _a preencher_ |
-| _a preencher_ | _a preencher_ |
-| _a preencher_ | _a preencher_ |
-| _a preencher_ | _a preencher_ |
-| _a preencher_ | _a preencher_ |
+| **Marco Antônio** | Coordenação do repositório (Git e GitHub, branches e Pull Requests); regras de votação e testes automáticos; persistência no Cloud Firestore e configuração do Firebase; integração e entrega do código |
+| **Cauã Reis** | Interface gráfica em Swing (tela, teclado e mensagens ao participante); verificação manual da tela e do teclado; testes de usabilidade no projetor da oficina |
+| **Vitória Alves** | Ação de extensão: material educativo sobre desinformação, questionário de impacto e alinhamento com os ODS; contato com a escola e condução da oficina; documentação pedagógica |
