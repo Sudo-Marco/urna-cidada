@@ -39,13 +39,17 @@ São testes Java puros sem JUnit, Maven ou internet. O cliente HTTP usa `com.sun
 | Legenda, branco, nulo e correção | `TipoVoto.java`, `UrnaService.java` | `UrnaServiceTestes`, `ControladorUrnaTestes` |
 | Layout principal sem painel lateral | `PainelUrna.java` | `PainelUrnaTestes` (headless); aparência real pendente |
 | Arquivo atômico e compatibilidade TSV | `VotoRepositoryEmArquivo.java` | `RepositorioTestes` |
-| REST, sincronização e idempotência | `FirestoreRestVotoClient.java`, `VotoRepositoryLocalPrimeiro.java` | Servidor HTTP falso; Firebase real pendente |
+| REST, sincronização e idempotência | `FirestoreRestVotoClient.java`, `VotoRepositoryLocalPrimeiro.java` | Servidor HTTP falso verificado; configuração real mostrou `Online · tudo enviado` e o usuário informou que a sessão de teste foi salva; documento não inspecionado diretamente no console |
 | Sem credenciais para modo local/demonstração | `Main.java`, `ConfiguracaoUrna.java` | Configuração e repositório local sob teste |
 | Rubrica do professor | não localizado | **Não verificável** sem PDF/enunciado |
 
+## Verificação manual relatada em 30/10/2026
+
+O usuário configurou o projeto Firebase e publicou as regras. A captura da urna mostrou `Firebase configurado` e `Online · tudo enviado`; o usuário informou que a votação de teste foi salva. Não houve inspeção independente do documento no console Firestore. A sincronização automática depois de uma interrupção real da internet continua sem verificação manual.
+
 ## Checklist manual pendente
 
-Marque somente após executar no equipamento real; nenhum destes itens foi marcado como concluído por esta rodada.
+Os itens abaixo permanecem pendentes de conferência independente. As verificações relatadas pelo usuário estão registradas na seção anterior.
 
 ### Interface, teclado e áudio
 
@@ -65,13 +69,11 @@ Marque somente após executar no equipamento real; nenhum destes itens foi marca
 - [ ] Abrir uma segunda instância e confirmar mensagem clara de bloqueio.
 - [ ] Fazer cópia de segurança dos dados de teste antes de limpar a pasta.
 
-### Firebase real (usar somente projeto descartável de teste)
+### Firebase real: pendências (usar somente projeto descartável de teste)
 
-- [ ] Criar projeto e Firestore, publicar as regras do arquivo `firestore.rules`.
-- [ ] Criar `urna.properties` usando o exemplo, restringir chave à API do Firestore e conferir que a chave não entra em `git status`.
-- [ ] Fazer uma votação e conferir documento de cinco votos anônimos na coleção `sessoes`.
+- [ ] Conferir diretamente no console o documento de cinco votos anônimos na coleção `sessoes`.
 - [ ] Desconectar a internet antes do fim, completar a votação, reabrir rede e aguardar sincronização automática.
-- [ ] Confirmar no Firestore que há um documento com UUID da sessão e que o TSV pendente foi limpo.
+- [ ] Confirmar no Firestore que o documento da sessão tem UUID e cinco votos e que o TSV pendente foi removido após a sincronização.
 - [ ] Limpar os documentos de teste no console Firebase e descartar a chave de teste se apropriado.
 
 ### Outras plataformas e rubrica

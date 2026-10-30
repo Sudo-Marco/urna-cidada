@@ -76,7 +76,7 @@ Cada voto contém somente cargo, tipo, número e data/hora. A sessão recebe um 
 
 ## Situação de verificação
 
-Verificados nesta sessão: compilação `javac --release 17`, 77 testes automáticos, fluxo REST contra servidor HTTP local falso e criação de pacote JAR. Ainda dependem de checagem manual: execução visual no Windows com escala 125%/150%, teclado físico, áudio e projetor; configuração e escrita no Firebase real; execução dos `.sh` em Linux/macOS; validação de rubrica do professor. O PDF mencionado em versões anteriores não estava no ZIP nem nos anexos disponíveis para esta revisão; os critérios que dependem dele ficam **não verificáveis**.
+Verificados nesta revisão: compilação `javac --release 17`, 86 testes automáticos (três execuções), fluxo REST contra servidor HTTP local falso e criação de pacote JAR. Na configuração do Firebase neste computador, a tela mostrou `Firebase configurado` e `Online · tudo enviado`; o usuário informou que a sessão de teste foi salva. A inspeção do documento diretamente no console Firestore e o teste de recuperação após ficar offline ainda não foram feitos nesta revisão. Também dependem de checagem manual a escala 125%/150%, teclado físico, áudio e projetor; a execução dos `.sh` em Linux/macOS; e a validação da rubrica do professor. O PDF mencionado em versões anteriores não estava no ZIP nem nos anexos disponíveis para esta revisão; os critérios que dependem dele ficam **não verificáveis**.
 
 A oficina e os resultados de extensão permanecem pendentes. Materiais de extensão, “Desafios”/CANVAS e a tabela Equipe não fazem parte desta revisão.
 
