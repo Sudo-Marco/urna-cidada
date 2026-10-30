@@ -2,25 +2,64 @@
 
 # 🗳️ Urna Cidadã
 
-**Simulador educativo de votação em Java 17 e Swing.**
+**Simulador educativo de votação em Java, com ações sobre cidadania digital e desinformação eleitoral.**
 
 ![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk&logoColor=white)
 ![Interface](https://img.shields.io/badge/Interface-Swing-blue)
 ![Armazenamento](https://img.shields.io/badge/Armazenamento-local%20primeiro%20%7C%20Firestore-FFCA28?logo=firebase&logoColor=black)
+![Build](https://img.shields.io/badge/Build-JDK%2017%2B-C71A36?logo=openjdk&logoColor=white)
+![Oficina](https://img.shields.io/badge/Oficina-a%20realizar-lightgrey)
 
 </div>
 
-> **SIMULAÇÃO EDUCATIVA · NÃO É UMA URNA OFICIAL.** Candidatos, partidos, números, propostas e vices deste exemplo são fictícios. O programa não coleta dados pessoais.
+> ⚠️ **Aviso:** este é um projeto **educativo**, não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Candidatos, partidos, números e propostas são fictícios.
 
-## O que é
+## 📑 Sumário
 
-Aplicativo desktop de uma única votação sequencial em cinco cargos. Cada votação tem um voto por cargo e só é persistida após a confirmação do último. Por padrão, grava primeiro em arquivo local e envia ao Cloud Firestore em segundo plano quando configurado e conectado. Não exige Maven, bibliotecas externas nem login do Google.
+- [Sobre](#-sobre)
+- [Situação do projeto](#-situação-do-projeto)
+- [Como executar](#️-como-executar)
+- [Como a votação funciona](#️-como-a-votação-funciona)
+- [Testes](#-testes)
+- [Estrutura](#-estrutura)
+- [Documentação](#-documentação)
+- [Privacidade e segurança](#-privacidade-e-segurança)
+- [Limitações conhecidas](#️-limitações-conhecidas)
+- [Resultados da ação de extensão](#-resultados-da-ação-de-extensão)
+- [Como contribuir](#-como-contribuir)
+- [Equipe](#-equipe)
 
-## Começar no Windows
+## 🎯 Sobre
 
-Requisito: **JDK 17 ou superior**, instalado e disponível nos comandos `java`, `javac` e `jar`. Para confirmar, abra um terminal e execute `java -version`.
+Projeto educativo de **Programação Orientada a Objetos**. Reúne duas frentes:
 
-Baixe ou clone o repositório, abra a pasta e dê duplo clique em `demo.bat` para testar em memória. Para usar no modo padrão local-primeiro, dê duplo clique em `iniciar.bat`. Em terminal:
+1. **O software:** uma urna de demonstração em Java 17 e Swing, com votação em cinco cargos e gravação local primeiro; quando configurado e conectado, sincroniza as sessões com o Cloud Firestore.
+2. **A ação educativa:** uma oficina para conversar sobre cidadania digital, uso responsável da internet e identificação de desinformação eleitoral.
+
+## 🚧 Situação do projeto
+
+**A aplicação está pronta para demonstração.** A oficina e a avaliação de impacto ainda serão realizadas.
+
+| Parte | Situação |
+|---|---|
+| Votação em cinco cargos, com voto válido, branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
+| Interface Swing sem painel lateral, com teclado na tela e atalhos de teclado | ✅ Implementada; a captura do usuário mostra a urna em execução no Windows |
+| Gravação local e fila para sincronização | ✅ Implementada; casos offline→online cobertos por testes automatizados com servidor HTTP local falso |
+| Conexão com o Cloud Firestore | ✅ Configurada no computador do usuário; a tela mostrou “Online · tudo enviado” e o usuário informou que uma sessão de teste foi salva |
+| Documentação técnica e de operação | ✅ Disponível em `docs/` |
+| Material educativo e questionário de impacto | 📝 Modelos disponíveis; serão usados na oficina |
+| Oficina com estudantes | ⬜ A realizar |
+| Resultados e avaliação de impacto | ⬜ Depois da oficina |
+
+## ▶️ Como executar
+
+**Requisito:** JDK 17 ou superior, com `java`, `javac` e `jar` disponíveis no terminal. Maven não é necessário.
+
+### Início rápido no Windows
+
+Na pasta do projeto, dê duplo clique em `demo.bat` para abrir uma demonstração em memória. Para iniciar no modo padrão, que grava localmente primeiro e tenta sincronizar com o Firestore quando configurado, dê duplo clique em `iniciar.bat`.
+
+Também é possível executar pelo terminal:
 
 ```bat
 scripts\demo.bat
@@ -30,64 +69,116 @@ scripts\iniciar.bat --memoria
 scripts\iniciar.bat --ajuda
 ```
 
-O primeiro uso compila o programa com `javac --release 17` e cria `dist\urna-cidada.jar`. O modo padrão funciona sem configuração Firebase: os votos ficam em `dados\votos-pendentes.tsv` ao lado do aplicativo. Se essa pasta não puder ser gravada, o programa tenta `%USERPROFILE%\.urna-cidada\dados`. O modo `--local` grava apenas em `votos-locais.tsv`; `--memoria` não mantém os dados ao fechar.
+O modo `--local` grava somente no computador. O modo `--memoria` não mantém os votos depois que o programa fecha. No modo padrão, cada votação é gravada primeiro em arquivo local; quando o Firebase está configurado e há conexão, a urna envia a sessão ao Firestore. Em caso de falha de rede, mantém a sessão pendente no computador e tenta enviá-la novamente quando a conexão volta.
 
-Para o Firestore, siga [Firebase: configuração passo a passo](docs/firebase-configuracao.md). A chave deve ficar em `urna.properties`, arquivo ignorado pelo Git. Sem configuração válida a urna abre e permanece em modo local.
+Para configurar o Firestore, siga [Firebase: configuração passo a passo](docs/firebase-configuracao.md). O arquivo local `urna.properties` contém o ID do projeto e a chave de API; ele é ignorado pelo Git e não deve ser enviado ao GitHub. Sem configuração válida, a urna continua funcionando em modo local.
 
-## Uma votação
+### Atalhos do teclado
 
-1. Inicie a urna; escolha o número de cada candidatura, branco ou nulo.
-2. Revise o candidato e confirme. Nos cargos proporcionais, os dois dígitos iniciais de partido podem ser confirmados como voto de legenda.
-3. Repita na ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente. Esta simulação simplifica o Senado a um voto.
-4. A tela mostra **FIM**; um mediador inicia a próxima votação pelo botão.
+| Tecla | Ação |
+|---|---|
+| `0` a `9` | Digitar o número |
+| `B` | Votar em branco |
+| `Backspace` | Corrigir |
+| `Enter` | Confirmar |
 
-Use as teclas `0–9`, `B` para branco, `Backspace` para corrigir e `Enter` para confirmar. O som pode ser silenciado na tela. A votação fica concentrada na tela principal, sem painel lateral.
+## 🗳️ Como a votação funciona
 
-## Compilar, testar e empacotar
+```mermaid
+flowchart TD
+    A([Início]) --> B[Deputado Federal: 4 dígitos]
+    B --> C[Deputado Estadual: 5 dígitos]
+    C --> D[Senador: 3 dígitos]
+    D --> E[Governador: 2 dígitos]
+    E --> F[Presidente: 2 dígitos]
+    F --> G{Confirma o último voto?}
+    G -->|Sim| H[Salva a sessão local e sincroniza se houver Firebase disponível]
+    H --> I([Fim])
+```
+
+- **Voto válido:** número completo de uma candidatura fictícia.
+- **Voto de legenda:** opção disponível nos cargos proporcionais.
+- **Voto nulo:** número completo que não corresponde a uma candidatura.
+- **Voto em branco:** escolha explícita de branco.
+- **Sem internet:** a sessão fica no arquivo local e aguarda a próxima tentativa automática de sincronização.
+
+O Senado é simplificado a um voto nesta simulação. Detalhes em [regras-de-votacao.md](docs/regras-de-votacao.md) e [casos-de-uso.md](docs/casos-de-uso.md).
+
+## 🧪 Testes
+
+No Windows, execute:
 
 ```bat
-scripts\compilar.bat
 scripts\testar.bat
-scripts\empacotar.bat
 ```
 
-Os testes são Java puro, não usam Maven nem internet. O resultado verificado nesta revisão foi `86 passaram, 0 falharam em cada uma de três execuções consecutivas`. Detalhes, matriz e checklist manual em [docs/testes.md](docs/testes.md). Também há lançadores `.sh` em `scripts/` para Linux e macOS; neste ciclo não foram executados em Linux/macOS.
+Os testes são Java puro: não precisam de Maven nem de internet. Na revisão registrada em `docs/testes.md`, **86 passaram e 0 falharam em cada uma de três execuções**.
 
-## GitHub
+Os testes cobrem regras de votação, gravação local, reserva e sincronização simulada com servidor HTTP local falso. Eles não substituem a verificação da tela em diferentes computadores e escalas, nem uma interrupção real da internet. A tela do usuário mostrou Firebase configurado e “Online · tudo enviado”; a inspeção independente do documento no console Firestore ainda está pendente. Consulte [testes.md](docs/testes.md) para a matriz e as verificações manuais.
 
-O código fonte pode ser colocado no repositório GitHub já existente. Esta aplicação Swing não é um site estático: GitHub Pages não pode hospedar uma janela Java. A entrega de desktop pode ser empacotada como JAR pela equipe; para abrir em outro computador, ele também precisa do JDK 17+. Leia [docs/operacao-oficina.md](docs/operacao-oficina.md) para clonar, testar e executar.
-
-## Estrutura
+## 📁 Estrutura
 
 ```text
-src/com/urnacidada/       modelo, serviço, interface Swing e persistência
-scripts/                  lançadores Windows/Linux/macOS
-firestore.rules           regras create-only do Firestore
-urna.properties.example   modelo sem chave real
-tests/                    testes Java puros e servidor HTTP falso
-docs/                     operação, rastreabilidade, regras e verificação
+urna-cidada-atualizado/
+├── src/com/urnacidada/       aplicação Java, votação, tela e persistência
+├── scripts/                  comandos para compilar, testar, empacotar e executar
+├── firestore.rules           regras do Firestore
+├── urna.properties.example   modelo de configuração sem chave real
+├── tests/                    testes automáticos Java
+└── docs/                     requisitos, operação, Firebase e materiais da oficina
 ```
 
-As classes de dados de exemplo ficam centralizadas em `Eleicao.exemplo()`; edite somente dados fictícios antes de uma oficina. Os números de partido 81–83 também são inventados.
+As candidaturas fictícias ficam centralizadas em `Eleicao.exemplo()`. Não use dados pessoais ou candidatos reais nesta simulação.
 
-## Privacidade e limites
+## 📚 Documentação
 
-Cada voto contém somente cargo, tipo, número e data/hora. A sessão recebe um UUID aleatório; nenhum nome, matrícula, e-mail ou campo equivalente é guardado. A chave de API do Firebase é pública por natureza: as regras impedem leitura, atualização e remoção anônimas, mas qualquer pessoa com acesso à chave pode tentar criar sessões. Restrinja a chave à API do Firestore e monitore o uso. Não use este protótipo como sistema eleitoral real.
+Índice completo em [docs/README.md](docs/README.md).
 
-## Situação de verificação
+| Documento | Conteúdo |
+|---|---|
+| [requisitos.md](docs/requisitos.md) | Requisitos e situação de cada item |
+| [regras-de-votacao.md](docs/regras-de-votacao.md) | Regras de voto e dados gravados |
+| [casos-de-uso.md](docs/casos-de-uso.md) | Atores e casos de uso |
+| [diagrama-classes.md](docs/diagrama-classes.md) | Arquitetura e conceitos de POO |
+| [testes.md](docs/testes.md) | Testes automáticos e verificações manuais |
+| [firebase-configuracao.md](docs/firebase-configuracao.md) | Configuração e verificação do Firestore |
+| [operacao-oficina.md](docs/operacao-oficina.md) | Preparação e execução da oficina |
+| [material-oficina.md](docs/material-oficina.md) | Roteiro educativo sobre desinformação |
 
-Verificados nesta revisão: compilação `javac --release 17`, 86 testes automáticos (três execuções), fluxo REST contra servidor HTTP local falso e criação de pacote JAR. Na configuração do Firebase neste computador, a tela mostrou `Firebase configurado` e `Online · tudo enviado`; o usuário informou que a sessão de teste foi salva. A inspeção do documento diretamente no console Firestore e o teste de recuperação após ficar offline ainda não foram feitos nesta revisão. Também dependem de checagem manual a escala 125%/150%, teclado físico, áudio e projetor; a execução dos `.sh` em Linux/macOS; e a validação da rubrica do professor. O PDF mencionado em versões anteriores não estava no ZIP nem nos anexos disponíveis para esta revisão; os critérios que dependem dele ficam **não verificáveis**.
+## 🔒 Privacidade e segurança
 
-A oficina e os resultados de extensão permanecem pendentes. Materiais de extensão, “Desafios”/CANVAS e a tabela Equipe não fazem parte desta revisão.
+- Cada sessão guarda um UUID aleatório e os votos com cargo, tipo, número e data/hora; não guarda nome, e-mail ou matrícula.
+- A chave de API Firebase é pública por natureza. As regras do Firestore limitam a gravação permitida e negam leitura, atualização e exclusão anônimas; isso não prova a identidade de quem votou nem impede tentativas de abuso.
+- Não envie `urna.properties`, dados de votação ou credenciais de serviço ao GitHub. A configuração local está ignorada pelo Git.
+- Esta aplicação é um simulador educativo. Não use para eleições reais nem para decisões oficiais.
 
-## Documentação
+## ⚠️ Limitações conhecidas
 
-Veja [docs/README.md](docs/README.md) para o índice, [docs/solucao-de-problemas.md](docs/solucao-de-problemas.md) para mensagens e correções, e [docs/testes.md](docs/testes.md) para resultados reais e verificações manuais.
+- A configuração do Firestore foi feita no computador do usuário. A tela exibiu o estado online e o usuário informou que a sessão de teste foi salva; a conferência do documento diretamente no console e o teste manual de reconexão após uma queda real de internet continuam pendentes.
+- Para usar em outro computador, é necessário JDK 17 ou superior e uma configuração Firebase local própria, se quiser sincronizar com o Firestore.
+- Linux e macOS têm scripts, mas não foram verificados neste ciclo. Escalas de tela, teclado físico, áudio e projetor também precisam de conferência nos equipamentos da oficina.
+- Os candidatos, partidos e números são fictícios. Os critérios exclusivos da rubrica do professor não foram verificados porque o PDF não estava disponível.
+
+## 📊 Resultados da ação de extensão
+
+> **A preencher depois da oficina.** Registre apenas atividades e resultados que realmente acontecerem.
+
+| Item | Registro |
+|---|---|
+| Data e local | _a preencher_ |
+| Escola parceira | _a preencher_ |
+| Número de participantes | _a preencher_ |
+| Principais resultados do questionário | _a preencher_ |
+| Aprendizados e melhorias | _a preencher_ |
+
+## 🤝 Como contribuir
+
+Trabalhe na branch definida como principal no GitHub e abra uma solicitação de integração (Pull Request) para mudanças maiores. Use prefixos claros nas mensagens de commit: `feat:` para novidade, `fix:` para correção, `docs:` para documentação e `test:` para testes. Antes de enviar código, execute `scripts\testar.bat` e confira `git status`. Não inclua `urna.properties` nem arquivos locais de votos.
 
 ## 👥 Equipe
 
 | Integrante | Frentes de atuação |
 |---|---|
-| **Marco Antônio** | Coordenação do repositório (Git e GitHub, branches e Pull Requests); regras de votação e testes automáticos; persistência no Cloud Firestore e configuração do Firebase; integração e entrega do código |
-| **Cauã Reis** | Interface gráfica em Swing (tela, teclado e mensagens ao participante); verificação manual da tela e do teclado; testes de usabilidade no projetor da oficina |
-| **Vitória Alves** | Ação de extensão: material educativo sobre desinformação, questionário de impacto e alinhamento com os ODS; contato com a escola e condução da oficina; documentação pedagógica |
+| **Marco Antônio** | Coordenação do repositório, regras de votação, testes, persistência no Firestore e integração da entrega |
+| **Cauã Reis** | Interface Swing, teclado, mensagens e verificação manual da urna |
+| **Vitória Alves** | Material educativo, questionário de impacto, contato com a escola e condução da oficina |
