@@ -37,7 +37,7 @@ São testes Java puros sem JUnit, Maven ou internet. O cliente HTTP usa `com.sun
 |---|---|---|
 | Cinco cargos, sequência e regras de voto | `model/Eleicao.java`, `service/UrnaService.java` | `ModeloTestes`, `UrnaServiceTestes` |
 | Legenda, branco, nulo e correção | `TipoVoto.java`, `UrnaService.java` | `UrnaServiceTestes`, `ControladorUrnaTestes` |
-| Lista de candidaturas e layout | `PainelCandidatos.java`, `PainelUrna.java` | `PainelUrnaTestes` (headless); aparência real pendente |
+| Layout principal sem painel lateral | `PainelUrna.java` | `PainelUrnaTestes` (headless); aparência real pendente |
 | Arquivo atômico e compatibilidade TSV | `VotoRepositoryEmArquivo.java` | `RepositorioTestes` |
 | REST, sincronização e idempotência | `FirestoreRestVotoClient.java`, `VotoRepositoryLocalPrimeiro.java` | Servidor HTTP falso; Firebase real pendente |
 | Sem credenciais para modo local/demonstração | `Main.java`, `ConfiguracaoUrna.java` | Configuração e repositório local sob teste |
@@ -52,7 +52,7 @@ Marque somente após executar no equipamento real; nenhum destes itens foi marca
 - [ ] Abrir `scripts\demo.bat` no Windows e conferir o aviso fixo “SIMULAÇÃO EDUCATIVA · NÃO É UMA URNA OFICIAL”.
 - [ ] Realizar cinco cargos com botões gráficos e depois com teclado físico: dígitos, `B`, `Backspace`, `Enter`.
 - [ ] Confirmar válido, legenda em Deputado, nulo, branco e correção.
-- [ ] Conferir o cartão destacado, partido, propostas e vice nos cargos executivos.
+- [ ] Conferir a identificação do candidato selecionado e os comandos da tela principal.
 - [ ] Silenciar/reativar som; testar máquina sem dispositivo de áudio e confirmar que continua funcionando.
 - [ ] Conferir texto e botões no tamanho normal e maximizado a 1366×768.
 - [ ] Conferir escala Windows 125% e 150%, mínimo da janela e legibilidade no projetor.

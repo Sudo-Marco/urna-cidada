@@ -23,8 +23,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.Objects;
-import java.util.List;
-import com.urnacidada.model.Candidato;
 
 /**
  * Visão da urna: desenha a tela e o teclado. Não tem regra de votação; apenas repassa
@@ -51,7 +49,6 @@ public final class PainelUrna extends JPanel {
     }
 
     private final AcoesUrna acoes;
-    private final PainelCandidatos candidatos = new PainelCandidatos();
     private final JLabel persistencia = rotulo(11, Font.PLAIN, CINZA);
     private boolean fimTocado;
 
@@ -106,10 +103,6 @@ public final class PainelUrna extends JPanel {
         repaint();
     }
 
-    public void atualizarCandidatos(String nomeCargo, List<Candidato> lista, String digitado) {
-        candidatos.atualizar(nomeCargo, lista, digitado);
-    }
-
     public void atualizarPersistencia(String estado, String caminho) {
         persistencia.setText(estado);
         persistencia.setToolTipText(caminho);
@@ -138,11 +131,7 @@ public final class PainelUrna extends JPanel {
         teclado.setPreferredSize(new Dimension(LARGURA_DO_TECLADO, 10)); // largura fixa: não muda com o texto
         corpo.add(criarTela(), BorderLayout.CENTER);
         corpo.add(teclado, BorderLayout.EAST);
-        JPanel composto = new JPanel(new BorderLayout(14, 0));
-        composto.setOpaque(false);
-        composto.add(candidatos, BorderLayout.WEST);
-        composto.add(corpo, BorderLayout.CENTER);
-        return composto;
+        return corpo;
     }
 
     private JPanel criarTela() {

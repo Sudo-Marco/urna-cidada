@@ -48,7 +48,6 @@ public final class TelaUrna extends JFrame {
         return t;
     });
     private final PainelUrna painel;
-    private final Eleicao eleicao;
     private final String dicaInicial;
     private ControladorUrna controlador;
     private final Timer timerEstado;
@@ -60,7 +59,6 @@ public final class TelaUrna extends JFrame {
     public TelaUrna(Eleicao eleicao, VotoRepository repositorio, String dicaInicial) {
         super("Urna Cidadã · Simulador educativo");
         this.repositorio = repositorio;
-        this.eleicao = eleicao;
         this.dicaInicial = dicaInicial;
 
         painel = new PainelUrna(new RepasseDeAcoes(), repositorio.descricao());
@@ -89,8 +87,6 @@ public final class TelaUrna extends JFrame {
 
     private void exibirEstado(EstadoTela estado) {
         painel.exibir(estado);
-        eleicao.cargos().stream().filter(c -> c.nome().equalsIgnoreCase(estado.cargo())).findFirst()
-                .ifPresent(c -> painel.atualizarCandidatos(c.nome(), c.candidatos(), estado.digitado()));
         painel.atualizarPersistencia(repositorio.estadoPersistencia(), dicaInicial);
     }
 

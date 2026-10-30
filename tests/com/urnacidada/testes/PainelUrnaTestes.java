@@ -220,14 +220,12 @@ final class PainelUrnaTestes {
             desenhar(painel);
         });
 
-        caso("painel lateral mostra candidatos, propostas e vice fictício", () -> {
+        caso("tela principal não exibe painel lateral de candidatos", () -> {
             PainelUrna painel = new PainelUrna(new Gravador(), "teste");
-            var cargo = Eleicao.exemplo().cargos().get(3);
-            painel.atualizarCandidatos(cargo.nome(), cargo.candidatos(), "81");
+            painel.exibir(new EstadoTela(Modo.DIGITANDO, "DEPUTADO ESTADUAL", "CARGO 2 DE 5", 5,
+                    "", "Digite o número do candidato", "", "", "", TipoMensagem.INFO, true));
             desenhar(painel, new Dimension(1366, 768));
-            verdade(contemTexto(painel, "Jaci Nascente"), "nome do candidato no painel lateral");
-            verdade(contemTexto(painel, "Ampliar bibliotecas"), "proposta no painel lateral");
-            verdade(contemTexto(painel, "Kiro Horizonte"), "vice no painel lateral");
+            verdade(!contemTexto(painel, "CANDIDATOS ·"), "a lista lateral não deve aparecer");
         });
 
         caso("estados de candidato de todos os cargos cabem no mínimo e em 1366x768", () -> {
@@ -236,7 +234,6 @@ final class PainelUrnaTestes {
                 for (var candidato : cargo.candidatos()) {
                     for (Dimension tamanho : tamanhos) {
                         PainelUrna painel = new PainelUrna(new Gravador(), "Modo local");
-                        painel.atualizarCandidatos(cargo.nome(), cargo.candidatos(), candidato.numero());
                         painel.exibir(new EstadoTela(Modo.CANDIDATO, cargo.nome().toUpperCase(), "CARGO 1 DE 5",
                                 cargo.digitos(), candidato.numero(), candidato.nome(), candidato.partido(),
                                 candidato.explicacaoCargo(), "Confira a escolha e confirme ou corrija.",

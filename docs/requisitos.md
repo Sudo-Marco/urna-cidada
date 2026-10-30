@@ -19,7 +19,7 @@ Este documento reflete o código e a verificação desta revisão. A especifica�
 | Entrada válida, nula, branca, correção e legenda proporcional | `UrnaService.java`, `TipoVoto.java` | `regras-de-votacao.md` | `UrnaServiceTestes`, `ControladorUrnaTestes`: verificado |
 | Confirmações sequenciais e persistência só após quinto cargo | `UrnaService.java` | `casos-de-uso.md` | fluxo completo nos testes: verificado |
 | Painel, teclado gráfico/físico, estado visual e fim sem reinício automático | `view/PainelUrna.java`, `TelaUrna.java` | `testes.md` | Desenho headless verificado; janela, teclado físico e áudio manual pendentes |
-| Painel rolável de candidaturas e propostas | `view/PainelCandidatos.java` | `regras-de-votacao.md` | Compilado; inspeção visual real e escala 125%/150% pendentes |
+| Tela principal sem painel lateral, com teclado e confirmação | `view/PainelUrna.java`, `TelaUrna.java` | README, `testes.md` | Layout headless coberto; inspeção visual real e escala 125%/150% pendentes |
 | Local primeiro, escrita atômica, compatibilidade TSV e sincronização assíncrona sem duplicar | `VotoRepositoryEmArquivo.java`, `VotoRepositoryLocalPrimeiro.java` | `operacao-oficina.md`, `testes.md` | Teste local + servidor falso: verificado; indisponibilidade de energia/disco real não simulada |
 | Firestore REST, timeouts, erros de configuração/transitórios e idempotência | `FirestoreRestVotoClient.java` | `firebase-configuracao.md` | HTTP falso: 200, 409, 400/401/403/404, 503, timeout e servidor ausente verificados; Firebase real pendente |
 | Regras create-only e sem leitura/alteração/exclusão | `firestore.rules` | `firebase-configuracao.md` | Inspecionadas; publicação e avaliação no Firebase real pendentes |

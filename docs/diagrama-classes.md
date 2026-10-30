@@ -6,7 +6,7 @@ A interface recebe o estado do controlador; `UrnaService` valida regras e cria m
 
 ```mermaid
 flowchart LR
-  T[TelaUrna / PainelUrna / PainelCandidatos] --> C[ControladorUrna]
+  T[TelaUrna / PainelUrna] --> C[ControladorUrna]
   C --> S[UrnaService]
   S --> R[VotoRepository]
   R --> M[Memória]
@@ -26,7 +26,7 @@ flowchart LR
 | `model` | `Candidato`, `CandidatoProporcional`, `CandidatoMajoritario`, `Cargo`, `Eleicao`, `Voto`, `TipoVoto` | Dados imutáveis e validação de candidatura/cargo |
 | `service` | `UrnaService` | Sequência, entradas, branco, nulo, legenda, sessão |
 | `repository` | `VotoRepository`, `VotoRepositoryEmMemoria`, `VotoRepositoryEmArquivo`, `VotoRepositoryLocalPrimeiro`, `FirestoreRestVotoClient`, `FalhaFirestore` | Persistência, fila de pendências e REST |
-| `view` | `EstadoTela`, `ControladorUrna`, `PainelUrna`, `PainelCandidatos`, `SomUrna`, `TelaUrna` | Interface Swing e eventos |
+| `view` | `EstadoTela`, `ControladorUrna`, `PainelUrna`, `SomUrna`, `TelaUrna` | Interface Swing e eventos |
 | raiz | `Main`, `ConfiguracaoUrna`, `CaminhosAplicacao`, `LogUrna`, `TravaInstancia` | Inicialização, configuração, caminhos e operação |
 
 ```mermaid
@@ -45,7 +45,6 @@ classDiagram
   class FirestoreRestVotoClient
   class ControladorUrna
   class PainelUrna
-  class PainelCandidatos
   Candidato <|-- CandidatoProporcional
   Candidato <|-- CandidatoMajoritario
   Cargo o-- Candidato
@@ -58,7 +57,6 @@ classDiagram
   VotoRepositoryLocalPrimeiro --> VotoRepositoryEmArquivo
   VotoRepositoryLocalPrimeiro --> FirestoreRestVotoClient
   ControladorUrna --> UrnaService
-  PainelUrna --> PainelCandidatos
   PainelUrna ..> ControladorUrna
 ```
 

@@ -41,7 +41,7 @@ Para o Firestore, siga [Firebase: configuração passo a passo](docs/firebase-co
 3. Repita na ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente. Esta simulação simplifica o Senado a um voto.
 4. A tela mostra **FIM**; um mediador inicia a próxima votação pelo botão.
 
-Use as teclas `0–9`, `B` para branco, `Backspace` para corrigir e `Enter` para confirmar. O som pode ser silenciado na tela. Há um painel rolável com candidatos e propostas fictícias.
+Use as teclas `0–9`, `B` para branco, `Backspace` para corrigir e `Enter` para confirmar. O som pode ser silenciado na tela. A votação fica concentrada na tela principal, sem painel lateral.
 
 ## Compilar, testar e empacotar
 
