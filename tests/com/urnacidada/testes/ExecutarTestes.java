@@ -16,6 +16,9 @@ public final class ExecutarTestes {
         RepositorioTestes.executar();
         ControladorUrnaTestes.executar();
         PainelUrnaTestes.executar();
+        ConfiguracaoTestes.executar();
+        FirestoreTestes.executar();
+        LocalPrimeiroTestes.executar();
 
         System.exit(MiniTeste.resumo() ? 0 : 1);
     }

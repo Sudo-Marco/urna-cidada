@@ -26,9 +26,15 @@ replay_pid*
 # Saída de compilação e execução
 target/
 out/
+build/
+dist/
+logs/
 
 # Votos gravados localmente (dados dos testes e da oficina; não versionar)
 dados/
+
+# Configuração privada da API pública do Firebase
+urna.properties
 
 # Credenciais e segredos: NUNCA enviar ao GitHub
 serviceAccountKey.json

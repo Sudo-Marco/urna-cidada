@@ -78,6 +78,16 @@ final class RepositorioTestes {
             igual(doisVotos(), lidas.get(0).votos());
         });
 
+        teste("arquivo lê o formato TSV usado pelas versões anteriores", () -> {
+            Path caminho = arquivoTemporario();
+            Files.createDirectories(caminho.getParent());
+            Files.writeString(caminho,
+                    "sessao-antiga\tVereador,VALIDO,12345,2026-10-20T12:00:00Z\tPrefeito,BRANCO,,2026-10-20T12:00:05Z\n",
+                    StandardCharsets.UTF_8);
+            List<SessaoSalva> lidas = new VotoRepositoryEmArquivo(caminho, "teste").lerSessoes();
+            igual(1, lidas.size()); igual("sessao-antiga", lidas.get(0).sessaoId()); igual(2, lidas.get(0).votos().size());
+        });
+
         teste("arquivo: gravar a mesma sessão duas vezes não duplica", () -> {
             VotoRepositoryEmArquivo arquivo = new VotoRepositoryEmArquivo(arquivoTemporario(), "teste");
             arquivo.salvarSessao("s1", doisVotos());
@@ -107,9 +117,12 @@ final class RepositorioTestes {
             arquivo.salvarSessao("s1", doisVotos());
             Files.writeString(caminho, "lixo\tsem,formato\n", StandardCharsets.UTF_8,
                     java.nio.file.StandardOpenOption.APPEND);
+            Files.writeString(caminho, "%ZZ\tlinha,inválida,\n", StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.APPEND);
             igual(1, arquivo.lerSessoes().size());
             arquivo.salvarSessao("s2", doisVotos());
             verdade(Files.readString(caminho, StandardCharsets.UTF_8).contains("lixo"), "linha preservada");
+            verdade(Files.readString(caminho, StandardCharsets.UTF_8).contains("%ZZ"), "linha com escape inválido preservada");
         });
 
         teste("arquivo: erro de gravação vira RepositorioException", () -> {

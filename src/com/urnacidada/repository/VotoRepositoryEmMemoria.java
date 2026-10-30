@@ -23,4 +23,10 @@ public class VotoRepositoryEmMemoria implements VotoRepository {
     public String descricao() {
         return "Somente memória (nada é salvo ao fechar)";
     }
+
+    @Override
+    public String estadoPersistencia() { return "Modo demonstração"; }
+
+    @Override
+    public String dicaPersistencia() { return "Os votos de demonstração somem ao fechar a urna."; }
 }

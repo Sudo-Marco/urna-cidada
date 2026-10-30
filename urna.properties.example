@@ -1,0 +1,4 @@
+# Copie este arquivo para urna.properties e substitua os dois valores.
+# A chave de API identifica o projeto; as regras do Firestore controlam a escrita.
+firebase.projectId=SEU_PROJECT_ID
+firebase.apiKey=SUA_CHAVE_API

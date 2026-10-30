@@ -4,15 +4,24 @@ import com.urnacidada.model.TipoVoto;
 import com.urnacidada.model.Voto;
 
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.channels.OverlappingFileLockException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Guarda as sessões em um arquivo de texto local, uma sessão por linha.
@@ -26,6 +35,8 @@ import java.util.Set;
  */
 public final class VotoRepositoryEmArquivo implements VotoRepository {
 
+    private static final Map<Path, ReentrantLock> TRAVAS_DA_JVM = new ConcurrentHashMap<>();
+
     /** Uma sessão lida do arquivo. */
     public record SessaoSalva(String sessaoId, List<Voto> votos) { }
 
@@ -38,37 +49,51 @@ public final class VotoRepositoryEmArquivo implements VotoRepository {
     }
 
     @Override
-    public synchronized void salvarSessao(String sessaoId, List<Voto> votos) throws RepositorioException {
-        List<String> linhas = new ArrayList<>(lerLinhas());
-        linhas.removeIf(linha -> sessaoId.equals(idDaLinha(linha)));
-        linhas.add(codificar(sessaoId, votos));
-        escrever(linhas);
+    public void salvarSessao(String sessaoId, List<Voto> votos) throws RepositorioException {
+        comTrava(() -> {
+            List<String> linhas = new ArrayList<>(lerLinhas());
+            linhas.removeIf(linha -> sessaoId.equals(idDaLinha(linha)));
+            linhas.add(codificar(sessaoId, votos));
+            escreverAtomico(linhas);
+            return null;
+        });
     }
 
     /** Sessões válidas do arquivo. Linhas ilegíveis são ignoradas (e mantidas no arquivo). */
-    public synchronized List<SessaoSalva> lerSessoes() throws RepositorioException {
-        List<SessaoSalva> sessoes = new ArrayList<>();
-        for (String linha : lerLinhas()) {
-            try {
-                sessoes.add(decodificar(linha));
-            } catch (RuntimeException ignorada) {
-                // linha corrompida: não é apagada, só não é usada
+    public List<SessaoSalva> lerSessoes() throws RepositorioException {
+        return comTrava(() -> {
+            List<SessaoSalva> sessoes = new ArrayList<>();
+            for (String linha : lerLinhas()) {
+                try {
+                    sessoes.add(decodificar(linha));
+                } catch (RuntimeException ignorada) {
+                    // linha corrompida: não é apagada, só não é usada
+                }
             }
-        }
-        return sessoes;
+            return List.copyOf(sessoes);
+        });
     }
 
     /** Remove do arquivo as sessões indicadas. */
-    public synchronized void removerSessoes(Set<String> ids) throws RepositorioException {
-        List<String> linhas = new ArrayList<>(lerLinhas());
-        linhas.removeIf(linha -> ids.contains(idDaLinha(linha)));
-        escrever(linhas);
+    public void removerSessoes(Set<String> ids) throws RepositorioException {
+        comTrava(() -> {
+            List<String> linhas = new ArrayList<>(lerLinhas());
+            linhas.removeIf(linha -> ids.contains(idDaLinha(linha)));
+            escreverAtomico(linhas);
+            return null;
+        });
     }
 
     @Override
     public String descricao() {
         return rotulo;
     }
+
+    @Override
+    public String estadoPersistencia() { return rotulo; }
+
+    @Override
+    public String dicaPersistencia() { return "Dados locais: " + arquivo.toAbsolutePath(); }
 
     public Path arquivo() {
         return arquivo;
@@ -89,16 +114,64 @@ public final class VotoRepositoryEmArquivo implements VotoRepository {
         }
     }
 
-    private void escrever(List<String> linhas) throws RepositorioException {
+    private void escreverAtomico(List<String> linhas) throws RepositorioException {
+        Path temporario = null;
         try {
             Path pasta = arquivo.toAbsolutePath().getParent();
             if (pasta != null) {
                 Files.createDirectories(pasta);
             }
-            Files.write(arquivo, linhas, StandardCharsets.UTF_8);
+            temporario = Files.createTempFile(pasta, arquivo.getFileName().toString(), ".tmp");
+            String conteudo = linhas.isEmpty() ? "" : String.join(System.lineSeparator(), linhas) + System.lineSeparator();
+            Files.writeString(temporario, conteudo, StandardCharsets.UTF_8,
+                    StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+            try (FileChannel canal = FileChannel.open(temporario, StandardOpenOption.WRITE)) {
+                canal.force(true);
+            }
+            try {
+                Files.move(temporario, arquivo, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(temporario, arquivo, StandardCopyOption.REPLACE_EXISTING);
+            }
         } catch (IOException e) {
             throw new RepositorioException("Não foi possível gravar o arquivo local " + arquivo + ".", e);
+        } finally {
+            if (temporario != null) {
+                try { Files.deleteIfExists(temporario); } catch (IOException ignorada) { }
+            }
         }
+    }
+
+    private <T> T comTrava(OperacaoComTrava<T> operacao) throws RepositorioException {
+        Path normalizado = arquivo.toAbsolutePath().normalize();
+        ReentrantLock local = TRAVAS_DA_JVM.computeIfAbsent(normalizado, ignorada -> new ReentrantLock());
+        local.lock();
+        Path pasta = normalizado.getParent();
+        Path arquivoTrava = normalizado.resolveSibling(normalizado.getFileName() + ".lock");
+        try {
+            if (pasta != null) Files.createDirectories(pasta);
+            try (FileChannel canal = FileChannel.open(arquivoTrava, StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+                FileLock trava;
+                try {
+                    trava = canal.lock();
+                } catch (OverlappingFileLockException ocupado) {
+                    throw new RepositorioException("Outra instância da urna está usando os dados. Feche-a e tente novamente.", ocupado);
+                }
+                FileLock adquirida = trava;
+                try (adquirida) {
+                    return operacao.executar();
+                }
+            }
+        } catch (IOException e) {
+            throw new RepositorioException("Não foi possível proteger o arquivo local " + normalizado + ".", e);
+        } finally {
+            local.unlock();
+        }
+    }
+
+    @FunctionalInterface
+    private interface OperacaoComTrava<T> {
+        T executar() throws RepositorioException;
     }
 
     private static String codificar(String sessaoId, List<Voto> votos) {
@@ -129,7 +202,11 @@ public final class VotoRepositoryEmArquivo implements VotoRepository {
 
     private static String idDaLinha(String linha) {
         int tab = linha.indexOf('\t');
-        return decodificarTexto(tab < 0 ? linha : linha.substring(0, tab));
+        try {
+            return decodificarTexto(tab < 0 ? linha : linha.substring(0, tab));
+        } catch (IllegalArgumentException linhaCorrompida) {
+            return null; // mantém a linha ilegível sem impedir que outras sessões sejam gravadas/removidas
+        }
     }
 
     private static String codificarTexto(String texto) {

@@ -26,4 +26,10 @@ public interface VotoRepository {
     default Optional<String> avisoDaUltimaGravacao() {
         return Optional.empty();
     }
+
+    /** Texto curto do estado atual mostrado na interface. */
+    default String estadoPersistencia() { return descricao(); }
+
+    /** Dica com o caminho de dados para o operador, sem ocupar a tela. */
+    default String dicaPersistencia() { return descricao(); }
 }
