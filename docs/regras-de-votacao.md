@@ -1,78 +1,74 @@
 # Regras de votação
 
-> Regras **implementadas** em `UrnaService` e mostradas pela tela. Ainda precisam ser validadas pelo grupo e pelo professor (ver [requisitos.md](requisitos.md)).
+> Aplicadas por `UrnaService`; candidatos e partidos são fictícios. A simulação não é uma urna oficial.
 
-## Fluxo
+## Uma sessão de votação
 
 ```mermaid
 flowchart TD
-    A(["Início"]) --> B["Vereador: digita 5 dígitos ou vota em branco"]
-    B --> C{"CONFIRMA"}
-    C --> D["Prefeito: digita 2 dígitos ou vota em branco"]
-    D --> E{"CONFIRMA"}
-    E --> F["Votos gravados"]
-    F --> G(["Fim"])
+  A[Iniciar uma votação] --> B[Deputado Federal · 4 dígitos]
+  B --> C[Deputado Estadual · 5 dígitos]
+  C --> D[Senador · 3 dígitos · um voto]
+  D --> E[Governador · 2 dígitos]
+  E --> F[Presidente · 2 dígitos]
+  F --> G[Gravar sessão local]
+  G --> H{Firebase configurado e disponível?}
+  H -- sim --> I[Enviar em segundo plano]
+  H -- não --> J[Manter pendente no computador]
+  I --> K[FIM]
+  J --> K
 ```
 
-## Regras
+## Escolha em cada cargo
 
-| Regra | Comportamento |
-|---|---|
-| Ordem dos cargos | 1º Vereador (5 dígitos), 2º Prefeito (2 dígitos) |
-| Digitar | Só números; não aceita mais dígitos do que o cargo permite |
-| Voto válido | Número completo que pertence a um candidato |
-| Voto nulo | Número completo que **não** pertence a ninguém |
-| Voto em branco | Escolha explícita; só vale se nenhum dígito foi digitado |
-| Corrigir | Apaga os dígitos ou o branco do cargo atual |
-| Confirmar | Exige número completo ou branco; avança para o próximo cargo |
-| Gravação | Só ao confirmar o **último** cargo |
-| Falha ao gravar | A votação não termina; o participante pode confirmar de novo |
-| Sem internet | Com a reserva ativa, os votos ficam no computador e são enviados depois |
-| Depois do fim | A urna ignora as teclas até iniciar uma nova votação |
-| Anonimato | Cada voto guarda apenas cargo, tipo, número e data/hora |
+- **Válido:** número completo cadastrado.
+- **Nulo:** número completo sem candidatura correspondente; a tela avisa antes da confirmação.
+- **Branco:** apertar BRANCO sem digitar nenhum dígito.
+- **Corrigir:** apaga o número ou desmarca branco no cargo atual.
+- **Legenda:** somente nos dois cargos de Deputado. Digitar dois dígitos de partido (81, 82 ou 83) mostra seu nome; confirmar ali registra `LEGENDA` com o número do partido.
+- **Confirmar:** aceita número completo, legenda válida nos cargos proporcionais ou branco; número incompleto não avança.
+- **Persistência:** votos intermediários ficam na memória da sessão; o arquivo local recebe todos os cinco votos ao confirmar o último cargo. A interface executa essa gravação em segundo plano.
+- **Fim:** exibe “FIM”. A urna não recomeça automaticamente; o mediador usa “Iniciar nova votação”.
 
-## O que a tela mostra
+Teclado físico: `0–9`, `B`, `Backspace`, `Enter`. O botão de áudio pode silenciar os bipes. O áudio não é necessário para votar.
 
-| Situação | Título | Mensagem (cor) |
-|---|---|---|
-| Digitando | "Digite o número do candidato" | Orientação (azul) |
-| Número completo e existente | Nome do candidato, partido e explicação do cargo | "Confira o candidato…" (verde) |
-| Número completo e inexistente | "NÚMERO ERRADO / VOTO NULO" | Aviso (âmbar) |
-| Voto em branco | "VOTO EM BRANCO" | Orientação (azul) |
-| Erro de uso | (mantém a tela) | Explicação do erro (vermelho) |
-| Fim | "VOTAÇÃO CONCLUÍDA / FIM" | Confirmação ou aviso de reserva |
+## Dados de exemplo
 
-## Candidatos fictícios
+A fonte única de candidaturas é `Eleicao.exemplo()` em `src/com/urnacidada/model/Eleicao.java`. Códigos de partido 81–83, nomes, vices e propostas são inventados e neutros. Altere ali e preserve os comprimentos configurados de cada cargo.
 
-| Cargo | Número | Nome | Partido |
-|---|---|---|---|
-| Vereador | 12345 | Ana Exemplo | Partido Fictício A |
-| Vereador | 23456 | Bruno Teste | Partido Fictício B |
-| Vereador | 34567 | Carla Modelo | Partido Fictício C |
-| Prefeito | 11 | Diego Simulado | Partido Fictício A |
-| Prefeito | 22 | Elisa Educativa | Partido Fictício B |
-| Prefeito | 33 | Fábio Didático | Partido Fictício C |
+| Cargo | Número | Candidato fictício | Partido fictício |
+|---|---:|---|---|
+| Federal | 8101 | Ari Lume | Partido Horizonte Fictício |
+| Federal | 8202 | Bela Nébula | Rede Aurora Fictícia |
+| Federal | 8303 | Cael Brisa | Movimento Caminhos Fictício |
+| Estadual | 81001 | Dora Vale-Luz | Partido Horizonte Fictício |
+| Estadual | 82002 | Eno Maré-Clara | Rede Aurora Fictícia |
+| Estadual | 83003 | Fira Campo-Azul | Movimento Caminhos Fictício |
+| Senador | 811 | Galo Riacho | Partido Horizonte Fictício |
+| Senador | 822 | Hera Pôr-do-Sol | Rede Aurora Fictícia |
+| Senador | 833 | Ivo Pedra-Mansa | Movimento Caminhos Fictício |
+| Governador | 81 | Jaci Nascente (vice Kiro Horizonte) | Partido Horizonte Fictício |
+| Governador | 82 | Luma Cedro-Doce (vice Miro Brisa-Firme) | Rede Aurora Fictícia |
+| Governador | 83 | Nilo Serra-Clara (vice Ona Vale-Verde) | Movimento Caminhos Fictício |
+| Presidente | 81 | Pia Sol-Nascente (vice Quim Rio-Calmo) | Partido Horizonte Fictício |
+| Presidente | 82 | Ravi Lago-Azul (vice Suri Campo-Livre) | Rede Aurora Fictícia |
+| Presidente | 83 | Tali Nuvem-Mansa (vice Uli Trilha-Larga) | Movimento Caminhos Fictício |
 
-## Exemplos para a oficina
+## Documento armazenado
 
-| O participante faz | Resultado |
-|---|---|
-| Digita `12345` | Mostra Ana Exemplo |
-| Digita `99999` | NÚMERO ERRADO, voto nulo |
-| Aperta BRANCO sem digitar | Voto em branco |
-| Digita `123` e aperta CONFIRMA | Erro: falta completar o número |
-| Aperta BRANCO depois de digitar | Erro: usar CORRIGE antes |
+Cada documento `sessoes/{UUID}` contém `votos`, uma lista de cinco mapas. Cada voto inclui `cargo`, `tipo`, `numero` (nulo real no voto branco) e `dataHora` ISO-8601. O arquivo local é TSV UTF-8 e lê linhas do formato histórico já usado pelo projeto.
 
-## Dados gravados
-
-Cada votação (sessão) gera **um** registro anônimo:
+Exemplo apenas ilustrativo:
 
 ```text
-sessoes/{id aleatório}
+sessoes/{uuid-aleatorio}
   votos: [
-    { cargo: "Vereador", tipo: "VALIDO", numero: "12345", dataHora: "2026-10-20T12:00:00Z" },
-    { cargo: "Prefeito", tipo: "BRANCO", numero: null,    dataHora: "2026-10-20T12:00:05Z" }
+    { cargo: "Deputado Federal", tipo: "VALIDO", numero: "8101", dataHora: "2026-10-29T12:00:00Z" },
+    { cargo: "Deputado Estadual", tipo: "LEGENDA", numero: "81", dataHora: "2026-10-29T12:00:01Z" },
+    { cargo: "Senador", tipo: "BRANCO", numero: null, dataHora: "2026-10-29T12:00:02Z" },
+    { cargo: "Governador", tipo: "NULO", numero: "99", dataHora: "2026-10-29T12:00:03Z" },
+    { cargo: "Presidente", tipo: "VALIDO", numero: "82", dataHora: "2026-10-29T12:00:04Z" }
   ]
 ```
 
-Repetir a gravação da mesma sessão atualiza o mesmo registro, então não duplica votos.
+A sessão usa o mesmo UUID como ID do documento. O Firestore usa criação condicional; resposta “já existe” (`409`) é tratada como concluída, e a sessão local só é removida após sucesso, evitando duplicidade em reenvio.

@@ -1,91 +1,82 @@
-# Testes
-
-> Como o sistema é verificado. Relacionado a [requisitos.md](requisitos.md).
+# Testes e checklist
 
 ## Como executar
 
-```text
+Windows PowerShell ou CMD, com JDK 17+:
+
+```bat
 scripts\testar.bat
 ```
 
-Não precisa de Maven nem de internet: o script compila só o que os testes usam e roda tudo. O resultado esperado termina com:
+Linux/macOS com JDK 17+:
 
-```text
-67 passaram, 0 falharam
+```sh
+sh scripts/testar.sh
 ```
 
-Se algum teste falhar, o script mostra `FALHA` com o nome do teste e o motivo.
+São testes Java puros sem JUnit, Maven ou internet. O cliente HTTP usa `com.sun.net.httpserver.HttpServer` ligado somente a `127.0.0.1`. Na revisão de 29/10/2026, em Windows com JDK 17+ disponível, o resultado foi **86 passaram, 0 falharam em cada uma de três execuções consecutivas**. A compilação usa `javac --release 17`.
 
-## Estratégia
+## Cobertura atual
 
-Os testes são **Java puro**, sem JUnit, para o projeto não depender de bibliotecas externas. Ficam em `tests/com/urnacidada/testes/`, organizados por assunto, com um executor único (`ExecutarTestes`) e uma mini-biblioteca (`MiniTeste`).
-
-Os testes de tela rodam **sem abrir janela** (modo *headless*). O que depende de ver a janela de verdade, do Firestore real ou do projetor está no [roteiro manual](#roteiro-de-verificação-manual) abaixo.
-
-## O que é coberto
-
-| Bateria | Testes | O que verifica |
-|---|---:|---|
-| `ModeloTestes` | 11 | Validação de candidatos, cargos, eleição e voto; herança e polimorfismo |
-| `UrnaServiceTestes` | 19 | Regras de votação: digitar, branco, corrigir, confirmar, nulo, fim, repetir gravação |
-| `RepositorioTestes` | 13 | Memória, arquivo local, reserva automática e sincronização |
-| `ControladorUrnaTestes` | 18 | O que a tela mostra em cada situação, cores das mensagens, gravação em segundo plano |
-| `PainelUrnaTestes` | 6 | A tela monta e desenha todos os estados; cada botão dispara a ação certa; nenhum texto fica cortado |
-| **Total** | **67** | |
-
-## Requisito → teste
-
-| Requisito | Verificado por |
+| Bateria | Casos cobertos |
 |---|---|
-| RF01 Iniciar votação | `ControladorUrnaTestes`: "ao iniciar…", "nova votação depois do FIM…" |
-| RF02, RF03 Dois cargos em sequência | `UrnaServiceTestes`: "confirmar avança para o segundo cargo"; `ModeloTestes`: "eleição de exemplo" |
-| RF04 Entrada do voto | `PainelUrnaTestes`: "cada botão da tela dispara a ação certa" |
-| RF05 Validar entrada | `UrnaServiceTestes`: letras, excesso de dígitos, confirmar incompleto |
-| RF06 Confirmar | `UrnaServiceTestes`, `ControladorUrnaTestes` |
-| RF07 Corrigir, branco, nulo | `UrnaServiceTestes`: branco, nulo, corrigir; `ControladorUrnaTestes`: modos BRANCO e NÚMERO ERRADO |
-| RF08 Encerrar | `ControladorUrnaTestes`: "fluxo completo termina em FIM…" |
-| RF09 Persistência | `RepositorioTestes` (memória e arquivo); **Firestore real: só no roteiro manual** |
-| RF11 Reserva local | `RepositorioTestes`: grupo "reserva automática"; `ControladorUrnaTestes`: "sem internet e com reserva…" |
-| RNF02 Robustez | Todos os testes de erro e de falha de gravação |
-| RNF03 Privacidade | Por inspeção: a classe `Voto` só tem cargo, tipo, número e data/hora (nenhum campo identifica o participante) |
+| `ModeloTestes` | Herança/polimorfismo, números, cargos em ordem, propostas e vices consistentes |
+| `UrnaServiceTestes` | Cinco cargos, válido, nulo, branco, correção, legenda, persistência só no fim, falha e nova tentativa |
+| `RepositorioTestes` | Memória, gravação/leitura atômica, TSV anterior, duplicidade, arquivo corrompido, reserva |
+| `ControladorUrnaTestes` | Mensagens, candidato/legenda, progressão, fim, falhas e retorno assíncrono |
+| `PainelUrnaTestes` | Desenho em thread Swing, botões, estados e texto em 1366×768 e mínimo 1120×680 |
+| `ConfiguracaoTestes` | Configuração ausente, incompleta, exemplo e sintaticamente válida; segredo mascarado |
+| `FirestoreTestes` | HTTP 200/409, 400/401/403/404, 503, timeout e servidor indisponível |
+| `LocalPrimeiroTestes` | Modo sem nuvem, offline→online, remoção da pendência e recuo até 300 s |
 
-## Verificação dos testes
+**Não coberto automaticamente:** janela nativa real e DPI 125%/150%, hardware de áudio e teclado físico, queda real de internet/Firebase, publicação das regras, permissão física/AV, colisões entre sistemas de arquivo e uso prolongado. Nenhum experimento de “falha proposital” foi executado nesta rodada.
 
-Para conferir que os testes realmente detectam erros, foram introduzidos defeitos de propósito no código (mensagem de sucesso mostrada como erro, reserva que não guarda o voto, gravação que duplica, número inexistente que deixa de ser nulo). Cada defeito foi detectado por pelo menos um teste.
+## Matriz rápida requisito → implementação → evidência
 
-## Roteiro de verificação manual
+| Requisito | Código | Evidência |
+|---|---|---|
+| Cinco cargos, sequência e regras de voto | `model/Eleicao.java`, `service/UrnaService.java` | `ModeloTestes`, `UrnaServiceTestes` |
+| Legenda, branco, nulo e correção | `TipoVoto.java`, `UrnaService.java` | `UrnaServiceTestes`, `ControladorUrnaTestes` |
+| Lista de candidaturas e layout | `PainelCandidatos.java`, `PainelUrna.java` | `PainelUrnaTestes` (headless); aparência real pendente |
+| Arquivo atômico e compatibilidade TSV | `VotoRepositoryEmArquivo.java` | `RepositorioTestes` |
+| REST, sincronização e idempotência | `FirestoreRestVotoClient.java`, `VotoRepositoryLocalPrimeiro.java` | Servidor HTTP falso; Firebase real pendente |
+| Sem credenciais para modo local/demonstração | `Main.java`, `ConfiguracaoUrna.java` | Configuração e repositório local sob teste |
+| Rubrica do professor | não localizado | **Não verificável** sem PDF/enunciado |
 
-Execute com a janela aberta (`scripts\demo.bat`) e marque o que foi conferido. Os itens marcados foram comprovados (com a data); os demais continuam pendentes.
+## Checklist manual pendente
 
-### Tela e teclado
+Marque somente após executar no equipamento real; nenhum destes itens foi marcado como concluído por esta rodada.
 
-- [x] A janela abre com título, aviso "SIMULAÇÃO EDUCATIVA · NÃO É UMA URNA OFICIAL" e teclado completo (24/10/2026).
-- [ ] Nenhum texto aparece cortado em tela cheia e em janela pequena. *(Em 25/10 o aviso da reserva local apareceu cortado; foi corrigido e há um teste automático. Conferir de novo na janela real.)*
-- [ ] Votar Vereador `12345` mostra "Ana Exemplo", partido e a explicação do cargo.
-- [ ] Digitar `99999` mostra "NÚMERO ERRADO / VOTO NULO" em vermelho e o aviso em âmbar.
-- [ ] BRANCO sem digitar mostra "VOTO EM BRANCO".
-- [ ] CORRIGE limpa a entrada.
-- [ ] CONFIRMA com número incompleto mostra erro em vermelho.
-- [ ] Prefeito `22` mostra "Elisa Educativa" e a explicação do cargo majoritário.
-- [ ] Ao final aparecem "FIM", a mensagem verde e o botão "Iniciar nova votação".
-- [ ] "Iniciar nova votação" volta ao Vereador.
-- [ ] Teclado do computador: números, `B` (branco), `Backspace` (corrige) e `Enter` (confirma).
-- [ ] "Dicas contra desinformação" abre a janela de dicas.
-- [ ] Fechar a janela encerra o programa.
+### Interface, teclado e áudio
 
-### Gravação
+- [ ] Abrir `scripts\demo.bat` no Windows e conferir o aviso fixo “SIMULAÇÃO EDUCATIVA · NÃO É UMA URNA OFICIAL”.
+- [ ] Realizar cinco cargos com botões gráficos e depois com teclado físico: dígitos, `B`, `Backspace`, `Enter`.
+- [ ] Confirmar válido, legenda em Deputado, nulo, branco e correção.
+- [ ] Conferir o cartão destacado, partido, propostas e vice nos cargos executivos.
+- [ ] Silenciar/reativar som; testar máquina sem dispositivo de áudio e confirmar que continua funcionando.
+- [ ] Conferir texto e botões no tamanho normal e maximizado a 1366×768.
+- [ ] Conferir escala Windows 125% e 150%, mínimo da janela e legibilidade no projetor.
+- [ ] Encerrar, iniciar nova votação somente pelo botão e fechar pela janela.
 
-- [ ] `scripts\rodar.bat --local`: depois de votar, existe `dados\votos-locais.tsv` com a sessão.
-- [ ] Modo padrão **sem** `FIRESTORE_PROJECT_ID`: aparece o aviso de configuração e a urna usa o arquivo local.
+### Sistema de arquivos
 
-### Firestore real
+- [ ] Executar com permissão normal; confirmar `dados\votos-pendentes.tsv` ao lado do JAR.
+- [ ] Testar pasta de aplicação sem permissão e conferir caminho de fallback `%USERPROFILE%\.urna-cidada\dados`.
+- [ ] Abrir uma segunda instância e confirmar mensagem clara de bloqueio.
+- [ ] Fazer cópia de segurança dos dados de teste antes de limpar a pasta.
 
-- [x] Projeto criado no Firebase, Firestore habilitado e autenticação configurada ([operacao-oficina.md](operacao-oficina.md)) (25/10/2026).
-- [x] Depois de votar, o documento aparece em `sessoes` no console do Firebase, com dois votos e sem dados pessoais (25/10/2026).
-- [x] Sem internet: a votação termina, aparece o aviso âmbar e existe `dados\votos-pendentes.tsv` (25/10/2026).
-- [x] Com a internet de volta: ao votar de novo (ou reabrir a urna), a sessão pendente aparece no Firebase e o arquivo de pendentes fica vazio (25/10/2026).
+### Firebase real (usar somente projeto descartável de teste)
 
-### Equipamento da oficina
+- [ ] Criar projeto e Firestore, publicar as regras do arquivo `firestore.rules`.
+- [ ] Criar `urna.properties` usando o exemplo, restringir chave à API do Firestore e conferir que a chave não entra em `git status`.
+- [ ] Fazer uma votação e conferir documento de cinco votos anônimos na coleção `sessoes`.
+- [ ] Desconectar a internet antes do fim, completar a votação, reabrir rede e aguardar sincronização automática.
+- [ ] Confirmar no Firestore que há um documento com UUID da sessão e que o TSV pendente foi limpo.
+- [ ] Limpar os documentos de teste no console Firebase e descartar a chave de teste se apropriado.
 
-- [ ] A urna abre e funciona no computador que será usado na escola.
-- [ ] O texto é legível no projetor ou na tela usada.
+### Outras plataformas e rubrica
+
+- [ ] Executar `sh scripts/testar.sh`, `sh scripts/compilar.sh`, `sh scripts/empacotar.sh` em Linux/macOS com JDK 17+.
+- [ ] Conferir a janela e a renderização em cada sistema operacional pretendido.
+- [ ] Obter a rubrica/PDF do professor e comparar com `docs/requisitos.md`.
+- [ ] Oficina, autorização escolar e avaliação de impacto: pendentes de realização.

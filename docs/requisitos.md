@@ -1,79 +1,47 @@
-# Requisitos — Urna Cidadã
+# Requisitos e rastreabilidade — Urna Cidadã
 
-> Este documento define **o que o sistema deve fazer** e informa, com honestidade, **o que já está implementado e o que ainda depende de decisão ou de execução real**. Os códigos (RF01, RNF01…) são usados também nos testes e na documentação.
+Este documento reflete o código e a verificação desta revisão. A especificação detalhada enviada junto com a tarefa orienta o escopo técnico. O enunciado/rubrica do professor em PDF não foi localizado nos arquivos do repositório, ZIP ou anexos disponíveis; requisitos exclusivos desse arquivo são **não verificáveis**. Não se afirma que a aprovação acadêmica foi obtida.
 
-## 1. Objetivo
+## Decisões
 
-Desenvolver um simulador educativo de urna eletrônica para demonstrar o processo de votação e promover a conscientização sobre cidadania digital e desinformação eleitoral, em uma oficina com estudantes do Ensino Médio.
+- Java 17+, Swing, sem dependências externas em runtime. Compilação e testes pelos scripts não exigem Maven nem internet.
+- Uma única votação contém cinco cargos e um voto por cargo: Deputado Federal (4 dígitos), Deputado Estadual (5), Senador (3; simplificado a um voto), Governador (2) e Presidente (2), nessa ordem.
+- Candidatos, partidos, números 81–83, vices e propostas são fictícios. Dados de demonstração ficam em `Eleicao.exemplo()`.
+- A gravação de sessão ocorre no fim do último cargo. Arquivo local é a fonte de verdade; envio Firestore REST é assíncrono e opcional.
+- Nenhum dado pessoal é coletado. Um documento contém UUID da sessão e lista de votos (cargo, tipo, número e data/hora).
 
-O sistema **não é** uma urna oficial e usa somente candidatos, partidos e números **fictícios**.
+## Matriz de rastreabilidade
 
-## 2. Tecnologias
-
-| Tecnologia | Uso |
-|---|---|
-| Java 17 ou superior | Linguagem principal, com programação orientada a objetos |
-| Java Swing | Interface gráfica |
-| Cloud Firestore | Persistência anônima dos votos na nuvem |
-| Maven | Compilação e dependências |
-| Git e GitHub | Controle de versão e colaboração |
-
-## 3. Requisitos funcionais
-
-Legenda: ✅ implementado e coberto por teste automático · 🖥️ implementado, mas só verificável com a janela aberta · ☁️ implementado, mas depende de um serviço externo real.
-
-| Código | Requisito | Situação | Onde está / como é verificado |
+| Requisito da missão | Código | Documentação | Evidência de teste/estado |
 |---|---|---|---|
-| RF01 | Iniciar uma votação simulada | ✅ | A urna abre pronta; ao final, o botão "Iniciar nova votação" recomeça. `ControladorUrna.novaVotacao` |
-| RF02 | Apresentar o primeiro cargo (proporcional) | ✅ | Vereador, 5 dígitos. `Eleicao.exemplo()` |
-| RF03 | Apresentar o segundo cargo (majoritário) após o primeiro | ✅ | Prefeito, 2 dígitos |
-| RF04 | Informar o número do candidato | 🖥️ | Teclado na tela (✅ testado) e teclado do computador (🖥️) |
-| RF05 | Validar a entrada e orientar o participante | ✅ | Só números, limite de dígitos, mensagens por cor (ver [regras-de-votacao.md](regras-de-votacao.md)) |
-| RF06 | Confirmar o voto antes de avançar | ✅ | Botão CONFIRMA exige número completo ou branco |
-| RF07 | Corrigir, votar em branco e voto nulo | ✅ | Regras adotadas em [regras-de-votacao.md](regras-de-votacao.md), **a validar com o professor** |
-| RF08 | Encerrar com mensagem de conclusão | ✅ | Tela "VOTAÇÃO CONCLUÍDA / FIM" |
-| RF09 | Persistir os dados no Cloud Firestore | ☁️ | `FirestoreVotoRepository`, coleção `sessoes`. **Verificado manualmente com um projeto Firestore real em 25/10/2026** (gravação anônima e reenvio depois de falta de internet); ver [testes.md](testes.md) |
-| RF10 | Material educativo sobre desinformação e deepfakes | 🖥️ | Botão "Dicas contra desinformação" na tela e [material-oficina.md](material-oficina.md) |
-| RF11 | Não perder votos se a internet cair *(extensão do grupo)* | ✅ | `VotoRepositoryComReserva` guarda em `dados/votos-pendentes.tsv` e envia depois |
+| Cinco cargos em ordem e números com comprimentos corretos | `model/Eleicao.java`, `Cargo.java` | `regras-de-votacao.md` | `ModeloTestes`, `UrnaServiceTestes`: verificado automaticamente |
+| Candidaturas únicas, 2–4 propostas até 90 caracteres, partidos e vices consistentes | `Candidato.java`, subclasses, `Cargo.java` | `regras-de-votacao.md` | `ModeloTestes`: verificado automaticamente |
+| Entrada válida, nula, branca, correção e legenda proporcional | `UrnaService.java`, `TipoVoto.java` | `regras-de-votacao.md` | `UrnaServiceTestes`, `ControladorUrnaTestes`: verificado |
+| Confirmações sequenciais e persistência só após quinto cargo | `UrnaService.java` | `casos-de-uso.md` | fluxo completo nos testes: verificado |
+| Painel, teclado gráfico/físico, estado visual e fim sem reinício automático | `view/PainelUrna.java`, `TelaUrna.java` | `testes.md` | Desenho headless verificado; janela, teclado físico e áudio manual pendentes |
+| Painel rolável de candidaturas e propostas | `view/PainelCandidatos.java` | `regras-de-votacao.md` | Compilado; inspeção visual real e escala 125%/150% pendentes |
+| Local primeiro, escrita atômica, compatibilidade TSV e sincronização assíncrona sem duplicar | `VotoRepositoryEmArquivo.java`, `VotoRepositoryLocalPrimeiro.java` | `operacao-oficina.md`, `testes.md` | Teste local + servidor falso: verificado; indisponibilidade de energia/disco real não simulada |
+| Firestore REST, timeouts, erros de configuração/transitórios e idempotência | `FirestoreRestVotoClient.java` | `firebase-configuracao.md` | HTTP falso: 200, 409, 400/401/403/404, 503, timeout e servidor ausente verificados; Firebase real pendente |
+| Regras create-only e sem leitura/alteração/exclusão | `firestore.rules` | `firebase-configuracao.md` | Inspecionadas; publicação e avaliação no Firebase real pendentes |
+| Configuração fora do Git, variáveis override e mensagens | `ConfiguracaoUrna.java`, `.gitignore` | `firebase-configuracao.md`, `solucao-de-problemas.md` | Ausente, incompleta, exemplo e sintaticamente válida verificados |
+| Caminhos ao lado do app com fallback de perfil, log rotativo e instância única | `CaminhosAplicacao.java`, `LogUrna.java`, `TravaInstancia.java` | `solucao-de-problemas.md` | Compilação verificada; cenários reais de permissão/múltiplas contas pendentes |
+| JDK 17+, scripts sem Maven e JAR executável | `scripts/*`, `pom.xml` | README, `operacao-oficina.md` | Windows: testes e empacotamento executados; Linux/macOS não executados nesta máquina |
+| Sem segredo versionado ou dados reais | `.gitignore`, `urna.properties.example` | README, Firebase docs | Busca e revisão do diff; chave Firebase real não fornecida |
+| Requisitos da rubrica do professor | PDF ausente | este arquivo | **Não verificável** sem o PDF/enunciado |
+| Aparência em computador da oficina, projetor, escala e áudio | interface Swing | `testes.md` | **Pendente manualmente**, sem equipamento verificado |
+| Oficina, autorização e avaliação de impacto | fora da aplicação | materiais existentes preservados | **Não realizado/não verificável** nesta revisão |
 
-## 4. Requisitos não funcionais
+## Requisitos não funcionais e limites
 
-| Código | Requisito | Situação | Observação |
-|---|---|---|---|
-| RNF01 | Usabilidade: instruções curtas e legíveis para estudantes do Ensino Médio | 🖥️ | Textos quebram linha, cores por tipo de mensagem, progresso "CARGO 1 DE 2". Conferir na tela e no projetor da oficina |
-| RNF02 | Robustez: entradas inesperadas não encerram o programa | ✅ | Letras, excesso de dígitos, confirmações incompletas e falhas de gravação são tratadas |
-| RNF03 | Privacidade: sem dados pessoais | ✅ | O voto guarda apenas cargo, tipo, número e data/hora |
-| RNF04 | Segurança de configuração | ✅ | `.gitignore` bloqueia credenciais e a pasta `dados/` |
-| RNF05 | Documentação | ✅ | README e esta pasta `docs/` |
-| RNF06 | Testabilidade sem depender de cliques | ✅ | 67 testes automáticos ([testes.md](testes.md)) |
-| RNF07 | Escopo educativo claro | ✅ | Aviso permanente no topo da tela e no README |
-| RNF08 | Portabilidade | ✅ | Java 17+; scripts `.bat` para Windows e comandos Maven para outros sistemas |
-
-## 5. Decisões de projeto adotadas
-
-Estas decisões **substituem** a antiga lista de pendências. Continuam sujeitas à validação do grupo e do professor.
-
-| Tema | Decisão | Detalhes |
+| Tema | Atendimento | Situação |
 |---|---|---|
-| Cargos | Vereador (proporcional, 5 dígitos) e Prefeito (majoritário, 2 dígitos) | `Eleicao.exemplo()` |
-| Candidatos | Três fictícios por cargo | [regras-de-votacao.md](regras-de-votacao.md) |
-| Fluxo | Sequencial: primeiro Vereador, depois Prefeito | [casos-de-uso.md](casos-de-uso.md) |
-| Branco e nulo | Branco é escolha explícita; nulo é número completo inexistente | [regras-de-votacao.md](regras-de-votacao.md) |
-| Dados na nuvem | Documento `sessoes/{id}` com lista de votos anônimos | `FirestoreVotoRepository` |
-| Modelagem | Casos de uso e diagrama de classes | [casos-de-uso.md](casos-de-uso.md), [diagrama-classes.md](diagrama-classes.md) |
-| Critérios de teste | Testes automáticos + roteiro manual | [testes.md](testes.md) |
+| Privacidade | Só dados da votação e UUID aleatório | Inspecionado no modelo; sem avaliação externa de privacidade |
+| Não perder voto em falha de rede | Persistência local antes da rede | Testado com HTTP falso; falhas físicas de armazenamento não cobertas |
+| Compatibilidade | Fontes `--release 17`; sem dependências de aplicação | Compilado neste Windows com JDK disponível; outras versões/sistemas não testados |
+| Segurança da chave | Não versionada; validação e mascaramento | Inspecionada; chave de API continua pública e escrita anônima pode ser abusada |
+| Legibilidade | Layout testado sem janela a 1366×768 e 1120×680 | Automático no painel; DPI real e projetor pendentes |
+| Uso eleitoral real | Não é objetivo nem seguro | Não usar como urna oficial |
 
-## 6. Pendências reais
+## Não verificável
 
-| Pendência | Quem resolve |
-|---|---|
-| Validar as regras de votação com o grupo e o professor | Grupo |
-| Conferir o acesso ao Firestore no computador da oficina (autenticar a conta nele) | Grupo |
-| Conferir a tela, o teclado do computador e o projetor no equipamento da oficina | Grupo |
-| Confirmar escola, data e autorizações da oficina | Grupo e professor |
-| Revisar o material educativo com a escola | Grupo |
-| Realizar a oficina e registrar dados reais | Grupo |
-
-## 7. Observação
-
-Os requisitos do professor e o escopo acadêmico vieram da proposta em PDF. Itens que exigem credenciais, autorização, oficina presencial ou dados de participantes **não podem ser declarados executados** apenas porque o código está pronto.
+O PDF do professor não estava disponível no repositório ou nos anexos fornecidos para esta rodada. Portanto, não foi possível montar uma correspondência a itens que só existam nessa rubrica. Solicitar o arquivo e revisar esta matriz é o passo necessário para verificar esses critérios. Nenhum requisito de extensão foi inferido a partir de textos que não estavam disponíveis.

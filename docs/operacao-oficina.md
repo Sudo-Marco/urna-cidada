@@ -1,62 +1,53 @@
-# Operação técnica da oficina
+# Operação da urna
 
-> Guia para o mediador preparar e conduzir a urna. O roteiro pedagógico está em [material-oficina.md](material-oficina.md). Verificações em [testes.md](testes.md).
+## Requisitos
 
-## Modos de gravação
+- JDK 17 ou superior. No Windows, `java`, `javac` e `jar` precisam estar no `PATH`.
+- Modo demo/local não requer rede, Maven, Google Cloud CLI ou credenciais.
+- O modo padrão começa em local e sincroniza com Firestore somente se `urna.properties` estiver configurado.
 
-| Comando | Para que serve | Onde ficam os votos |
-|---|---|---|
-| `scripts\demo.bat` | Demonstração e treino | Só na memória (somem ao fechar) |
-| `scripts\rodar.bat --local` | Oficina **sem** internet | `dados\votos-locais.tsv` |
-| `scripts\rodar.bat` | Oficina com Firestore | Nuvem, com reserva em `dados\votos-pendentes.tsv` se a rede falhar |
+## Modos
 
-Se `FIRESTORE_PROJECT_ID` não estiver definido, ou o Firestore não puder ser iniciado, a urna **avisa** e usa o arquivo local. Ela não deixa de abrir.
-
-## Preparar o Firestore (uma vez)
-
-1. Crie um projeto no [console do Firebase](https://console.firebase.google.com) e habilite o **Cloud Firestore**.
-2. Instale a [Google Cloud CLI](https://cloud.google.com/sdk/docs/install) e autentique o computador:
-   ```text
-   gcloud auth application-default login
-   ```
-3. Informe o projeto antes de abrir a urna:
-   ```text
-   set FIRESTORE_PROJECT_ID=meu-projeto          (CMD)
-   $env:FIRESTORE_PROJECT_ID="meu-projeto"       (PowerShell)
-   ```
-4. Abra a urna com `scripts\rodar.bat`, vote e confira no console do Firebase se o documento apareceu em `sessoes`.
-
-A conta usada precisa ter permissão de escrita no Firestore do projeto. Esse tipo de acesso funciona por permissões da conta (IAM), e não pelas regras de segurança do Firestore.
-
-## Segurança
-
-- **Nunca** envie ao GitHub chaves, `serviceAccountKey.json`, arquivos `.env` ou a pasta `dados/` (o `.gitignore` já bloqueia).
-- Não distribua credenciais pessoais para os computadores da escola. Prefira levar o **seu** computador, já autenticado.
-- A pasta `dados/` guarda apenas votos anônimos, mas ainda assim não deve ser publicada.
-
-## Antes do dia da oficina
-
-- [ ] Testar a urna **no equipamento que será usado**, com o projetor ligado.
-- [ ] Decidir o modo: Firestore (precisa de internet) ou `--local`.
-- [ ] Se for usar Firestore, testar a gravação real e o plano B sem internet ([testes.md](testes.md)).
-- [ ] Confirmar que o JDK 17 ou superior e o Maven funcionam nesse computador (`java -version`, `mvn -version`).
-- [ ] Levar cabo/adaptador do projetor e um computador reserva.
-- [ ] Combinar com a escola autorização, local e horário.
-
-## No dia
-
-- [ ] Abrir a urna **antes** de os participantes chegarem e fazer uma votação de teste.
-- [ ] Depois do teste, apague a pasta `dados\` se não quiser misturar os votos de teste com os reais.
-- [ ] Explicar que a urna é uma simulação e que os candidatos são fictícios.
-- [ ] Ao final de cada votação, a tela mostra "FIM"; o botão "Iniciar nova votação" prepara o próximo participante.
-
-## Se algo der errado
-
-| Problema | O que fazer |
+| Comando | Resultado |
 |---|---|
-| A urna não abre | Conferir `java -version`; tentar `scripts\demo.bat` |
-| Aviso de configuração do Firestore | Seguir com o arquivo local, ou conferir `FIRESTORE_PROJECT_ID` e o login do `gcloud` |
-| Aviso âmbar ao final ("guardados neste computador") | Sem problema: os votos ficaram na reserva e serão enviados quando houver internet |
-| Texto pequeno demais no projetor | Maximizar a janela |
-| Erro vermelho na hora de gravar | O participante pode apertar CONFIRMA de novo |
-| Nada funciona | Abrir `scripts\demo.bat` para continuar a atividade sem gravar e resolver depois |
+| `scripts\demo.bat` ou `demo.bat` | Em memória; nada persiste ao fechar |
+| `scripts\iniciar.bat --local` | Arquivo local sem rede |
+| `scripts\iniciar.bat` | Arquivo local primeiro; Firestore REST opcional |
+| `scripts\compilar.bat` | Gera `dist\urna-cidada.jar` |
+| `scripts\testar.bat` | Executa testes Java puros |
+| `scripts\empacotar.bat` | JAR e arquivos de início em `dist\` |
+
+Para Linux/macOS use `sh scripts/demo.sh`, `sh scripts/iniciar.sh --local`, `sh scripts/testar.sh` ou `sh scripts/empacotar.sh`. Scripts `.sh` ainda não foram executados nesta estação Windows.
+
+## Início no Windows
+
+1. Instale um **JDK 17+** (por exemplo, Temurin). Abra CMD ou PowerShell e confira `java -version`, `javac -version`.
+2. Clone ou extraia o repositório e execute `demo.bat`.
+3. Para uma votação local persistente, execute `iniciar.bat --local`.
+4. Para sincronizar com Firebase, faça a configuração documentada em [firebase-configuracao.md](firebase-configuracao.md) e execute `iniciar.bat`.
+
+O primeiro início compila sem Maven. O aplicativo cria `dist\urna-cidada.jar`. Dados e logs são procurados ao lado do JAR/projeto. Se a pasta não for gravável, usa `%USERPROFILE%\.urna-cidada\dados` e `.\logs`; a tela mostra o estado e o caminho nos detalhes da gravação. Uma trava evita duas instâncias concorrentes.
+
+## Durante a atividade
+
+- Explique que os candidatos e propostas são fictícios e que esta é uma simulação educativa.
+- Uma votação passa por Federal, Estadual, Senador, Governador e Presidente; a simplificação é um voto para Senador.
+- A sessão só é salva ao confirmar Presidente. Ao fim aparece FIM; a próxima sessão começa pelo botão.
+- Se houver falha de internet, votos continuam no TSV. Não apague `dados/` enquanto houver pendências.
+- Faça primeiro uma votação descartável de teste; confirme e remova seus documentos de teste no Firebase antes de usar a oficina.
+
+## Caminhos, dados e logs
+
+- Padrão: `dist\dados\votos-pendentes.tsv` quando executado pelo JAR empacotado. Em modo `--local`: `dados\votos-locais.tsv`.
+- Fallback em perfil: `%USERPROFILE%\.urna-cidada\dados`.
+- Log rotativo: `logs\urna.log`; pode haver fallback para `%USERPROFILE%\.urna-cidada\logs`.
+- A sessão guarda UUID e cinco votos com cargo, tipo, número e data/hora; nenhum dado de identidade.
+- Configure caminho personalizado definindo `URNA_HOME` antes de abrir.
+
+## Publicação GitHub
+
+A branch desta entrega é `feature/urna-final`, criada de `develop`. Depois que alterações forem publicadas no repositório, abrir um Pull Request com base `develop`; não enviar para `main`. O programa é Swing desktop, não uma página estática GitHub Pages. Para um site seria necessário reescrever a interface como aplicação web e manter o envio do Firestore protegido por serviço apropriado.
+
+## Conferências pendentes
+
+Ver o checklist em [testes.md](testes.md): máquina real da oficina, teclado e áudio, escala e projetor, fallback de permissões, Firebase real e sistemas Linux/macOS. Não se deve afirmar que esses itens já foram testados.
