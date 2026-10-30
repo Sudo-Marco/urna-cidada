@@ -85,6 +85,17 @@ public class UrnaService {
         return getCargoAtual().buscarCandidato(digitado.toString());
     }
 
+    public Optional<String> getPartidoLegendaAtual() {
+        if (finalizada || digitado.length() != 2 || !getCargoAtual().permiteVotoDeLegenda()) {
+            return Optional.empty();
+        }
+        return getCargoAtual().buscarPartidoPorNumero(digitado.toString());
+    }
+
+    public boolean podeConfirmar() {
+        return branco || numeroCompleto() || getPartidoLegendaAtual().isPresent();
+    }
+
     public List<Voto> getVotosRegistrados() {
         return List.copyOf(votos);
     }
@@ -126,7 +137,7 @@ public class UrnaService {
      */
     public void confirmar() throws RepositorioException {
         verificarEmAndamento();
-        if (!branco && !numeroCompleto()) {
+        if (!podeConfirmar()) {
             throw new IllegalStateException("Digite o número completo ou vote em branco.");
         }
 
@@ -154,6 +165,9 @@ public class UrnaService {
             return new Voto(cargo.nome(), TipoVoto.BRANCO, null, Instant.now());
         }
         String numero = digitado.toString();
+        if (cargo.permiteVotoDeLegenda() && numero.length() == 2 && cargo.buscarPartidoPorNumero(numero).isPresent()) {
+            return new Voto(cargo.nome(), TipoVoto.LEGENDA, numero, Instant.now());
+        }
         TipoVoto tipo = cargo.buscarCandidato(numero).isPresent() ? TipoVoto.VALIDO : TipoVoto.NULO;
         return new Voto(cargo.nome(), tipo, numero, Instant.now());
     }

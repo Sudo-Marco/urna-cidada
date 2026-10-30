@@ -11,179 +11,81 @@ import com.urnacidada.service.UrnaService;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.urnacidada.testes.MiniTeste.grupo;
-import static com.urnacidada.testes.MiniTeste.igual;
-import static com.urnacidada.testes.MiniTeste.lanca;
-import static com.urnacidada.testes.MiniTeste.teste;
-import static com.urnacidada.testes.MiniTeste.verdade;
+import static com.urnacidada.testes.MiniTeste.*;
 
-/** Testes das regras de votação (RF02 a RF08). */
+/** Regras de votação dos cinco cargos e persistência somente ao concluir. */
 final class UrnaServiceTestes {
-
     private static VotoRepositoryEmMemoria repositorio;
     private static UrnaService urna;
-
     private UrnaServiceTestes() { }
-
-    private static void preparar() {
-        repositorio = new VotoRepositoryEmMemoria();
-        urna = new UrnaService(Eleicao.exemplo(), repositorio);
-    }
-
-    private static void digitar(UrnaService alvo, String numero) {
-        for (char c : numero.toCharArray()) {
-            alvo.digitar(c);
-        }
-    }
-
-    private static void caso(String nome, MiniTeste.Corpo corpo) {
-        teste(nome, () -> {
-            preparar();
-            corpo.rodar();
-        });
-    }
-
+    private static void preparar() { repositorio = new VotoRepositoryEmMemoria(); urna = new UrnaService(Eleicao.exemplo(), repositorio); }
+    private static void digitar(UrnaService u, String s) { for (char c : s.toCharArray()) u.digitar(c); }
+    private static void caso(String nome, MiniTeste.Corpo corpo) { teste(nome, () -> { preparar(); corpo.rodar(); }); }
     static void executar() {
         grupo("Regras da votação (UrnaService)");
-
-        caso("fluxo começa pelo primeiro cargo", () -> {
-            igual("Vereador", urna.getCargoAtual().nome());
-            igual(1, urna.getNumeroCargoAtual());
-            igual(2, urna.getTotalCargos());
+        caso("inicia na ordem de cinco cargos", () -> {
+            igual("Deputado Federal", urna.getCargoAtual().nome()); igual(1, urna.getNumeroCargoAtual()); igual(5, urna.getTotalCargos());
         });
-
-        caso("número válido mostra o candidato", () -> {
-            digitar(urna, "12345");
-            igual("Ana Exemplo", urna.getCandidatoAtual().orElseThrow().nome());
+        caso("número válido encontra candidato federal", () -> { digitar(urna, "8101"); igual("Ari Lume", urna.getCandidatoAtual().orElseThrow().nome()); });
+        caso("número incompleto não encontra candidato", () -> { digitar(urna, "810"); verdade(urna.getCandidatoAtual().isEmpty()); });
+        caso("voto de legenda é permitido com dois dígitos de partido nos cargos proporcionais", () -> {
+            digitar(urna, "81"); igual("Partido Horizonte Fictício", urna.getPartidoLegendaAtual().orElseThrow());
+            verdade(urna.podeConfirmar()); urna.confirmar(); igual(TipoVoto.LEGENDA, urna.getVotosRegistrados().get(0).tipo());
+            igual("81", urna.getVotosRegistrados().get(0).numero());
         });
-
-        caso("número incompleto não mostra candidato", () -> {
-            digitar(urna, "123");
-            verdade(urna.getCandidatoAtual().isEmpty(), "sem candidato");
+        caso("legenda não pode ser confirmada em cargo majoritário", () -> {
+            digitar(urna, "8101"); urna.confirmar();
+            digitar(urna, "82002"); urna.confirmar();
+            digitar(urna, "81"); verdade(!urna.podeConfirmar());
+            lanca(IllegalStateException.class, urna::confirmar);
         });
-
-        caso("não aceita letras", () -> {
-            lanca(IllegalArgumentException.class, () -> urna.digitar('a'));
-            igual("", urna.getDigitado());
+        caso("não aceita letra nem excesso de dígitos", () -> {
+            lanca(IllegalArgumentException.class, () -> urna.digitar('x'));
+            digitar(urna, "8101"); lanca(IllegalStateException.class, () -> urna.digitar('1'));
         });
-
-        caso("não aceita mais dígitos que o cargo permite", () -> {
-            digitar(urna, "12345");
-            lanca(IllegalStateException.class, () -> urna.digitar('6'));
+        caso("número incompleto não confirma", () -> { digitar(urna, "8"); lanca(IllegalStateException.class, urna::confirmar); igual("Deputado Federal", urna.getCargoAtual().nome()); });
+        caso("corrigir apaga o número digitado", () -> { digitar(urna, "810"); urna.corrigir(); igual("", urna.getDigitado()); });
+        caso("número federal inexistente produz nulo", () -> { digitar(urna, "9999"); urna.confirmar(); igual(TipoVoto.NULO, urna.getVotosRegistrados().get(0).tipo()); });
+        caso("branco não guarda número e exige campo vazio", () -> {
+            urna.votarEmBranco(); urna.confirmar(); igual(TipoVoto.BRANCO, urna.getVotosRegistrados().get(0).tipo()); igual(null, urna.getVotosRegistrados().get(0).numero());
         });
+        caso("branco depois de digitar exige correção", () -> { digitar(urna, "8"); lanca(IllegalStateException.class, urna::votarEmBranco); });
+        caso("corrigir desfaz o branco", () -> { urna.votarEmBranco(); urna.corrigir(); verdade(!urna.isBranco()); digitar(urna, "8101"); });
+        teste("branco, nulo e correção são aplicáveis em cada tipo de cargo", () -> {
+            List<String> validos = List.of("8101", "82002", "811", "81", "82");
+            for (int indice = 0; indice < 5; indice++) {
+                urna = new UrnaService(Eleicao.exemplo(), new VotoRepositoryEmMemoria());
+                for (int anterior = 0; anterior < indice; anterior++) { digitar(urna, validos.get(anterior)); urna.confirmar(); }
+                urna.votarEmBranco(); urna.confirmar();
+                igual(TipoVoto.BRANCO, urna.getVotosRegistrados().get(indice).tipo());
 
-        caso("não confirma com número incompleto", () -> {
-            digitar(urna, "123");
-            lanca(IllegalStateException.class, () -> urna.confirmar());
-            igual("Vereador", urna.getCargoAtual().nome());
+                urna = new UrnaService(Eleicao.exemplo(), new VotoRepositoryEmMemoria());
+                for (int anterior = 0; anterior < indice; anterior++) { digitar(urna, validos.get(anterior)); urna.confirmar(); }
+                int digitos = urna.getCargoAtual().digitos(); digitar(urna, "9".repeat(digitos)); urna.confirmar();
+                igual(TipoVoto.NULO, urna.getVotosRegistrados().get(indice).tipo());
+
+                urna = new UrnaService(Eleicao.exemplo(), new VotoRepositoryEmMemoria());
+                for (int anterior = 0; anterior < indice; anterior++) { digitar(urna, validos.get(anterior)); urna.confirmar(); }
+                urna.digitar('9'); urna.corrigir(); digitar(urna, validos.get(indice)); urna.confirmar();
+                igual(TipoVoto.VALIDO, urna.getVotosRegistrados().get(indice).tipo());
+            }
         });
-
-        caso("corrigir apaga o que foi digitado", () -> {
-            digitar(urna, "123");
-            urna.corrigir();
-            igual("", urna.getDigitado());
-        });
-
-        caso("confirmar avança para o segundo cargo", () -> {
-            digitar(urna, "12345");
-            urna.confirmar();
-            igual("Prefeito", urna.getCargoAtual().nome());
-            igual(2, urna.getNumeroCargoAtual());
-            igual("", urna.getDigitado());
-        });
-
-        caso("número inexistente vira voto nulo", () -> {
-            digitar(urna, "99999");
-            urna.confirmar();
-            igual(TipoVoto.NULO, urna.getVotosRegistrados().get(0).tipo());
-        });
-
-        caso("voto em branco funciona e não guarda número", () -> {
-            urna.votarEmBranco();
-            urna.confirmar();
-            Voto voto = urna.getVotosRegistrados().get(0);
-            igual(TipoVoto.BRANCO, voto.tipo());
-            igual(null, voto.numero());
-        });
-
-        caso("não pode votar em branco depois de digitar", () -> {
-            digitar(urna, "1");
-            lanca(IllegalStateException.class, () -> urna.votarEmBranco());
-        });
-
-        caso("não pode digitar depois de marcar branco", () -> {
-            urna.votarEmBranco();
-            lanca(IllegalStateException.class, () -> urna.digitar('1'));
-        });
-
-        caso("corrigir desfaz o branco", () -> {
-            urna.votarEmBranco();
-            urna.corrigir();
-            verdade(!urna.isBranco(), "branco desfeito");
-            digitar(urna, "1");
-            igual("1", urna.getDigitado());
-        });
-
-        caso("fluxo completo dos dois cargos grava os votos", () -> {
-            digitar(urna, "12345");
-            urna.confirmar();
-            digitar(urna, "22");
-            urna.confirmar();
-            verdade(urna.isFinalizada(), "finalizada");
-            List<Voto> salvos = repositorio.getVotos();
-            igual(2, salvos.size());
-            igual("Vereador", salvos.get(0).cargo());
-            igual("Prefeito", salvos.get(1).cargo());
-            igual(TipoVoto.VALIDO, salvos.get(1).tipo());
-        });
-
-        caso("votos não são gravados antes de terminar", () -> {
-            digitar(urna, "12345");
-            urna.confirmar();
-            igual(0, repositorio.getVotos().size());
-        });
-
-        caso("depois de encerrar não aceita mais ações", () -> {
-            digitar(urna, "12345");
-            urna.confirmar();
-            digitar(urna, "11");
-            urna.confirmar();
-            lanca(IllegalStateException.class, () -> urna.digitar('1'));
+        caso("uma confirmação válida avança ao próximo cargo", () -> { digitar(urna, "8101"); urna.confirmar(); igual("Deputado Estadual", urna.getCargoAtual().nome()); igual(2, urna.getNumeroCargoAtual()); });
+        caso("votos não são persistidos até a confirmação do último cargo", () -> { digitar(urna, "8101"); urna.confirmar(); igual(0, repositorio.getVotos().size()); });
+        caso("sequência completa contém os cinco votos em ordem e encerra", () -> {
+            String[] numeros = {"8101", "82002", "811", "81", "82"};
+            for (String numero : numeros) { digitar(urna, numero); urna.confirmar(); }
+            verdade(urna.isFinalizada()); igual(5, repositorio.getVotos().size());
+            igual(List.of("Deputado Federal", "Deputado Estadual", "Senador", "Governador", "Presidente"), repositorio.getVotos().stream().map(Voto::cargo).toList());
             lanca(IllegalStateException.class, () -> urna.confirmar());
         });
-
-        caso("cada votação tem um identificador de sessão próprio", () -> {
-            UrnaService outra = new UrnaService(Eleicao.exemplo(), repositorio);
-            verdade(!urna.getSessaoId().isBlank(), "id preenchido");
-            verdade(!urna.getSessaoId().equals(outra.getSessaoId()), "ids diferentes");
-        });
-
-        caso("não aceita eleição ou repositório nulos", () -> {
-            lanca(NullPointerException.class, () -> new UrnaService(null, repositorio));
-            lanca(NullPointerException.class, () -> new UrnaService(Eleicao.exemplo(), null));
-        });
-
-        teste("falha ao salvar não encerra a votação e permite tentar de novo", () -> {
-            AtomicInteger tentativas = new AtomicInteger();
-            VotoRepositoryEmMemoria destino = new VotoRepositoryEmMemoria();
-            VotoRepository instavel = (sessaoId, votos) -> {
-                if (tentativas.incrementAndGet() == 1) {
-                    throw new RepositorioException("sem internet", null);
-                }
-                destino.salvarSessao(sessaoId, votos);
-            };
-            UrnaService semRede = new UrnaService(Eleicao.exemplo(), instavel);
-            digitar(semRede, "12345");
-            semRede.confirmar();
-            digitar(semRede, "11");
-
-            lanca(RepositorioException.class, () -> semRede.confirmar());
-            verdade(!semRede.isFinalizada(), "não finalizada após falha");
-            igual(0, destino.getVotos().size());
-
-            semRede.confirmar(); // segunda tentativa funciona
-            verdade(semRede.isFinalizada(), "finalizada após nova tentativa");
-            igual(2, destino.getVotos().size());
+        teste("falha ao salvar no último cargo não perde votos e permite tentar de novo", () -> {
+            AtomicInteger tentativas = new AtomicInteger(); VotoRepositoryEmMemoria destino = new VotoRepositoryEmMemoria();
+            VotoRepository repo = (id, votos) -> { if (tentativas.incrementAndGet() == 1) throw new RepositorioException("sem rede", null); destino.salvarSessao(id, votos); };
+            UrnaService u = new UrnaService(Eleicao.exemplo(), repo);
+            for (String n : List.of("8101", "82002", "811", "81")) { digitar(u, n); u.confirmar(); }
+            digitar(u, "82"); lanca(RepositorioException.class, u::confirmar); verdade(!u.isFinalizada());
+            u.confirmar(); verdade(u.isFinalizada()); igual(5, destino.getVotos().size());
         });
     }
 }

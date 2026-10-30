@@ -16,5 +16,8 @@ public record Voto(String cargo, TipoVoto tipo, String numero, Instant dataHora)
         if (tipo != TipoVoto.BRANCO && (numero == null || numero.isBlank())) {
             throw new IllegalArgumentException("Voto válido ou nulo precisa registrar o número digitado.");
         }
+        if (tipo == TipoVoto.LEGENDA && !numero.matches("[0-9]{2}")) {
+            throw new IllegalArgumentException("Voto de legenda precisa registrar os dois dígitos do partido.");
+        }
     }
 }

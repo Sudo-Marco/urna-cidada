@@ -82,7 +82,7 @@ final class PainelUrnaTestes {
 
     /** Desenha o painel numa imagem; qualquer erro de layout ou de desenho vira exceção. */
     private static void desenhar(PainelUrna painel) {
-        desenhar(painel, new Dimension(920, 640));
+        desenhar(painel, new Dimension(1366, 768));
     }
 
     private static void desenhar(PainelUrna painel, Dimension tamanho) {
@@ -142,6 +142,14 @@ final class PainelUrnaTestes {
         }
     }
 
+    private static boolean contemTexto(Container raiz, String parte) {
+        for (Component c : raiz.getComponents()) {
+            if (c instanceof javax.swing.JLabel label && label.getText() != null && label.getText().contains(parte)) return true;
+            if (c instanceof Container filho && contemTexto(filho, parte)) return true;
+        }
+        return false;
+    }
+
     /** O aviso real que a reserva local mostra quando a internet cai. */
     private static String avisoDaReserva() throws Exception {
         VotoRepository principalFora = new VotoRepository() {
@@ -179,7 +187,7 @@ final class PainelUrnaTestes {
         caso("nenhum texto fica cortado, nem o aviso mais longo, em janela normal e no tamanho mínimo", () -> {
             String avisoReal = avisoDaReserva();
             String erroLongo = "Não foi possível gravar os votos nem na reserva local. Confirme novamente.";
-            Dimension[] tamanhos = {new Dimension(920, 640), new Dimension(840, 600)};
+            Dimension[] tamanhos = {new Dimension(1366, 768), new Dimension(1120, 680)};
             for (Dimension tamanho : tamanhos) {
                 String ctx = tamanho.width + "x" + tamanho.height;
                 PainelUrna painel = new PainelUrna(new Gravador(), "Cloud Firestore (projeto urnacidada-f8b55) + reserva local");
@@ -210,6 +218,42 @@ final class PainelUrnaTestes {
             painel.exibir(new EstadoTela(Modo.CANDIDATO, "VEREADOR", "CARGO 1 DE 2", 5, "12345", longo, longo,
                     longo, longo, TipoMensagem.ERRO, true));
             desenhar(painel);
+        });
+
+        caso("painel lateral mostra candidatos, propostas e vice fictício", () -> {
+            PainelUrna painel = new PainelUrna(new Gravador(), "teste");
+            var cargo = Eleicao.exemplo().cargos().get(3);
+            painel.atualizarCandidatos(cargo.nome(), cargo.candidatos(), "81");
+            desenhar(painel, new Dimension(1366, 768));
+            verdade(contemTexto(painel, "Jaci Nascente"), "nome do candidato no painel lateral");
+            verdade(contemTexto(painel, "Ampliar bibliotecas"), "proposta no painel lateral");
+            verdade(contemTexto(painel, "Kiro Horizonte"), "vice no painel lateral");
+        });
+
+        caso("estados de candidato de todos os cargos cabem no mínimo e em 1366x768", () -> {
+            Dimension[] tamanhos = {new Dimension(1366, 768), new Dimension(1120, 680)};
+            for (var cargo : Eleicao.exemplo().cargos()) {
+                for (var candidato : cargo.candidatos()) {
+                    for (Dimension tamanho : tamanhos) {
+                        PainelUrna painel = new PainelUrna(new Gravador(), "Modo local");
+                        painel.atualizarCandidatos(cargo.nome(), cargo.candidatos(), candidato.numero());
+                        painel.exibir(new EstadoTela(Modo.CANDIDATO, cargo.nome().toUpperCase(), "CARGO 1 DE 5",
+                                cargo.digitos(), candidato.numero(), candidato.nome(), candidato.partido(),
+                                candidato.explicacaoCargo(), "Confira a escolha e confirme ou corrija.",
+                                TipoMensagem.SUCESSO, true));
+                        desenhar(painel, tamanho);
+                        conferirSemCortes(painel, cargo.nome() + " " + tamanho.width + "x" + tamanho.height);
+                    }
+                }
+            }
+        });
+
+        caso("áudio pode ser silenciado sem afetar a votação", () -> {
+            com.urnacidada.view.SomUrna.silenciar(true);
+            com.urnacidada.view.SomUrna.curto();
+            com.urnacidada.view.SomUrna.fim();
+            verdade(com.urnacidada.view.SomUrna.silenciado(), "opção de silêncio ativa");
+            com.urnacidada.view.SomUrna.silenciar(false);
         });
 
         caso("o botão FIM de votação mostra 'Iniciar nova votação' e esconde as teclas", () -> {
@@ -256,10 +300,12 @@ final class PainelUrnaTestes {
                     }, () -> { });
             controlador[0].novaVotacao();
 
-            for (String botao : List.of("1", "2", "3", "4", "5", "CONFIRMA", "2", "2", "CONFIRMA")) {
+            for (String botao : List.of("8", "1", "0", "1", "CONFIRMA",
+                    "8", "2", "0", "0", "2", "CONFIRMA",
+                    "8", "1", "1", "CONFIRMA", "8", "1", "CONFIRMA", "8", "2", "CONFIRMA")) {
                 achar(painel[0], botao).doClick(0);
             }
-            igual(2, memoria.getVotos().size());
+            igual(5, memoria.getVotos().size());
             verdade(achar(painel[0], "Iniciar nova votação").isVisible(), "chegou ao FIM");
         });
     }

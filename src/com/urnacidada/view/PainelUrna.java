@@ -23,6 +23,8 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.Objects;
+import java.util.List;
+import com.urnacidada.model.Candidato;
 
 /**
  * Visão da urna: desenha a tela e o teclado. Não tem regra de votação; apenas repassa
@@ -49,8 +51,12 @@ public final class PainelUrna extends JPanel {
     }
 
     private final AcoesUrna acoes;
+    private final PainelCandidatos candidatos = new PainelCandidatos();
+    private final JLabel persistencia = rotulo(11, Font.PLAIN, CINZA);
+    private boolean fimTocado;
 
     private final JLabel progresso = rotulo(13, Font.BOLD, CINZA);
+    private final JLabel instrucaoCargo = rotulo(13, Font.BOLD, CINZA);
     private final JLabel cargo = rotulo(26, Font.BOLD, AZUL);
     private final JPanel caixas = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
     private final JTextPane titulo = criarTexto();
@@ -93,9 +99,20 @@ public final class PainelUrna extends JPanel {
         btnCorrige.setEnabled(e.controlesHabilitados());
         btnConfirma.setEnabled(e.controlesHabilitados());
         btnNova.setVisible(e.finalizada());
+        if (e.finalizada() && !fimTocado) SomUrna.fim();
+        fimTocado = e.finalizada();
 
         revalidate();
         repaint();
+    }
+
+    public void atualizarCandidatos(String nomeCargo, List<Candidato> lista, String digitado) {
+        candidatos.atualizar(nomeCargo, lista, digitado);
+    }
+
+    public void atualizarPersistencia(String estado, String caminho) {
+        persistencia.setText(estado);
+        persistencia.setToolTipText(caminho);
     }
 
     // ------------------------------------------------------------------ montagem
@@ -121,7 +138,11 @@ public final class PainelUrna extends JPanel {
         teclado.setPreferredSize(new Dimension(LARGURA_DO_TECLADO, 10)); // largura fixa: não muda com o texto
         corpo.add(criarTela(), BorderLayout.CENTER);
         corpo.add(teclado, BorderLayout.EAST);
-        return corpo;
+        JPanel composto = new JPanel(new BorderLayout(14, 0));
+        composto.setOpaque(false);
+        composto.add(candidatos, BorderLayout.WEST);
+        composto.add(corpo, BorderLayout.CENTER);
+        return composto;
     }
 
     private JPanel criarTela() {
@@ -132,17 +153,24 @@ public final class PainelUrna extends JPanel {
                 new EmptyBorder(16, 18, 14, 18)));
 
         progresso.setHorizontalAlignment(SwingConstants.CENTER);
+        instrucaoCargo.setText("SEU VOTO PARA");
+        instrucaoCargo.setHorizontalAlignment(SwingConstants.CENTER);
         cargo.setHorizontalAlignment(SwingConstants.CENTER);
         caixas.setOpaque(false);
 
         linha(tela, progresso, 0, 0, 0, 0);
-        linha(tela, cargo, 1, 0, 0, 6);
-        linha(tela, caixas, 2, 0, 0, 10);
-        linha(tela, titulo, 3, 0, 66, 0);
-        linha(tela, detalhe, 4, 0, 34, 4);
-        linha(tela, explicacao, 5, 0, 56, 0);
-        linha(tela, new JLabel(), 6, 1.0, 0, 0); // empurra a mensagem para o rodapé da tela
-        linha(tela, mensagem, 7, 0, 84, 6);
+        linha(tela, instrucaoCargo, 1, 0, 20, 0);
+        linha(tela, cargo, 2, 0, 0, 4);
+        linha(tela, caixas, 3, 0, 0, 8);
+        linha(tela, titulo, 4, 0, 66, 0);
+        linha(tela, detalhe, 5, 0, 34, 4);
+        linha(tela, explicacao, 6, 0, 56, 0);
+        JLabel comandos = rotulo(11, Font.PLAIN, CINZA);
+        comandos.setText("Aperte VERDE para CONFIRMAR · LARANJA para CORRIGIR");
+        comandos.setHorizontalAlignment(SwingConstants.CENTER);
+        linha(tela, comandos, 7, 0, 24, 0);
+        linha(tela, new JLabel(), 8, 1.0, 0, 0); // empurra a mensagem para o rodapé da tela
+        linha(tela, mensagem, 9, 0, 84, 6);
         return tela;
     }
 
@@ -178,7 +206,7 @@ public final class PainelUrna extends JPanel {
             JButton tecla = botao(String.valueOf(n), Color.WHITE);
             tecla.setForeground(TEXTO);
             tecla.setFont(new Font("SansSerif", Font.BOLD, 26));
-            tecla.addActionListener(ev -> acoes.digitar(digito));
+            tecla.addActionListener(ev -> { SomUrna.curto(); acoes.digitar(digito); });
             teclas[n] = tecla;
             numeros.add(tecla);
         }
@@ -186,9 +214,9 @@ public final class PainelUrna extends JPanel {
         JPanel acoesPanel = new JPanel(new GridLayout(1, 3, 8, 8));
         acoesPanel.setOpaque(false);
         acoesPanel.setPreferredSize(new Dimension(10, 62));
-        btnBranco.addActionListener(ev -> acoes.branco());
-        btnCorrige.addActionListener(ev -> acoes.corrigir());
-        btnConfirma.addActionListener(ev -> acoes.confirmar());
+        btnBranco.addActionListener(ev -> { SomUrna.curto(); acoes.branco(); });
+        btnCorrige.addActionListener(ev -> { SomUrna.curto(); acoes.corrigir(); });
+        btnConfirma.addActionListener(ev -> { SomUrna.curto(); acoes.confirmar(); });
         acoesPanel.add(btnBranco);
         acoesPanel.add(btnCorrige);
         acoesPanel.add(btnConfirma);
@@ -204,13 +232,27 @@ public final class PainelUrna extends JPanel {
         JLabel gravacao = rotulo(12, Font.PLAIN, CINZA);
         gravacao.setText("Gravação: " + descricaoDaGravacao);
         gravacao.setHorizontalAlignment(SwingConstants.CENTER);
+        persistencia.setHorizontalAlignment(SwingConstants.CENTER);
+        JButton som = botao("Som: ligado", AZUL);
+        som.addActionListener(ev -> {
+            SomUrna.silenciar(!SomUrna.silenciado());
+            som.setText(SomUrna.silenciado() ? "Som: desligado" : "Som: ligado");
+        });
 
         btnDicas.addActionListener(ev -> acoes.mostrarDicas());
         btnNova.addActionListener(ev -> acoes.novaVotacao());
         btnNova.setVisible(false);
 
-        rodape.add(btnDicas, BorderLayout.WEST);
-        rodape.add(gravacao, BorderLayout.CENTER);
+        JPanel informacao = new JPanel(new GridLayout(2, 1));
+        informacao.setOpaque(false);
+        informacao.add(gravacao);
+        informacao.add(persistencia);
+        JPanel acoesRodape = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
+        acoesRodape.setOpaque(false);
+        acoesRodape.add(som);
+        acoesRodape.add(btnDicas);
+        rodape.add(acoesRodape, BorderLayout.WEST);
+        rodape.add(informacao, BorderLayout.CENTER);
         rodape.add(btnNova, BorderLayout.EAST);
         return rodape;
     }

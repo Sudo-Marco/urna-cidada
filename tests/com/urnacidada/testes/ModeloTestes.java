@@ -39,6 +39,13 @@ final class ModeloTestes {
             lanca(IllegalArgumentException.class, () -> new CandidatoMajoritario("11", "Ana", ""));
         });
 
+        teste("candidato valida partido e propostas fictícias", () -> {
+            List<String> validas = List.of("Ampliar bibliotecas comunitárias.", "Publicar indicadores simples.");
+            lanca(IllegalArgumentException.class, () -> new CandidatoProporcional("8101", "Ari", "Partido", "82", validas));
+            lanca(IllegalArgumentException.class, () -> new CandidatoMajoritario("81", "Ari", "Partido", "81", List.of("Uma só"), null));
+            lanca(IllegalArgumentException.class, () -> new CandidatoMajoritario("81", "Ari", "Partido", "81", List.of("x".repeat(91), "Outra"), null));
+        });
+
         teste("o mesmo tipo Candidato responde de forma diferente (polimorfismo)", () -> {
             Candidato vereador = new CandidatoProporcional("12345", "Ana", "A");
             Candidato prefeito = new CandidatoMajoritario("11", "Diego", "A");
@@ -55,13 +62,21 @@ final class ModeloTestes {
 
         teste("cargo encontra candidato pelo número e devolve vazio se não existe", () -> {
             Cargo cargo = Eleicao.exemplo().cargos().get(0);
-            igual("Ana Exemplo", cargo.buscarCandidato("12345").orElseThrow().nome());
+            igual("Ari Lume", cargo.buscarCandidato("8101").orElseThrow().nome());
             verdade(cargo.buscarCandidato("99999").isEmpty(), "número inexistente");
         });
 
         teste("cargo rejeita candidato com quantidade errada de dígitos", () ->
                 lanca(IllegalArgumentException.class, () ->
                         new Cargo("Prefeito", 2, List.of(new CandidatoMajoritario("111", "Diego", "A")))));
+
+        teste("cargos oficiais validam tamanho, tipo de candidatura e presença de vice", () -> {
+            var federal = Eleicao.exemplo().cargos().get(0).candidatos().get(0);
+            lanca(IllegalArgumentException.class, () -> new Cargo("Deputado Federal", 5, List.of(federal)));
+            lanca(IllegalArgumentException.class, () -> new Cargo("Senador", 3, List.of(
+                    new CandidatoMajoritario("811", "Galo", "Partido", "81",
+                            List.of("Ampliar bibliotecas.", "Publicar metas."), "Vice Fictício"))));
+        });
 
         teste("cargo rejeita números repetidos", () ->
                 lanca(IllegalArgumentException.class, () -> new Cargo("Prefeito", 2, List.of(
@@ -76,13 +91,33 @@ final class ModeloTestes {
         teste("eleição exige pelo menos um cargo", () ->
                 lanca(IllegalArgumentException.class, () -> new Eleicao(List.of())));
 
-        teste("eleição de exemplo: Vereador (5 dígitos) e depois Prefeito (2 dígitos)", () -> {
+        teste("eleição não repete o mesmo cargo", () -> {
+            Cargo federal = Eleicao.exemplo().cargos().get(0);
+            lanca(IllegalArgumentException.class, () -> new Eleicao(List.of(federal,
+                    new Cargo("deputado federal", 4, federal.candidatos()))));
+        });
+
+        teste("eleição de exemplo tem os cinco cargos em ordem e os dígitos correspondentes", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
-            igual(2, cargos.size());
-            igual("Vereador", cargos.get(0).nome());
-            igual(5, cargos.get(0).digitos());
-            igual("Prefeito", cargos.get(1).nome());
-            igual(2, cargos.get(1).digitos());
+            igual(5, cargos.size());
+            igual(List.of("Deputado Federal", "Deputado Estadual", "Senador", "Governador", "Presidente"),
+                    cargos.stream().map(Cargo::nome).toList());
+            igual(List.of(4, 5, 3, 2, 2), cargos.stream().map(Cargo::digitos).toList());
+        });
+
+        teste("candidaturas têm números, propostas e vices consistentes", () -> {
+            List<Cargo> cargos = Eleicao.exemplo().cargos();
+            for (Cargo cargo : cargos) {
+                verdade(cargo.candidatos().size() <= 5, "limite de cinco candidaturas");
+                for (Candidato c : cargo.candidatos()) {
+                    igual(cargo.digitos(), c.numero().length());
+                    verdade(c.numero().startsWith(c.numeroPartido()), "prefixo do partido");
+                    verdade(c.propostas().size() >= 2 && c.propostas().size() <= 4, "quantidade de propostas");
+                    verdade(c.propostas().stream().allMatch(p -> p.length() <= 90), "limite de propostas");
+                    verdade(c.vice().isPresent() == (cargo.nome().equals("Governador") || cargo.nome().equals("Presidente")),
+                            "vice apenas em chapa executiva");
+                }
+            }
         });
 
         teste("voto branco não pode ter número; válido e nulo precisam ter", () -> {

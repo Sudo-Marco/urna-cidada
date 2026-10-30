@@ -141,8 +141,13 @@ public final class ControladorUrna implements AcoesUrna {
                     urna.getDigitado(), "NÚMERO ERRADO", "VOTO NULO", "", mensagem, tipoMensagem, ativo);
             case BRANCO -> new EstadoTela(modo, cargo.nome().toUpperCase(Locale.ROOT), progresso, 0, "",
                     "VOTO EM BRANCO", "", "", mensagem, tipoMensagem, ativo);
-            default -> new EstadoTela(modo, cargo.nome().toUpperCase(Locale.ROOT), progresso, cargo.digitos(),
-                    urna.getDigitado(), "Digite o número do candidato", "", "", mensagem, tipoMensagem, ativo);
+            default -> {
+                Optional<String> partidoLegenda = urna.getPartidoLegendaAtual();
+                yield new EstadoTela(modo, cargo.nome().toUpperCase(Locale.ROOT), progresso, cargo.digitos(),
+                        urna.getDigitado(), partidoLegenda.isPresent() ? "VOTO DE LEGENDA" : "Digite o número do candidato",
+                        partidoLegenda.orElse(""), partidoLegenda.map(p -> "Confirme para votar na legenda do partido.").orElse(""),
+                        mensagem, tipoMensagem, ativo);
+            }
         };
     }
 

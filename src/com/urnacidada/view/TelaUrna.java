@@ -13,6 +13,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -47,20 +48,29 @@ public final class TelaUrna extends JFrame {
         return t;
     });
     private final PainelUrna painel;
+    private final Eleicao eleicao;
+    private final String dicaInicial;
     private ControladorUrna controlador;
+    private final Timer timerEstado;
 
     public TelaUrna(Eleicao eleicao, VotoRepository repositorio) {
+        this(eleicao, repositorio, repositorio.dicaPersistencia());
+    }
+
+    public TelaUrna(Eleicao eleicao, VotoRepository repositorio, String dicaInicial) {
         super("Urna Cidadã · Simulador educativo");
         this.repositorio = repositorio;
+        this.eleicao = eleicao;
+        this.dicaInicial = dicaInicial;
 
         painel = new PainelUrna(new RepasseDeAcoes(), repositorio.descricao());
         controlador = new ControladorUrna(eleicao, repositorio, gravacao, SwingUtilities::invokeLater,
-                painel::exibir, this::mostrarDicas);
+                this::exibirEstado, this::mostrarDicas);
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setContentPane(painel);
-        setMinimumSize(new Dimension(840, 600));
-        setSize(920, 640);
+        setMinimumSize(new Dimension(1120, 680));
+        setSize(1240, 720);
         setLocationRelativeTo(null);
         configurarTeclado();
         addWindowListener(new WindowAdapter() {
@@ -70,7 +80,23 @@ public final class TelaUrna extends JFrame {
             }
         });
 
+        timerEstado = new Timer(1000, ev -> painel.atualizarPersistencia(
+                repositorio.estadoPersistencia(), dicaInicial));
+        timerEstado.start();
+
         controlador.novaVotacao();
+    }
+
+    private void exibirEstado(EstadoTela estado) {
+        painel.exibir(estado);
+        eleicao.cargos().stream().filter(c -> c.nome().equalsIgnoreCase(estado.cargo())).findFirst()
+                .ifPresent(c -> painel.atualizarCandidatos(c.nome(), c.candidatos(), estado.digitado()));
+        painel.atualizarPersistencia(repositorio.estadoPersistencia(), dicaInicial);
+    }
+
+    public void mostrarAvisoInicial() {
+        repositorio.avisoDaUltimaGravacao().ifPresent(texto -> JOptionPane.showMessageDialog(this, texto,
+                "Modo de armazenamento", JOptionPane.INFORMATION_MESSAGE));
     }
 
     /** O painel é criado antes do controlador; este objeto liga os dois sem referência circular. */
@@ -87,11 +113,13 @@ public final class TelaUrna extends JFrame {
         JRootPane raiz = getRootPane();
         for (char d = '0'; d <= '9'; d++) {
             char digito = d;
-            vincular(raiz, KeyStroke.getKeyStroke(digito), "digito-" + digito, () -> controlador.digitar(digito));
+            vincular(raiz, KeyStroke.getKeyStroke(digito), "digito-" + digito, () -> {
+                SomUrna.curto(); controlador.digitar(digito);
+            });
         }
-        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "confirma", () -> controlador.confirmar());
-        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "corrige", () -> controlador.corrigir());
-        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "branco", () -> controlador.branco());
+        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), "confirma", () -> { SomUrna.curto(); controlador.confirmar(); });
+        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0), "corrige", () -> { SomUrna.curto(); controlador.corrigir(); });
+        vincular(raiz, KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), "branco", () -> { SomUrna.curto(); controlador.branco(); });
     }
 
     private static void vincular(JRootPane raiz, KeyStroke tecla, String nome, Runnable acao) {
@@ -117,6 +145,7 @@ public final class TelaUrna extends JFrame {
 
     private void encerrar() {
         gravacao.shutdown();
+        timerEstado.stop();
         if (repositorio instanceof AutoCloseable recurso) {
             try {
                 recurso.close();
