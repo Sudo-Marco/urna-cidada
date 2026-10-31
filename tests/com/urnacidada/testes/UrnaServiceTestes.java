@@ -29,7 +29,7 @@ final class UrnaServiceTestes {
         caso("número válido encontra candidato federal", () -> { digitar(urna, "8101"); igual("Ari Lume", urna.getCandidatoAtual().orElseThrow().nome()); });
         caso("número incompleto não encontra candidato", () -> { digitar(urna, "810"); verdade(urna.getCandidatoAtual().isEmpty()); });
         caso("voto de legenda é permitido com dois dígitos de partido nos cargos proporcionais", () -> {
-            digitar(urna, "81"); igual("Partido Horizonte Fictício", urna.getPartidoLegendaAtual().orElseThrow());
+            digitar(urna, "81"); igual("Partido Horizonte Comunitário (fictício)", urna.getPartidoLegendaAtual().orElseThrow());
             verdade(urna.podeConfirmar()); urna.confirmar(); igual(TipoVoto.LEGENDA, urna.getVotosRegistrados().get(0).tipo());
             igual("81", urna.getVotosRegistrados().get(0).numero());
         });

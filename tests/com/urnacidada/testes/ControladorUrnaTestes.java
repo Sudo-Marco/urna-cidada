@@ -36,9 +36,9 @@ final class ControladorUrnaTestes {
     static void executar() {
         grupo("Tela: estado apresentado pelo ControladorUrna");
         caso("inicia no primeiro dos cinco cargos", () -> { igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("CARGO 1 DE 5", ultimo().progresso()); igual(4, ultimo().posicoes()); });
-        caso("candidato válido mostra nome, partido e explicação", () -> { digitar("8101"); igual(Modo.CANDIDATO, ultimo().modo()); igual("Ari Lume", ultimo().titulo()); igual("Partido Horizonte Fictício", ultimo().detalhe()); verdade(ultimo().explicacao().contains("proporcional")); });
+        caso("candidato válido mostra nome, partido e explicação", () -> { digitar("8101"); igual(Modo.CANDIDATO, ultimo().modo()); igual("Ari Lume", ultimo().titulo()); igual("Partido Horizonte Comunitário (fictício)", ultimo().detalhe()); verdade(ultimo().explicacao().contains("proporcional")); });
         caso("número completo desconhecido avisa que será nulo", () -> { digitar("9999"); igual(Modo.NUMERO_ERRADO, ultimo().modo()); igual("VOTO NULO", ultimo().detalhe()); igual(TipoMensagem.AVISO, ultimo().tipoMensagem()); });
-        caso("dois primeiros dígitos de partido mostram legenda", () -> { digitar("81"); igual("VOTO DE LEGENDA", ultimo().titulo()); igual("Partido Horizonte Fictício", ultimo().detalhe()); });
+        caso("dois primeiros dígitos de partido mostram legenda", () -> { digitar("81"); igual("VOTO DE LEGENDA", ultimo().titulo()); igual("Partido Horizonte Comunitário (fictício)", ultimo().detalhe()); });
         caso("branco mostra confirmação e não exige caixas", () -> { controlador.branco(); igual(Modo.BRANCO, ultimo().modo()); igual(0, ultimo().posicoes()); });
         caso("corrigir limpa número e branco", () -> { digitar("81"); controlador.corrigir(); igual("", ultimo().digitado()); controlador.branco(); controlador.corrigir(); igual(Modo.DIGITANDO, ultimo().modo()); });
         caso("número incompleto não avança", () -> { digitar("8"); controlador.confirmar(); igual("DEPUTADO FEDERAL", ultimo().cargo()); igual(TipoMensagem.ERRO, ultimo().tipoMensagem()); });

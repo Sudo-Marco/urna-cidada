@@ -35,11 +35,22 @@ firebase.projectId=ID_REAL_DO_PROJETO
 firebase.apiKey=CHAVE_REAL_DA_API
 ```
 
-3. Não envie `urna.properties` ao GitHub nem compartilhe o JAR junto com essa configuração. O arquivo está em `.gitignore`.
+3. Não comite `urna.properties` ao repositório. O arquivo está em `.gitignore`. Para o pacote público das Releases, use a configuração de segredos descrita abaixo e restrinja a chave de API antes de distribuir.
 4. Opcionalmente use as variáveis `URNA_FIRESTORE_PROJECT_ID` e `URNA_FIRESTORE_API_KEY`; elas têm precedência. As antigas `FIRESTORE_PROJECT_ID` e `FIRESTORE_API_KEY` também são aceitas.
 5. Inicie `iniciar.bat` (modo padrão). Sem configuração válida a urna continua local.
 
-## 5. Testar e limpar
+## 5. Configurar o pacote automático do GitHub
+
+Para o ZIP publicado em **Releases** sincronizar com o Firestore sem configuração manual em cada computador, o responsável pelo repositório cadastra uma vez em **Settings → Secrets and variables → Actions**:
+
+1. Em **Variables**, crie `FIREBASE_PROJECT_ID` com o ID do projeto.
+2. Em **Secrets**, crie `FIREBASE_API_KEY` com a chave Web do aplicativo.
+3. Restrinja a chave à Cloud Firestore API no Google Cloud antes de distribuir. A configuração de cliente dentro do ZIP público pode ser extraída; as regras do banco continuam sendo a proteção de dados.
+4. Publique uma tag `v*` para iniciar o workflow. Sem esses valores, o ZIP continua funcionando e grava os votos localmente.
+
+O workflow grava os valores apenas durante a geração do pacote e não os adiciona ao repositório nem os imprime nos logs. O pacote contém somente configuração pública de cliente, nunca credenciais de serviço.
+
+## 6. Testar e limpar
 
 1. Use somente uma máquina/projeto de teste e faça uma sessão de simulação.
 2. Confira **Firestore Database → Dados → sessoes**. Deve haver um documento cujo ID é o UUID da sessão, com cinco votos anônimos.

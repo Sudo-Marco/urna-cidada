@@ -15,23 +15,34 @@
 | `scripts\iniciar.bat` | Arquivo local primeiro; Firestore REST opcional |
 | `scripts\compilar.bat` | Gera `dist\urna-cidada.jar` |
 | `scripts\testar.bat` | Executa testes Java puros |
-| `scripts\empacotar.bat` | JAR e arquivos de início em `dist\` |
+| `scripts\empacotar.bat` | ZIP portátil Windows x64 com runtime Java incluído |
 
 Para Linux/macOS use `sh scripts/demo.sh`, `sh scripts/iniciar.sh --local`, `sh scripts/testar.sh` ou `sh scripts/empacotar.sh`. Scripts `.sh` ainda não foram executados nesta estação Windows.
 
 ## Início no Windows
 
-1. Instale um **JDK 17+** (por exemplo, Temurin). Abra CMD ou PowerShell e confira `java -version`, `javac -version`.
-2. Clone ou extraia o repositório e execute `demo.bat`.
-3. Para uma votação local persistente, execute `iniciar.bat --local`.
-4. Para sincronizar com Firebase, faça a configuração documentada em [firebase-configuracao.md](firebase-configuracao.md) e execute `iniciar.bat`.
+### Para quem vai usar a urna
 
-O primeiro início compila sem Maven. O aplicativo cria `dist\urna-cidada.jar`. Dados e logs são procurados ao lado do JAR/projeto. Se a pasta não for gravável, usa `%USERPROFILE%\.urna-cidada\dados` e `.\logs`; a tela mostra o estado e o caminho nos detalhes da gravação. Uma trava evita duas instâncias concorrentes.
+1. Abra [Releases do GitHub](https://github.com/Sudo-Marco/urna-cidada/releases) e baixe `UrnaCidada-Windows-x64.zip`.
+2. Extraia a pasta `UrnaCidada` para Documentos ou Área de Trabalho.
+3. Abra `UrnaCidada.exe`. O runtime Java já vem no pacote: não precisa instalar JDK, VS Code, Git ou Maven.
+4. Sem `urna.properties`, a urna salva os votos localmente naquele computador. Para sincronizar no Firestore, a equipe precisa copiar uma configuração autorizada para a pasta `app` e seguir [firebase-configuracao.md](firebase-configuracao.md).
+
+### Para quem desenvolve/publica
+
+1. Instale um **JDK 17+** e confira `java -version`, `javac -version` e `jpackage --version`.
+2. Clone ou extraia o repositório e execute `scripts\testar.bat`.
+3. Execute `scripts\empacotar.bat`. Ele cria `dist\UrnaCidada-Windows-x64.zip` com o runtime incluído.
+4. Uma tag `v*` no GitHub dispara `.github/workflows/publicar-release.yml`, que testa, cria o ZIP e o anexa ao Release.
+
+Para que o ZIP automático também envie ao Firestore, configure no repositório em **Settings → Secrets and variables → Actions** a variável `FIREBASE_PROJECT_ID` e o segredo `FIREBASE_API_KEY`. Sem os dois, o pacote continua funcional e grava localmente. O workflow nunca registra os valores no log. A chave de API é pública para aplicativos cliente; antes de distribuir, restrinja-a à API necessária no Google Cloud e monitore o uso.
+
+O primeiro início do código-fonte compila sem Maven. No pacote portátil, a compilação já foi feita e o runtime Java está incluído. Dados e logs ficam ao lado do aplicativo. Se a pasta não for gravável, os dados e logs usam `%USERPROFILE%\.urna-cidada\`; a tela mostra o estado e o caminho. Uma trava evita duas instâncias concorrentes.
 
 ## Durante a atividade
 
 - Explique que os candidatos e propostas são fictícios e que esta é uma simulação educativa.
-- Uma votação passa por Federal, Estadual, Senador, Governador e Presidente; a simplificação é um voto para Senador.
+- Uma votação passa por Federal, Estadual, Senador, Governador e Presidente; a simplificação é um voto para Senador. No cargo estadual há cinco candidaturas de demonstração.
 - A sessão só é salva ao confirmar Presidente. Ao fim aparece FIM; a próxima sessão começa pelo botão.
 - Se houver falha de internet, votos continuam no TSV. Não apague `dados/` enquanto houver pendências.
 - Faça primeiro uma votação descartável de teste; confirme e remova seus documentos de teste no Firebase antes de usar a oficina.
@@ -46,7 +57,7 @@ O primeiro início compila sem Maven. O aplicativo cria `dist\urna-cidada.jar`. 
 
 ## Publicação GitHub
 
-A branch desta entrega é `feature/urna-final`, criada de `develop`. Depois que alterações forem publicadas no repositório, abrir um Pull Request com base `develop`; não enviar para `main`. O programa é Swing desktop, não uma página estática GitHub Pages. Para um site seria necessário reescrever a interface como aplicação web e manter o envio do Firestore protegido por serviço apropriado.
+A branch padrão do repositório é `URNA`. Uma tag com prefixo `v` aciona o workflow para gerar um Release Windows. O programa é Swing desktop e não abre dentro do navegador do GitHub; o pacote portátil permite baixar, extrair e executar sem instalar Java.
 
 ## Conferências pendentes
 

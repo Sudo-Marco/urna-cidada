@@ -20,9 +20,11 @@ public record Eleicao(List<Cargo> cargos) {
      * vices e propostas antes de usar a oficina; todos os dados abaixo são fictícios.
      */
     public static Eleicao exemplo() {
-        String horizonte = "Partido Horizonte Fictício";
-        String aurora = "Rede Aurora Fictícia";
-        String caminhos = "Movimento Caminhos Fictício";
+        String horizonte = "Partido Horizonte Comunitário (fictício)";
+        String aurora = "Partido Raízes do Amanhã (fictício)";
+        String caminhos = "Partido Caminhos Abertos (fictício)";
+        String cuidado = "Partido Cuidado Coletivo (fictício)";
+        String futuro = "Partido Futuro Compartilhado (fictício)";
 
         Cargo federal = new Cargo("Deputado Federal", 4, List.of(
                 proporcional("8101", "Ari Lume", horizonte, "81", List.of("Ampliar bibliotecas com horários acessíveis.", "Divulgar metas e gastos em linguagem simples.")),
@@ -30,9 +32,11 @@ public record Eleicao(List<Cargo> cargos) {
                 proporcional("8303", "Cael Brisa", caminhos, "83", List.of("Incentivar transporte público de baixa emissão.", "Ampliar dados abertos sobre serviços."))));
 
         Cargo estadual = new Cargo("Deputado Estadual", 5, List.of(
-                proporcional("81001", "Dora Vale-Luz", horizonte, "81", List.of("Apoiar bibliotecas comunitárias e leitura.", "Publicar metas anuais de serviços estaduais.")),
-                proporcional("82002", "Eno Maré-Clara", aurora, "82", List.of("Facilitar cursos técnicos de curta duração.", "Divulgar indicadores de atendimento em saúde.")),
-                proporcional("83003", "Fira Campo-Azul", caminhos, "83", List.of("Planejar conexões entre bairros e cidades.", "Incentivar eficiência energética em prédios públicos."))));
+                proporcional("81001", "Meia Bomba", horizonte, "81", List.of("Apoiar bibliotecas comunitárias e leitura.", "Publicar metas anuais de serviços estaduais.")),
+                proporcional("82002", "Curupira", aurora, "82", List.of("Facilitar cursos técnicos de curta duração.", "Divulgar indicadores de atendimento em saúde.")),
+                proporcional("83003", "Peter Pardo", caminhos, "83", List.of("Planejar conexões seguras entre bairros e cidades.", "Incentivar eficiência energética em prédios públicos.")),
+                proporcional("84004", "Zé Gotinha", cuidado, "84", List.of("Ampliar ações educativas de prevenção em saúde.", "Publicar informações de serviços em linguagem simples.")),
+                proporcional("85005", "Beto", futuro, "85", List.of("Apoiar espaços esportivos e culturais acessíveis.", "Divulgar metas e resultados dos serviços estaduais."))));
 
         Cargo senador = new Cargo("Senador", 3, List.of(
                 majoritario("811", "Galo Riacho", horizonte, "81", propostasTransparencia(), null),

@@ -13,7 +13,7 @@
 
 </div>
 
-> ⚠️ **Aviso:** este é um projeto **educativo**. Não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Todos os candidatos, partidos e números são **fictícios**.
+> ⚠️ **Aviso:** este é um projeto **educativo**. Não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Partidos, números e propostas são fictícios. Os nomes do cargo estadual foram definidos a pedido do usuário; “Curupira” e “Zé Gotinha” remetem a personagens conhecidos, então confirme com o professor se esses nomes atendem à rubrica.
 
 ## 📑 Sumário
 
@@ -39,11 +39,12 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 ## 🚧 Situação do projeto
 
-**A versão final do software está pronta para demonstração.** A ação de extensão (oficina com estudantes) ainda será realizada.
+**O software está pronto para demonstração.** O cargo Deputado Estadual tem cinco candidaturas de exemplo; a ação de extensão (oficina com estudantes) ainda será realizada.
 
 | Parte | Situação |
 |---|---|
 | Votação em cinco cargos (Deputado Federal, Deputado Estadual, Senador, Governador e Presidente), com branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
+| Cinco candidaturas de Deputado Estadual | ✅ Nomes pedidos, números de cinco dígitos, partidos e propostas fictícias |
 | Interface Swing (teclado na tela, atalhos e avisos) sem painel lateral | ✅ Implementada; a urna foi aberta no computador do usuário |
 | Gravação local e fila de pendências para sincronização | ✅ Implementada; o fluxo offline→online tem cobertura automatizada com servidor HTTP local falso |
 | Gravação no Cloud Firestore | ✅ Configurada no computador do usuário; a tela mostrou “Online · tudo enviado” e o usuário informou que uma sessão de teste foi salva. A conferência direta do documento no console ainda está pendente. |
@@ -54,7 +55,9 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 ## ▶️ Como executar
 
-**Requisito:** JDK 17 ou superior, disponível nos comandos `java`, `javac` e `jar`. Maven não é necessário. Para usar o Firestore, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
+**Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
+
+**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na página [Releases](https://github.com/Sudo-Marco/urna-cidada/releases). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven. Se ainda não houver uma versão em Releases, use temporariamente o código-fonte seguindo os passos abaixo; a publicação automática é iniciada ao criar uma tag `v*` no GitHub.
 
 ### Início rápido (Windows)
 
@@ -138,7 +141,7 @@ No Windows, execute:
 scripts\testar.bat
 ```
 
-Não precisa de Maven nem de internet. Na revisão registrada em [testes.md](docs/testes.md), **86 passaram e 0 falharam em cada uma de três execuções consecutivas**.
+Não precisa de Maven nem de internet. Na revisão registrada em [testes.md](docs/testes.md), a suíte foi executada nesta máquina; veja ali o resultado atual e os limites da verificação.
 
 Os testes cobrem as regras de votação, a persistência local e a sincronização simulada com servidor HTTP local falso. **Não comprovam** a aparência em todos os computadores, a realização da oficina nem o impacto educativo; também não substituem o teste de uma queda real de internet. A tela do usuário mostrou “Firebase configurado” e “Online · tudo enviado”, e o usuário informou que a sessão de teste foi salva. A inspeção independente do documento no console Firestore ainda está pendente. Veja [testes.md](docs/testes.md) para a matriz e as conferências manuais.
 
@@ -206,8 +209,7 @@ A regra de votação não conhece a tela nem o banco de dados. O diagrama está 
 
 | Branch | Para quê |
 |---|---|
-| `feature/urna-final` | Versão final atual do projeto |
-| Branch definida como padrão no GitHub | Base para novos clones e pull requests |
+| `URNA` | Versão final e branch padrão do repositório |
 | `feature/nome-da-tarefa` | Cada tarefa nova, criada a partir da branch padrão atualizada |
 
 Mensagens de commit com prefixo: `feat:` (novidade), `fix:` (correção), `docs:` (documentação), `test:` (testes).

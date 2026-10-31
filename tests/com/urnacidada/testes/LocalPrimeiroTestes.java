@@ -49,7 +49,10 @@ final class LocalPrimeiroTestes {
                 long livre=System.currentTimeMillis()+1000; while(System.currentTimeMillis()<livre && repo.estadoPersistencia().startsWith("Firebase")) Thread.sleep(10);
                 repo.sincronizarAgora();
                 limite=System.currentTimeMillis()+4000;
-                while(!repo.estadoPersistencia().equals("Online · tudo enviado") && System.currentTimeMillis()<limite) Thread.sleep(10);
+                while(!repo.estadoPersistencia().equals("Online · tudo enviado") && System.currentTimeMillis()<limite) {
+                    repo.sincronizarAgora();
+                    Thread.sleep(10);
+                }
                 igual("Online · tudo enviado",repo.estadoPersistencia()); igual(2,chamadas.get());
                 igual(0,new VotoRepositoryEmArquivo(p,"local").lerSessoes().size());
             } finally { s.stop(0); }

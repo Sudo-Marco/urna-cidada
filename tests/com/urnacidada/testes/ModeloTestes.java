@@ -105,6 +105,18 @@ final class ModeloTestes {
             igual(List.of(4, 5, 3, 2, 2), cargos.stream().map(Cargo::digitos).toList());
         });
 
+        teste("Deputado Estadual tem os cinco candidatos solicitados, com partidos e números fictícios", () -> {
+            Cargo estadual = Eleicao.exemplo().cargos().get(1);
+            igual(List.of("Meia Bomba", "Curupira", "Peter Pardo", "Zé Gotinha", "Beto"),
+                    estadual.candidatos().stream().map(Candidato::nome).toList());
+            igual(List.of("81001", "82002", "83003", "84004", "85005"),
+                    estadual.candidatos().stream().map(Candidato::numero).toList());
+            igual(List.of("Partido Horizonte Comunitário (fictício)", "Partido Raízes do Amanhã (fictício)",
+                            "Partido Caminhos Abertos (fictício)", "Partido Cuidado Coletivo (fictício)",
+                            "Partido Futuro Compartilhado (fictício)"),
+                    estadual.candidatos().stream().map(Candidato::partido).toList());
+        });
+
         teste("candidaturas têm números, propostas e vices consistentes", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
             for (Cargo cargo : cargos) {

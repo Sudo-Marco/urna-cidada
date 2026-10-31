@@ -1,0 +1,54 @@
+name: Publicar pacote portatil para Windows
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  pacote-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Baixar codigo
+        uses: actions/checkout@v4
+
+      - name: Preparar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Executar testes
+        run: scripts\testar.bat
+
+      - name: Preparar Firebase se os segredos de release estiverem configurados
+        shell: pwsh
+        env:
+          FIREBASE_PROJECT_ID: ${{ vars.FIREBASE_PROJECT_ID }}
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+        run: |
+          if ($env:FIREBASE_PROJECT_ID -and $env:FIREBASE_API_KEY) {
+            @(
+              "firebase.projectId=$env:FIREBASE_PROJECT_ID"
+              "firebase.apiKey=$env:FIREBASE_API_KEY"
+            ) | Set-Content -LiteralPath "urna.properties" -Encoding ascii
+            Write-Host "O pacote desta release sera configurado para o Firebase."
+          } else {
+            Write-Host "Sem configuracao Firebase nos segredos do repositorio; o pacote sera local."
+          }
+
+      - name: Montar pacote portatil
+        env:
+          INCLUIR_FIREBASE_RELEASE: "1"
+        run: scripts\empacotar.bat
+
+      - name: Publicar arquivo para download
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Urna Cidada ${{ github.ref_name }}
+          generate_release_notes: true
+          files: dist/UrnaCidada-Windows-x64.zip
+          fail_on_unmatched_files: true

@@ -6,7 +6,7 @@ Este documento reflete o código e a verificação desta revisão. A especifica�
 
 - Java 17+, Swing, sem dependências externas em runtime. Compilação e testes pelos scripts não exigem Maven nem internet.
 - Uma única votação contém cinco cargos e um voto por cargo: Deputado Federal (4 dígitos), Deputado Estadual (5), Senador (3; simplificado a um voto), Governador (2) e Presidente (2), nessa ordem.
-- Candidatos, partidos, números 81–83, vices e propostas são fictícios. Dados de demonstração ficam em `Eleicao.exemplo()`.
+- Os dados de partidos, números, vices e propostas em `Eleicao.exemplo()` são fictícios. Para Deputado Estadual há cinco candidaturas, com números 81001, 82002, 83003, 84004 e 85005. Os nomes foram fornecidos pelo usuário; Curupira e Zé Gotinha são referências conhecidas, portanto a exigência do professor de usar apenas nomes/figuras inéditos não está atendida até confirmar ou substituir esses dois nomes.
 - A gravação de sessão ocorre no fim do último cargo. Arquivo local é a fonte de verdade; envio Firestore REST é assíncrono e opcional.
 - Nenhum dado pessoal é coletado. Um documento contém UUID da sessão e lista de votos (cargo, tipo, número e data/hora).
 
@@ -15,6 +15,7 @@ Este documento reflete o código e a verificação desta revisão. A especifica�
 | Requisito da missão | Código | Documentação | Evidência de teste/estado |
 |---|---|---|---|
 | Cinco cargos em ordem e números com comprimentos corretos | `model/Eleicao.java`, `Cargo.java` | `regras-de-votacao.md` | `ModeloTestes`, `UrnaServiceTestes`: verificado automaticamente |
+| Cinco candidaturas fictícias de Deputado Estadual, com números, partidos e propostas | `model/Eleicao.java` | `regras-de-votacao.md` | `ModeloTestes`: nomes, números e partidos verificados automaticamente; conteúdo das propostas revisado no código |
 | Candidaturas únicas, 2–4 propostas até 90 caracteres, partidos e vices consistentes | `Candidato.java`, subclasses, `Cargo.java` | `regras-de-votacao.md` | `ModeloTestes`: verificado automaticamente |
 | Entrada válida, nula, branca, correção e legenda proporcional | `UrnaService.java`, `TipoVoto.java` | `regras-de-votacao.md` | `UrnaServiceTestes`, `ControladorUrnaTestes`: verificado |
 | Confirmações sequenciais e persistência só após quinto cargo | `UrnaService.java` | `casos-de-uso.md` | fluxo completo nos testes: verificado |
@@ -26,6 +27,7 @@ Este documento reflete o código e a verificação desta revisão. A especifica�
 | Configuração fora do Git, variáveis override e mensagens | `ConfiguracaoUrna.java`, `.gitignore` | `firebase-configuracao.md`, `solucao-de-problemas.md` | Ausente, incompleta, exemplo e sintaticamente válida verificados |
 | Caminhos ao lado do app com fallback de perfil, log rotativo e instância única | `CaminhosAplicacao.java`, `LogUrna.java`, `TravaInstancia.java` | `solucao-de-problemas.md` | Compilação verificada; cenários reais de permissão/múltiplas contas pendentes |
 | JDK 17+, scripts sem Maven e JAR executável | `scripts/*`, `pom.xml` | README, `operacao-oficina.md` | Windows: testes e empacotamento executados; Linux/macOS não executados nesta máquina |
+| Pacote Windows portátil, com runtime incluído, baixável como Release | `scripts/empacotar.bat`, `.github/workflows/publicar-release.yml` | README, `operacao-oficina.md` | Execução do jpackage e publicação do Release pendentes nesta revisão |
 | Sem segredo versionado ou dados reais | `.gitignore`, `urna.properties.example` | README, Firebase docs | `urna.properties` permanece ignorado pelo Git; a configuração real está apenas no computador do usuário |
 | Requisitos da rubrica do professor | PDF ausente | este arquivo | **Não verificável** sem o PDF/enunciado |
 | Aparência em computador da oficina, projetor, escala e áudio | interface Swing | `testes.md` | **Pendente manualmente**, sem equipamento verificado |
@@ -37,10 +39,14 @@ Este documento reflete o código e a verificação desta revisão. A especifica�
 |---|---|---|
 | Privacidade | Só dados da votação e UUID aleatório | Inspecionado no modelo; sem avaliação externa de privacidade |
 | Não perder voto em falha de rede | Persistência local antes da rede | Testado com HTTP falso; falhas físicas de armazenamento não cobertas |
-| Compatibilidade | Fontes `--release 17`; sem dependências de aplicação | Compilado neste Windows com JDK disponível; outras versões/sistemas não testados |
+| Compatibilidade | Fontes `--release 17`; app-image Windows x64 inclui runtime | Gerado no Windows com JDK 25 e o lançador fechou com código 0 usando `--ajuda`; abertura da janela em PC limpo e outros sistemas ainda não testada |
 | Segurança da chave | Não versionada; validação e mascaramento | Inspecionada; chave de API continua pública e escrita anônima pode ser abusada |
 | Legibilidade | Layout testado sem janela a 1366×768 e 1120×680 | Automático no painel; DPI real e projetor pendentes |
 | Uso eleitoral real | Não é objetivo nem seguro | Não usar como urna oficial |
+
+## Atualização do pacote portátil
+
+Ações de publicação estão em `.github/workflows/publicar-release.yml`. Quando uma tag `v*` é enviada ao GitHub, a ação compila e testa no Windows, cria um pacote app-image com runtime Java incluído e publica o ZIP em Releases. O ZIP não inclui `urna.properties`: sem configuração do Firebase, a urna funciona em modo local e os dados permanecem naquele computador. A primeira execução da ação e o teste num computador Windows limpo ainda precisam ser verificados.
 
 ## Não verificável
 

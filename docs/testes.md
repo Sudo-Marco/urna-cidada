@@ -14,7 +14,7 @@ Linux/macOS com JDK 17+:
 sh scripts/testar.sh
 ```
 
-São testes Java puros sem JUnit, Maven ou internet. O cliente HTTP usa `com.sun.net.httpserver.HttpServer` ligado somente a `127.0.0.1`. Na revisão de 29/10/2026, em Windows com JDK 17+ disponível, o resultado foi **86 passaram, 0 falharam em cada uma de três execuções consecutivas**. A compilação usa `javac --release 17`.
+São testes Java puros sem JUnit, Maven ou internet. O cliente HTTP usa `com.sun.net.httpserver.HttpServer` ligado somente a `127.0.0.1`. Na revisão de 31/10/2026, em Windows com JDK 25 disponível e compilação `--release 17`, o resultado foi **87 passaram, 0 falharam em cada uma de três execuções consecutivas**. A compilação usa `javac --release 17`.
 
 ## Cobertura atual
 

@@ -25,7 +25,7 @@ flowchart TD
 - **Nulo:** número completo sem candidatura correspondente; a tela avisa antes da confirmação.
 - **Branco:** apertar BRANCO sem digitar nenhum dígito.
 - **Corrigir:** apaga o número ou desmarca branco no cargo atual.
-- **Legenda:** somente nos dois cargos de Deputado. Digitar dois dígitos de partido (81, 82 ou 83) mostra seu nome; confirmar ali registra `LEGENDA` com o número do partido.
+- **Legenda:** somente nos dois cargos de Deputado. Digitar os dois dígitos do partido (81 a 85 no cargo Estadual) mostra seu nome; confirmar ali registra `LEGENDA` com o número do partido.
 - **Confirmar:** aceita número completo, legenda válida nos cargos proporcionais ou branco; número incompleto não avança.
 - **Persistência:** votos intermediários ficam na memória da sessão; o arquivo local recebe todos os cinco votos ao confirmar o último cargo. A interface executa essa gravação em segundo plano.
 - **Fim:** exibe “FIM”. A urna não recomeça automaticamente; o mediador usa “Iniciar nova votação”.
@@ -34,25 +34,29 @@ Teclado físico: `0–9`, `B`, `Backspace`, `Enter`. O botão de áudio pode sil
 
 ## Dados de exemplo
 
-A fonte única de candidaturas é `Eleicao.exemplo()` em `src/com/urnacidada/model/Eleicao.java`. Códigos de partido 81–83, nomes, vices e propostas são inventados e neutros. Altere ali e preserve os comprimentos configurados de cada cargo.
+A fonte única de candidaturas é `Eleicao.exemplo()` em `src/com/urnacidada/model/Eleicao.java`. Os dados e partidos são usados como conteúdo fictício da simulação. Altere ali e preserve os comprimentos configurados de cada cargo.
 
 | Cargo | Número | Candidato fictício | Partido fictício |
 |---|---:|---|---|
-| Federal | 8101 | Ari Lume | Partido Horizonte Fictício |
-| Federal | 8202 | Bela Nébula | Rede Aurora Fictícia |
-| Federal | 8303 | Cael Brisa | Movimento Caminhos Fictício |
-| Estadual | 81001 | Dora Vale-Luz | Partido Horizonte Fictício |
-| Estadual | 82002 | Eno Maré-Clara | Rede Aurora Fictícia |
-| Estadual | 83003 | Fira Campo-Azul | Movimento Caminhos Fictício |
-| Senador | 811 | Galo Riacho | Partido Horizonte Fictício |
-| Senador | 822 | Hera Pôr-do-Sol | Rede Aurora Fictícia |
-| Senador | 833 | Ivo Pedra-Mansa | Movimento Caminhos Fictício |
-| Governador | 81 | Jaci Nascente (vice Kiro Horizonte) | Partido Horizonte Fictício |
-| Governador | 82 | Luma Cedro-Doce (vice Miro Brisa-Firme) | Rede Aurora Fictícia |
-| Governador | 83 | Nilo Serra-Clara (vice Ona Vale-Verde) | Movimento Caminhos Fictício |
-| Presidente | 81 | Pia Sol-Nascente (vice Quim Rio-Calmo) | Partido Horizonte Fictício |
-| Presidente | 82 | Ravi Lago-Azul (vice Suri Campo-Livre) | Rede Aurora Fictícia |
-| Presidente | 83 | Tali Nuvem-Mansa (vice Uli Trilha-Larga) | Movimento Caminhos Fictício |
+| Federal | 8101 | Ari Lume | Partido Horizonte Comunitário (fictício) |
+| Federal | 8202 | Bela Nébula | Partido Raízes do Amanhã (fictício) |
+| Federal | 8303 | Cael Brisa | Partido Caminhos Abertos (fictício) |
+| Estadual | 81001 | Meia Bomba | Partido Horizonte Comunitário (fictício) |
+| Estadual | 82002 | Curupira | Partido Raízes do Amanhã (fictício) |
+| Estadual | 83003 | Peter Pardo | Partido Caminhos Abertos (fictício) |
+| Estadual | 84004 | Zé Gotinha | Partido Cuidado Coletivo (fictício) |
+| Estadual | 85005 | Beto | Partido Futuro Compartilhado (fictício) |
+| Senador | 811 | Galo Riacho | Partido Horizonte Comunitário (fictício) |
+| Senador | 822 | Hera Pôr-do-Sol | Partido Raízes do Amanhã (fictício) |
+| Senador | 833 | Ivo Pedra-Mansa | Partido Caminhos Abertos (fictício) |
+| Governador | 81 | Jaci Nascente (vice Kiro Horizonte) | Partido Horizonte Comunitário (fictício) |
+| Governador | 82 | Luma Cedro-Doce (vice Miro Brisa-Firme) | Partido Raízes do Amanhã (fictício) |
+| Governador | 83 | Nilo Serra-Clara (vice Ona Vale-Verde) | Partido Caminhos Abertos (fictício) |
+| Presidente | 81 | Pia Sol-Nascente (vice Quim Rio-Calmo) | Partido Horizonte Comunitário (fictício) |
+| Presidente | 82 | Ravi Lago-Azul (vice Suri Campo-Livre) | Partido Raízes do Amanhã (fictício) |
+| Presidente | 83 | Tali Nuvem-Mansa (vice Uli Trilha-Larga) | Partido Caminhos Abertos (fictício) |
+
+Os nomes estaduais acima foram informados pelo usuário. **Curupira** é uma figura conhecida do folclore e **Zé Gotinha** é um mascote público conhecido; caso o professor exija nomes e personagens totalmente inéditos, troque esses dois nomes antes da apresentação. Não há imagens nem logotipos desses personagens no aplicativo.
 
 ## Documento armazenado
 
