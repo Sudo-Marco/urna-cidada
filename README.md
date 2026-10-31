@@ -2,10 +2,10 @@
 
 # 🗳️ Urna Cidadã
 
-**Simulador educativo de urna eletrônica, com ações sobre cidadania digital e desinformação eleitoral.**
+**Simulador educativo de votação em Java 17, com interface Swing e opção web local; ações sobre cidadania digital e desinformação eleitoral.**
 
 ![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk&logoColor=white)
-![Interface](https://img.shields.io/badge/Interface-Swing-blue)
+![Interfaces](https://img.shields.io/badge/Interfaces-Swing%20%7C%20Web-blue)
 ![Banco](https://img.shields.io/badge/Banco-Cloud%20Firestore-FFCA28?logo=firebase&logoColor=black)
 ![Build](https://img.shields.io/badge/Build-JDK%2017%2B-C71A36?logo=openjdk&logoColor=white)
 ![Status](https://img.shields.io/badge/Software-vers%C3%A3o%20final-brightgreen)
@@ -102,6 +102,26 @@ Os scripts existem, mas não foram verificados em Linux/macOS nesta revisão.
 
 </details>
 
+## Usar no navegador sem Maven
+
+O projeto inclui uma interface web servida por Java. Ela reutiliza as regras de votação e os repositórios existentes; o navegador mostra a tela e o servidor local continua responsável por validar e gravar os votos. É necessário apenas o JDK 17+.
+
+No Windows, dê duplo clique em `web.bat` ou execute no terminal:
+
+```bat
+scripts\servir.bat
+scripts\servir.bat --local
+scripts\servir.bat --memoria
+```
+
+Abra `http://127.0.0.1:8080`. A primeira opção usa o armazenamento local-primeiro já documentado; `--local` grava só no arquivo local e `--memoria` não mantém votos ao encerrar. Deixe o terminal aberto enquanto usa a página; `Ctrl+C` encerra o servidor. Para mudar a porta, defina a variável `URNA_WEB_PORT` antes de iniciar.
+
+O servidor escuta apenas em `127.0.0.1`, neste computador. Para outras pessoas acessarem pela rede ou pela internet, seria necessário hospedar o servidor e rever autenticação, segurança e persistência.
+
+## GitHub
+
+O pacote portátil para Windows está na página [Releases](https://github.com/Sudo-Marco/urna-cidada/releases). O ZIP inclui runtime Java; não exige instalar JDK, VS Code, Git ou Maven. O GitHub Pages hospeda somente páginas estáticas e não executa o servidor Java desta interface web. Para desenvolvimento e execução a partir do código, leia [docs/operacao-oficina.md](docs/operacao-oficina.md).
+
 ### Atalhos do teclado do computador
 
 | Tecla | Ação |
@@ -154,7 +174,9 @@ urna-cidada/
 │   ├── model/                     candidatos, cargos, eleição e votos
 │   ├── service/                   regras da votação
 │   ├── repository/                memória, arquivo local e Firestore REST
-│   └── view/                      controlador e interface Swing
+│   ├── view/                      controlador e interface Swing
+│   └── WebMain.java               servidor local da interface web
+├── web/                           interface HTML/CSS/JavaScript
 ├── firestore.rules                regras do Firestore
 ├── urna.properties.example        modelo sem chave real
 ├── tests/                         testes automáticos em Java puro

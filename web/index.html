@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123f39">
+  <title>Urna Cidadã — Simulação educativa</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Urna Cidadã, início">
+      <span class="brand-icon" aria-hidden="true">UC</span>
+      <span><strong>Urna Cidadã</strong><small>SIMULAÇÃO EDUCATIVA</small></span>
+    </a>
+    <div class="local-status"><span class="status-dot"></span> Executando neste computador</div>
+  </header>
+
+  <main>
+    <section id="welcome" class="welcome-card" aria-labelledby="welcome-title">
+      <div class="eyebrow">UMA EXPERIÊNCIA DE APRENDIZAGEM</div>
+      <h1 id="welcome-title">Seu voto começa<br>com informação.</h1>
+      <p>Conheça candidaturas fictícias, compare propostas e pratique uma votação consciente.</p>
+      <div class="notice"><span aria-hidden="true">ⓘ</span><span><strong>Simulação educativa.</strong> Esta urna não é oficial. Os candidatos e partidos são fictícios.</span></div>
+      <button id="start" class="button button-primary button-large">Iniciar simulação <span aria-hidden="true">→</span></button>
+      <p class="privacy-note">Uma votação por vez. Nenhum dado pessoal é solicitado.</p>
+    </section>
+
+    <section id="ballot" class="ballot-layout" hidden aria-label="Cédula de votação">
+      <div class="ballot-column">
+        <div class="progress-row"><span id="progress">CARGO 1 DE 5</span><span id="persistence-short"></span></div>
+        <div class="progress-track" aria-hidden="true"><span id="progress-fill"></span></div>
+
+        <section class="voting-card" aria-labelledby="office-title">
+          <div class="card-heading">
+            <div><div class="eyebrow">VOCÊ ESTÁ VOTANDO PARA</div><h1 id="office-title">Deputado Federal</h1></div>
+            <span class="ballot-symbol" aria-hidden="true">✳</span>
+          </div>
+          <p id="explanation" class="office-explanation"></p>
+
+          <div class="display-label">DIGITE O NÚMERO DA CANDIDATURA</div>
+          <div id="digit-display" class="digit-display" aria-label="Número digitado"></div>
+          <div id="selection" class="selection" aria-live="polite"></div>
+
+          <div class="keypad" aria-label="Teclado numérico">
+            <button data-digit="1">1</button><button data-digit="2">2</button><button data-digit="3">3</button>
+            <button data-digit="4">4</button><button data-digit="5">5</button><button data-digit="6">6</button>
+            <button data-digit="7">7</button><button data-digit="8">8</button><button data-digit="9">9</button>
+            <button class="keypad-spacer" tabindex="-1" aria-hidden="true"></button><button data-digit="0">0</button><button class="keypad-spacer" tabindex="-1" aria-hidden="true"></button>
+          </div>
+          <div class="ballot-actions">
+            <button id="white" class="button button-secondary">Branco</button>
+            <button id="correct" class="button button-secondary">Corrige</button>
+            <button id="confirm" class="button button-primary">Confirma <span aria-hidden="true">✓</span></button>
+          </div>
+          <p class="keyboard-hint">Teclado: <kbd>0–9</kbd> digitar · <kbd>B</kbd> branco · <kbd>⌫</kbd> corrigir · <kbd>Enter</kbd> confirmar</p>
+        </section>
+
+        <div id="message" class="message" role="status" aria-live="polite"></div>
+      </div>
+
+      <aside class="candidate-column" aria-label="Candidaturas deste cargo">
+        <div class="candidate-heading"><div><div class="eyebrow">CONHEÇA AS OPÇÕES</div><h2>Candidaturas</h2></div><span id="candidate-count" class="count-badge"></span></div>
+        <div id="candidates" class="candidate-list"></div>
+        <div class="storage-card"><span class="storage-icon" aria-hidden="true">▣</span><div><strong>Privacidade e armazenamento</strong><p id="persistence"></p></div></div>
+      </aside>
+    </section>
+
+    <section id="finished" class="welcome-card finished-card" hidden aria-labelledby="finished-title">
+      <div class="finish-mark" aria-hidden="true">✓</div>
+      <div class="eyebrow">SIMULAÇÃO CONCLUÍDA</div>
+      <h1 id="finished-title">Obrigado por participar.</h1>
+      <p>Você concluiu os cinco cargos. Que tal conversar sobre as propostas e as fontes de informação que consultamos?</p>
+      <div id="finish-message" class="notice"></div>
+      <button id="restart" class="button button-primary button-large">Iniciar nova votação <span aria-hidden="true">↻</span></button>
+    </section>
+  </main>
+
+  <footer><span>Urna Cidadã · Projeto educativo</span><span>Votos sem identificação pessoal</span></footer>
+</body>
+</html>
