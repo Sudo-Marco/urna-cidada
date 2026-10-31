@@ -44,14 +44,14 @@ final class ControladorUrnaTestes {
         caso("número incompleto não avança", () -> { digitar("8"); controlador.confirmar(); igual("DEPUTADO FEDERAL", ultimo().cargo()); igual(TipoMensagem.ERRO, ultimo().tipoMensagem()); });
         caso("confirmação avança sem gravar os votos ainda", () -> { digitar("8101"); controlador.confirmar(); igual("DEPUTADO ESTADUAL", ultimo().cargo()); igual("CARGO 2 DE 5", ultimo().progresso()); igual(0, memoria.getVotos().size()); });
         caso("governador mostra vice e explicação majoritária", () -> {
-            votarTudo("8101", "82002", "811"); digitar("81");
+            votarTudo("8101", "81001", "820"); digitar("84");
             verdade(ultimo().explicacao().contains("majoritário"));
         });
-        caso("sequência completa termina em FIM e grava cinco votos", () -> { votarTudo("8101", "82002", "811", "81", "82"); verdade(ultimo().finalizada()); igual(5, memoria.getVotos().size()); });
+        caso("sequência completa termina em FIM e grava cinco votos", () -> { votarTudo("8101", "81001", "820", "84", "85"); verdade(ultimo().finalizada()); igual(5, memoria.getVotos().size()); });
         teste("falha temporária do repositório é mostrada e pode ser repetida", () -> {
             AtomicInteger tentativas = new AtomicInteger(); VotoRepositoryEmMemoria destino = new VotoRepositoryEmMemoria();
             preparar((id, votos) -> { if (tentativas.getAndIncrement() == 0) throw new RepositorioException("sem rede", null); destino.salvarSessao(id, votos); });
-            votarTudo("8101", "82002", "811", "81"); digitar("82"); controlador.confirmar();
+            votarTudo("8101", "81001", "820", "84"); digitar("85"); controlador.confirmar();
             igual(TipoMensagem.ERRO, ultimo().tipoMensagem()); verdade(!ultimo().finalizada()); controlador.confirmar(); verdade(ultimo().finalizada());
         });
         grupo("Tela: gravação em segundo plano");

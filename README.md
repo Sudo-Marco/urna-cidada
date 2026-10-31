@@ -13,7 +13,7 @@
 
 </div>
 
-> ⚠️ **Aviso:** este é um projeto **educativo**. Não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Partidos, números e propostas são fictícios. Os nomes do cargo estadual foram definidos a pedido do usuário; “Curupira” e “Zé Gotinha” remetem a personagens conhecidos, então confirme com o professor se esses nomes atendem à rubrica.
+> ⚠️ **Aviso:** este é um projeto **educativo**. Não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Partidos, números e propostas são fictícios. Os nomes das candidaturas foram definidos a pedido do usuário; “Curupira” e “Zé Gotinha” remetem a personagens conhecidos, então confirme com o professor se esses nomes atendem à rubrica.
 
 ## 📑 Sumário
 
@@ -39,12 +39,12 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 ## 🚧 Situação do projeto
 
-**O software está pronto para demonstração.** O cargo Deputado Estadual tem cinco candidaturas de exemplo; a ação de extensão (oficina com estudantes) ainda será realizada.
+**O software está pronto para demonstração.** Os campos começam vazios; a pessoa digita o número. Quando ele corresponde a um candidato do cargo atual, a urna mostra o nome e o partido. A ação de extensão (oficina com estudantes) ainda será realizada.
 
 | Parte | Situação |
 |---|---|
 | Votação em cinco cargos (Deputado Federal, Deputado Estadual, Senador, Governador e Presidente), com branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
-| Cinco candidaturas de Deputado Estadual | ✅ Nomes pedidos, números de cinco dígitos, partidos e propostas fictícias |
+| Nomes e números fictícios pedidos | ✅ 81001 estadual, 820 e 830 senador, 84 governador e 85 presidente |
 | Interface Swing (teclado na tela, atalhos e avisos) sem painel lateral | ✅ Implementada; a urna foi aberta no computador do usuário |
 | Gravação local e fila de pendências para sincronização | ✅ Implementada; o fluxo offline→online tem cobertura automatizada com servidor HTTP local falso |
 | Gravação no Cloud Firestore | ✅ Configurada no computador do usuário; a tela mostrou “Online · tudo enviado” e o usuário informou que uma sessão de teste foi salva. A conferência direta do documento no console ainda está pendente. |
@@ -144,6 +144,17 @@ flowchart TD
     G -->|Sim| H[Grava localmente e sincroniza com Firestore se disponível]
     H --> I([Fim])
 ```
+
+Os cargos permanecem na ordem mostrada no fluxo e definem quantos dígitos o campo aceita. Os números abaixo não são preenchidos pela urna: o eleitor os digita na etapa correspondente.
+
+| Cargo | Dígitos | Candidatura de exemplo | Partido fictício |
+|---|---:|---|---|
+| Deputado Estadual | 5 | 81001 — Meia Bomba | Partido Horizonte Comunitário |
+| Senador | 3 | 820 — Curupira; 830 — Peter Pardo | Partidos Raízes do Amanhã e Caminhos Abertos |
+| Governador | 2 | 84 — Zé Gotinha | Partido Cuidado Coletivo |
+| Presidente | 2 | 85 — Beto | Partido Futuro Compartilhado |
+
+Deputado Federal continua com candidatos de demonstração próprios e campo de 4 dígitos. Ao digitar um número reconhecido, a tela apresenta o candidato e o partido; um número completo que não corresponda ao cargo atual é tratado como voto nulo. A lista completa está em [regras-de-votacao.md](docs/regras-de-votacao.md).
 
 - **Voto válido:** número completo de uma candidatura fictícia.
 - **Voto de legenda:** opção disponível nos cargos proporcionais.

@@ -21,6 +21,13 @@ jobs:
           distribution: temurin
           java-version: "17"
 
+      - name: Definir versao do pacote pela tag
+        shell: pwsh
+        run: |
+          $version = $env:GITHUB_REF_NAME -replace '^v', ''
+          if ($version -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') { throw "Tag de versão inválida: $env:GITHUB_REF_NAME" }
+          "URNA_APP_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
       - name: Executar testes
         run: scripts\testar.bat
 

@@ -42,21 +42,17 @@ A fonte única de candidaturas é `Eleicao.exemplo()` em `src/com/urnacidada/mod
 | Federal | 8202 | Bela Nébula | Partido Raízes do Amanhã (fictício) |
 | Federal | 8303 | Cael Brisa | Partido Caminhos Abertos (fictício) |
 | Estadual | 81001 | Meia Bomba | Partido Horizonte Comunitário (fictício) |
-| Estadual | 82002 | Curupira | Partido Raízes do Amanhã (fictício) |
-| Estadual | 83003 | Peter Pardo | Partido Caminhos Abertos (fictício) |
-| Estadual | 84004 | Zé Gotinha | Partido Cuidado Coletivo (fictício) |
-| Estadual | 85005 | Beto | Partido Futuro Compartilhado (fictício) |
-| Senador | 811 | Galo Riacho | Partido Horizonte Comunitário (fictício) |
-| Senador | 822 | Hera Pôr-do-Sol | Partido Raízes do Amanhã (fictício) |
+| Senador | 820 | Curupira | Partido Raízes do Amanhã (fictício) |
+| Senador | 830 | Peter Pardo | Partido Caminhos Abertos (fictício) |
 | Senador | 833 | Ivo Pedra-Mansa | Partido Caminhos Abertos (fictício) |
-| Governador | 81 | Jaci Nascente (vice Kiro Horizonte) | Partido Horizonte Comunitário (fictício) |
+| Governador | 84 | Zé Gotinha (vice Kiro Horizonte) | Partido Cuidado Coletivo (fictício) |
 | Governador | 82 | Luma Cedro-Doce (vice Miro Brisa-Firme) | Partido Raízes do Amanhã (fictício) |
 | Governador | 83 | Nilo Serra-Clara (vice Ona Vale-Verde) | Partido Caminhos Abertos (fictício) |
 | Presidente | 81 | Pia Sol-Nascente (vice Quim Rio-Calmo) | Partido Horizonte Comunitário (fictício) |
-| Presidente | 82 | Ravi Lago-Azul (vice Suri Campo-Livre) | Partido Raízes do Amanhã (fictício) |
+| Presidente | 85 | Beto (vice Suri Campo-Livre) | Partido Futuro Compartilhado (fictício) |
 | Presidente | 83 | Tali Nuvem-Mansa (vice Uli Trilha-Larga) | Partido Caminhos Abertos (fictício) |
 
-Os nomes estaduais acima foram informados pelo usuário. **Curupira** é uma figura conhecida do folclore e **Zé Gotinha** é um mascote público conhecido; caso o professor exija nomes e personagens totalmente inéditos, troque esses dois nomes antes da apresentação. Não há imagens nem logotipos desses personagens no aplicativo.
+Os nomes das candidaturas acima foram informados pelo usuário. **Curupira** é uma figura conhecida do folclore e **Zé Gotinha** é um mascote público conhecido; caso o professor exija nomes e personagens totalmente inéditos, troque esses dois nomes antes da apresentação. Não há imagens nem logotipos desses personagens no aplicativo.
 
 ## Documento armazenado
 

@@ -8,7 +8,8 @@ for /f "tokens=3" %%v in ('java -version 2^>^&1 ^| findstr /i "version"') do set
 set "JAVA_VERSION=%JAVA_VERSION:~1,2%"
 if not defined JAVA_VERSION goto :java_error
 if %JAVA_VERSION% LSS 17 goto :java_error
-if not exist dist\urna-cidada.jar call scripts\compilar.bat
+rem Recompila a partir do código atual para não abrir um JAR antigo após um pull.
+call scripts\compilar.bat
 if errorlevel 1 exit /b 1
 java -jar dist\urna-cidada.jar %*
 if errorlevel 1 goto :fail

@@ -2,6 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.1"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -16,7 +17,7 @@ mkdir dist\entrada-portatil
 copy /y dist\urna-cidada.jar dist\entrada-portatil\urna-cidada.jar >nul
 
 echo Criando aplicativo portatil com Java incluido...
-jpackage --type app-image --name UrnaCidada --input dist\entrada-portatil --main-jar urna-cidada.jar --main-class com.urnacidada.Main --app-version 1.0.0 --vendor "Projeto Urna Cidada" --dest dist\pacote-portatil
+jpackage --type app-image --name UrnaCidada --input dist\entrada-portatil --main-jar urna-cidada.jar --main-class com.urnacidada.Main --app-version "%URNA_APP_VERSION%" --vendor "Projeto Urna Cidada" --dest dist\pacote-portatil
 if errorlevel 1 goto :package_error
 
 copy /y urna.properties.example dist\pacote-portatil\UrnaCidada\app\urna.properties.example >nul

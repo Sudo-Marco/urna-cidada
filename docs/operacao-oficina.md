@@ -42,7 +42,7 @@ O primeiro início do código-fonte compila sem Maven. No pacote portátil, a co
 ## Durante a atividade
 
 - Explique que os candidatos e propostas são fictícios e que esta é uma simulação educativa.
-- Uma votação passa por Federal, Estadual, Senador, Governador e Presidente; a simplificação é um voto para Senador. No cargo estadual há cinco candidaturas de demonstração.
+- Uma votação passa por Federal, Estadual, Senador, Governador e Presidente; a simplificação é um voto para Senador. Os números de demonstração seguem o tamanho do cargo: Meia Bomba (Estadual, 81001), Curupira e Peter Pardo (Senador, 820 e 830), Zé Gotinha (Governador, 84) e Beto (Presidente, 85).
 - A sessão só é salva ao confirmar Presidente. Ao fim aparece FIM; a próxima sessão começa pelo botão.
 - Se houver falha de internet, votos continuam no TSV. Não apague `dados/` enquanto houver pendências.
 - Faça primeiro uma votação descartável de teste; confirme e remova seus documentos de teste no Firebase antes de usar a oficina.

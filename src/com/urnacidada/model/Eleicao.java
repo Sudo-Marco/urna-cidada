@@ -32,25 +32,21 @@ public record Eleicao(List<Cargo> cargos) {
                 proporcional("8303", "Cael Brisa", caminhos, "83", List.of("Incentivar transporte público de baixa emissão.", "Ampliar dados abertos sobre serviços."))));
 
         Cargo estadual = new Cargo("Deputado Estadual", 5, List.of(
-                proporcional("81001", "Meia Bomba", horizonte, "81", List.of("Apoiar bibliotecas comunitárias e leitura.", "Publicar metas anuais de serviços estaduais.")),
-                proporcional("82002", "Curupira", aurora, "82", List.of("Facilitar cursos técnicos de curta duração.", "Divulgar indicadores de atendimento em saúde.")),
-                proporcional("83003", "Peter Pardo", caminhos, "83", List.of("Planejar conexões seguras entre bairros e cidades.", "Incentivar eficiência energética em prédios públicos.")),
-                proporcional("84004", "Zé Gotinha", cuidado, "84", List.of("Ampliar ações educativas de prevenção em saúde.", "Publicar informações de serviços em linguagem simples.")),
-                proporcional("85005", "Beto", futuro, "85", List.of("Apoiar espaços esportivos e culturais acessíveis.", "Divulgar metas e resultados dos serviços estaduais."))));
+                proporcional("81001", "Meia Bomba", horizonte, "81", List.of("Apoiar bibliotecas comunitárias e leitura.", "Publicar metas anuais de serviços estaduais."))));
 
         Cargo senador = new Cargo("Senador", 3, List.of(
-                majoritario("811", "Galo Riacho", horizonte, "81", propostasTransparencia(), null),
-                majoritario("822", "Hera Pôr-do-Sol", aurora, "82", propostasEducacao(), null),
+                majoritario("820", "Curupira", aurora, "82", propostasEducacao(), null),
+                majoritario("830", "Peter Pardo", caminhos, "83", propostasMobilidade(), null),
                 majoritario("833", "Ivo Pedra-Mansa", caminhos, "83", propostasMobilidade(), null)));
 
         Cargo governador = new Cargo("Governador", 2, List.of(
-                majoritario("81", "Jaci Nascente", horizonte, "81", propostasEducacao(), "Kiro Horizonte"),
+                majoritario("84", "Zé Gotinha", cuidado, "84", List.of("Ampliar ações educativas de prevenção em saúde.", "Publicar informações de serviços em linguagem simples."), "Kiro Horizonte"),
                 majoritario("82", "Luma Cedro-Doce", aurora, "82", propostasMobilidade(), "Miro Brisa-Firme"),
                 majoritario("83", "Nilo Serra-Clara", caminhos, "83", propostasAmbiente(), "Ona Vale-Verde")));
 
         Cargo presidente = new Cargo("Presidente", 2, List.of(
                 majoritario("81", "Pia Sol-Nascente", horizonte, "81", propostasAmbiente(), "Quim Rio-Calmo"),
-                majoritario("82", "Ravi Lago-Azul", aurora, "82", propostasTransparencia(), "Suri Campo-Livre"),
+                majoritario("85", "Beto", futuro, "85", List.of("Apoiar espaços de convivência, esporte e cultura.", "Divulgar metas e resultados dos serviços públicos."), "Suri Campo-Livre"),
                 majoritario("83", "Tali Nuvem-Mansa", caminhos, "83", propostasEducacao(), "Uli Trilha-Larga")));
 
         return new Eleicao(List.of(federal, estadual, senador, governador, presidente));
