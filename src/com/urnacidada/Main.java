@@ -76,7 +76,7 @@ public final class Main {
         }
     }
 
-    private static VotoRepository selecionarRepositorio(String modo, Path dados, Path configPath) throws IOException {
+    static VotoRepository selecionarRepositorio(String modo, Path dados, Path configPath) throws IOException {
         if (modo.equals("--memoria")) return new VotoRepositoryEmMemoria();
         if (modo.equals("--local")) return new VotoRepositoryEmArquivo(dados.resolve("votos-locais.tsv"), "Modo local");
         ConfiguracaoUrna config = ConfiguracaoUrna.carregar(CaminhosAplicacao.diretorioDaAplicacao().resolve(configPath));

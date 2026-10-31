@@ -2,10 +2,10 @@
 
 # 🗳️ Urna Cidadã
 
-**Simulador educativo de votação em Java 17 e Swing.**
+**Simulador educativo de votação em Java 17, Swing e interface web local.**
 
 ![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk&logoColor=white)
-![Interface](https://img.shields.io/badge/Interface-Swing-blue)
+![Interfaces](https://img.shields.io/badge/Interfaces-Swing%20%7C%20Web-blue)
 ![Armazenamento](https://img.shields.io/badge/Armazenamento-local%20primeiro%20%7C%20Firestore-FFCA28?logo=firebase&logoColor=black)
 
 </div>
@@ -45,6 +45,17 @@ Use as teclas `0–9`, `B` para branco, `Backspace` para corrigir e `Enter` para
 
 ## Compilar, testar e empacotar
 
+### VS Code e Maven (Windows)
+
+O projeto já tem `pom.xml` e usa Java 17. Com o Apache Maven disponível, abra esta pasta no VS Code e use **Terminal > Run Task**: `Maven: compilar` ou `Maven: executar urna (desktop)`. Também é possível executar no terminal:
+
+```bat
+.tools\apache-maven-3.10.0\bin\mvn.cmd compile
+.tools\apache-maven-3.10.0\bin\mvn.cmd exec:java -Dexec.args=--memoria
+```
+
+O segundo comando abre a interface Swing como aplicativo desktop. Ele não abre a urna no navegador; veja a observação em [GitHub](#github) sobre a diferença entre aplicativo desktop e site.
+
 ```bat
 scripts\compilar.bat
 scripts\testar.bat
@@ -53,15 +64,32 @@ scripts\empacotar.bat
 
 Os testes são Java puro, não usam Maven nem internet. O resultado verificado nesta revisão foi `86 passaram, 0 falharam em cada uma de três execuções consecutivas`. Detalhes, matriz e checklist manual em [docs/testes.md](docs/testes.md). Também há lançadores `.sh` em `scripts/` para Linux e macOS; neste ciclo não foram executados em Linux/macOS.
 
+## Usar no navegador sem Maven
+
+O projeto inclui uma interface web servida por Java. Ela reutiliza as regras de votação e os repositórios existentes; o navegador mostra a tela e o servidor local continua responsável por validar e gravar os votos. É necessário apenas o JDK 17+.
+
+No Windows, dê duplo clique em `web.bat` ou execute no terminal:
+
+```bat
+scripts\servir.bat
+scripts\servir.bat --local
+scripts\servir.bat --memoria
+```
+
+Abra `http://127.0.0.1:8080`. A primeira opção usa o armazenamento local-primeiro já documentado; `--local` grava só no arquivo local e `--memoria` não mantém votos ao encerrar. Deixe o terminal aberto enquanto usa a página; `Ctrl+C` encerra o servidor. Para mudar a porta, defina a variável `URNA_WEB_PORT` antes de iniciar.
+
+O servidor escuta apenas em `127.0.0.1`, neste computador. Para outras pessoas acessarem pela rede ou pela internet, seria necessário hospedar o servidor e rever autenticação, segurança e persistência.
+
 ## GitHub
 
-O código fonte pode ser colocado no repositório GitHub já existente. Esta aplicação Swing não é um site estático: GitHub Pages não pode hospedar uma janela Java. A entrega de desktop pode ser empacotada como JAR pela equipe; para abrir em outro computador, ele também precisa do JDK 17+. Leia [docs/operacao-oficina.md](docs/operacao-oficina.md) para clonar, testar e executar.
+O código fonte pode ser colocado no repositório GitHub já existente. GitHub Pages pode hospedar arquivos estáticos, mas não executa o servidor Java necessário para esta urna web. Para abrir em outro computador, inicie `scripts/servir.bat` nele e acesse a URL local; o computador precisa do JDK 17+. Leia [docs/operacao-oficina.md](docs/operacao-oficina.md) para clonar, testar e executar.
 
 ## Estrutura
 
 ```text
-src/com/urnacidada/       modelo, serviço, interface Swing e persistência
-scripts/                  lançadores Windows/Linux/macOS
+src/com/urnacidada/       modelo, serviço, interfaces desktop/web e persistência
+web/                      interface HTML/CSS/JavaScript servida localmente
+scripts/                  compilação e lançadores Windows/Linux/macOS
 firestore.rules           regras create-only do Firestore
 urna.properties.example   modelo sem chave real
 tests/                    testes Java puros e servidor HTTP falso

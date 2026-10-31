@@ -29,6 +29,7 @@ out/
 build/
 dist/
 logs/
+.tools/
 
 # Votos gravados localmente (dados dos testes e da oficina; não versionar)
 dados/
