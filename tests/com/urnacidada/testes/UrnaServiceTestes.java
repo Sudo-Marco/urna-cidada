@@ -94,7 +94,7 @@ final class UrnaServiceTestes {
         });
     }
 
-    private static void votarAntes(String numero) {
+    private static void votarAntes(String numero) throws RepositorioException {
         if (numero == null) urna.votarEmBranco();
         else digitar(urna, numero);
         urna.confirmar();
