@@ -15,6 +15,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -87,6 +88,7 @@ public final class TelaUrna extends JFrame {
                 this::exibirEstado, this::mostrarDicas, idSessao, umaSessaoPorConta);
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+        setBackground(new Color(0xEEF2F7));
         setContentPane(painel);
         setMinimumSize(new Dimension(1120, 680));
         setSize(1240, 720);

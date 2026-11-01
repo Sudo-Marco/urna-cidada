@@ -83,6 +83,7 @@ public final class PainelUrna extends JPanel {
         this.eleicao = Objects.requireNonNull(eleicao, "eleicao");
         setLayout(new BorderLayout(0, 14));
         setBackground(FUNDO);
+        setOpaque(true);
         setBorder(new EmptyBorder(18, 24, 14, 24));
         add(criarCabecalho(), BorderLayout.NORTH);
         add(criarCorpo(), BorderLayout.CENTER);

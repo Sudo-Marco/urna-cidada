@@ -39,6 +39,8 @@ public final class Main {
     private Main() { }
 
     public static void main(String[] args) {
+        // Work around Java 2D/Direct3D paint failures on some Windows graphics drivers.
+        System.setProperty("sun.java2d.d3d", "false");
         if (args.length > 1 || (args.length == 1 && !args[0].equals("--local")
                 && !args[0].equals("--memoria") && !args[0].equals("--administrar")
                 && !args[0].equals("--ajuda") && !args[0].equals("-h"))) {
@@ -124,9 +126,11 @@ public final class Main {
                         () -> java.util.UUID.randomUUID().toString(), participante != null,
                         () -> { try { finalTrava.close(); } catch (IOException ignored) { } },
                         () -> Main.main(args));
-                tela.setVisible(true);
                 tela.iniciar();
-                tela.mostrarAvisoInicial();
+                tela.setVisible(true);
+                javax.swing.Timer avisoInicial = new javax.swing.Timer(250, evento -> tela.mostrarAvisoInicial());
+                avisoInicial.setRepeats(false);
+                avisoInicial.start();
             });
         } catch (Exception e) {
             LogUrna.logger().severe("Falha ao iniciar a urna (" + e.getClass().getSimpleName() + ").");
