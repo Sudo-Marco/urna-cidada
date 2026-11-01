@@ -37,8 +37,8 @@ final class UrnaServiceTestes {
             digitar(urna, "1111"); urna.confirmar();
             urna.votarEmBranco(); urna.confirmar();
             urna.votarEmBranco(); urna.confirmar();
-            digitar(urna, "011"); verdade(urna.getPartidoLegendaAtual().isEmpty());
-            urna.confirmar(); igual(TipoVoto.NULO, urna.getVotosRegistrados().get(2).tipo());
+            digitar(urna, "44"); verdade(urna.getPartidoLegendaAtual().isEmpty());
+            urna.confirmar(); igual(TipoVoto.VALIDO, urna.getVotosRegistrados().get(3).tipo());
         });
         caso("não aceita letra nem excesso de dígitos", () -> {
             lanca(IllegalArgumentException.class, () -> urna.digitar('x'));
