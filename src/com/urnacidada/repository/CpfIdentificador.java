@@ -26,7 +26,8 @@ public final class CpfIdentificador {
     }
 
     public static String emailFirebase(String entrada) {
-        return "cpf-" + derivar(entrada, SALT) + "@example.com";
+        // O prefixo ocupa quatro caracteres; limitar o resumo a 60 mantém a parte local em 64.
+        return "cpf-" + derivar(entrada, SALT).substring(0, 60) + "@example.com";
     }
 
     /** Credencial técnica determinística: o participante não informa uma senha separada. */

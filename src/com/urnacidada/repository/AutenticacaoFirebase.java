@@ -112,14 +112,22 @@ public final class AutenticacaoFirebase {
 
     private static String mensagemErro(String erro, int status) {
         if (erro.contains("EMAIL_EXISTS")) return "Este CPF já tem cadastro. Escolha Entrar.";
+        if (erro.contains("INVALID_EMAIL")) return "O Firebase rejeitou o identificador técnico do CPF. Atualize a urna e tente novamente.";
         if (erro.contains("EMAIL_NOT_FOUND")) return "Conta não encontrada. Confira o CPF ou escolha Primeiro acesso.";
         if (erro.contains("INVALID_LOGIN_CREDENTIALS") || erro.contains("INVALID_PASSWORD")) {
             return "CPF ou credenciais administrativas incorretas. Confira os dados e tente novamente.";
         }
+        if (erro.contains("USER_DISABLED")) return "Esta conta está desativada no Firebase Authentication.";
         if (erro.contains("WEAK_PASSWORD")) return "Não foi possível criar a credencial técnica do CPF.";
         if (erro.contains("OPERATION_NOT_ALLOWED")) return "Ative o provedor Email/Senha em Firebase Authentication.";
         if (erro.contains("TOO_MANY_ATTEMPTS_TRY_LATER")) return "Muitas tentativas. Aguarde um pouco antes de tentar novamente.";
-        if (erro.contains("API_KEY_INVALID") || status == 403) return "Configuração de Firebase Authentication inválida.";
+        if (erro.contains("API_KEY_INVALID") || erro.contains("INVALID_API_KEY") || status == 403) {
+            return "Configuração de Firebase Authentication inválida.";
+        }
+        String codigo = erro == null ? "" : erro.split("[:\\s]", 2)[0].toUpperCase(java.util.Locale.ROOT);
+        if (codigo.matches("[A-Z0-9_]{3,80}")) {
+            return "Firebase Authentication recusou a solicitação (" + codigo + ").";
+        }
         return "Firebase Authentication recusou a solicitação (HTTP " + status + ").";
     }
 
