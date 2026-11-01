@@ -51,6 +51,7 @@ public final class PainelUrna extends JPanel {
     private final AcoesUrna acoes;
     private final JLabel persistencia = rotulo(11, Font.PLAIN, CINZA);
     private boolean fimTocado;
+    private boolean encerrarNoFim;
 
     private final JLabel progresso = rotulo(13, Font.BOLD, CINZA);
     private final JLabel instrucaoCargo = rotulo(13, Font.BOLD, CINZA);
@@ -95,7 +96,8 @@ public final class PainelUrna extends JPanel {
         btnBranco.setEnabled(e.controlesHabilitados());
         btnCorrige.setEnabled(e.controlesHabilitados());
         btnConfirma.setEnabled(e.controlesHabilitados());
-        btnNova.setVisible(e.finalizada());
+        btnNova.setText(e.finalizada() && encerrarNoFim ? "Encerrar" : "Iniciar nova votação");
+        btnNova.setVisible(e.finalizada() || e.modo() == Modo.AGUARDANDO_INICIO);
         if (e.finalizada() && !fimTocado) SomUrna.fim();
         fimTocado = e.finalizada();
 
@@ -107,6 +109,8 @@ public final class PainelUrna extends JPanel {
         persistencia.setText(estado);
         persistencia.setToolTipText(caminho);
     }
+
+    public void encerrarNoFim(boolean valor) { encerrarNoFim = valor; }
 
     // ------------------------------------------------------------------ montagem
 
@@ -268,6 +272,7 @@ public final class PainelUrna extends JPanel {
 
     private static Font fonteTitulo(Modo modo) {
         return switch (modo) {
+            case AGUARDANDO_INICIO -> new Font("SansSerif", Font.BOLD, 24);
             case FIM -> new Font("SansSerif", Font.BOLD, 46);
             case CANDIDATO -> new Font("SansSerif", Font.BOLD, 24);
             case NUMERO_ERRADO, BRANCO -> new Font("SansSerif", Font.BOLD, 28);

@@ -1,60 +1,66 @@
-# Configurar o Firebase para envio opcional
+# Firebase Authentication e contagem de votos
 
-A urna funciona sem Firebase. No modo padrão, o arquivo local é sempre gravado primeiro; este guia só ativa uma cópia anônima no Firestore. Use um projeto descartável de teste. O aplicativo é educativo, não é um sistema eleitoral oficial.
+Esta configuração habilita o cadastro por CPF, a prevenção de uma segunda votação pela mesma conta e a apuração no Cloud Firestore.
 
-## 1. Criar projeto e banco
+## Como os dados são separados
 
-1. Abra [Firebase Console](https://console.firebase.google.com/) e crie um projeto de teste.
-2. No projeto, abra **Firestore Database** e crie um banco Cloud Firestore. Escolha a localização apropriada ao exercício; a região não pode ser trocada facilmente depois da criação.
-3. O cliente usa o banco `(default)` e cria documentos na coleção `sessoes`.
+O aplicativo valida os dígitos do CPF e deriva no computador um identificador técnico para usar com o provedor Email/Password do Firebase Authentication. O CPF em texto não é enviado nem gravado. Esse cadastro não consulta uma base oficial e não confirma a titularidade do documento; serve à simulação educativa.
 
-## 2. Publicar regras
+| Local | Documento | Conteúdo |
+|---|---|---|
+| Firebase Authentication | Conta técnica | UID, identificador derivado do CPF e credencial protegida pelo Firebase |
+| Firestore | `participantes/{uid}` | Apenas `votou: true`; criado uma vez por conta |
+| Firestore | `sessoes/{uuid-aleatorio}` | Impressão digital e cinco votos; ID sem CPF ou UID |
+| Firestore | `resultados/{cargo}_{numero}` | Contagem agregada e ID aleatório da última sessão que alterou o total |
+| Computador | `votos-pendentes-{uid}.tsv` | Sessões que ainda aguardam sincronização |
 
-1. Abra **Firestore Database → Regras** no console.
-2. Copie o conteúdo do arquivo [`firestore.rules`](../firestore.rules) para o editor do console.
-3. Clique em **Publicar** e confira que o console não apontou erro.
-4. Confirme que não existe outra regra ampla que permita acesso em coleções. As regras deste projeto só permitem `create` anônimo com um campo `votos` contendo cinco mapas de formato permitido; leitura, atualização e remoção são negadas.
+O documento de participação e a sessão são gravados juntos. As regras impedem a criação de outra marca para o mesmo UID e verificam que cada incremento de contador corresponde ao voto na sessão do mesmo lote. Participantes não podem listar nem consultar sessões ou resultados. A equipe responsável consulta os totais no Console Firebase.
 
-Não altere as regras para `allow read, write: if true`. Regras no Firestore são aplicadas no servidor e condições podem validar campos. Consulte a [documentação oficial de regras](https://firebase.google.com/docs/firestore/security/rules-fields).
+## 1. Preparar o Firebase
 
-## 3. Criar e restringir a chave de API
+1. Crie um projeto em [Firebase Console](https://console.firebase.google.com/).
+2. Em **Authentication → Sign-in method**, ative **Email/Password**. Não é necessário configurar envio de email: o endereço usado pela aplicação é técnico e não recebe mensagens.
+3. Crie o banco Cloud Firestore `(default)`.
+4. Em **Firestore Database → Regras**, publique o conteúdo de [`firestore.rules`](../firestore.rules).
 
-1. No Google Cloud Console do mesmo projeto, abra **APIs e serviços → Credenciais** e localize/crie uma chave de API para a aplicação.
-2. Em **Restrições de API**, limite a chave à **Cloud Firestore API**. Uma aplicação desktop não tem origem web fixa; restrição por referenciador web não é apropriada para esse cliente.
-3. Acompanhe uso e cotas na consola do Google Cloud; restrinja/rotacione a chave se houver abuso. Veja [boas práticas oficiais para chaves de API](https://cloud.google.com/docs/authentication/api-keys-best-practices).
+## 2. Configurar a aplicação
 
-A chave de API é pública por natureza: o cliente a usa numa requisição HTTP e não há login de usuário. As regras negam leitura/alteração/exclusão, mas uma pessoa com o aplicativo e chave pode tentar criar sessões até os limites/cotas do projeto. Regras não provam que cada voto veio de uma pessoa autorizada, nem protegem contra automação/abuso. Para serviço público ou dados importantes, não use este desenho; seria necessário backend autenticado, controles de abuso e auditoria.
-
-## 4. Preencher a configuração local
-
-1. Copie `urna.properties.example` para `urna.properties` na mesma pasta do JAR (`dist/` depois de empacotar; no projeto, na raiz).
-2. Preencha os dois valores sem aspas:
+Copie `urna.properties.example` para `urna.properties`, na pasta do aplicativo, e informe os valores do projeto:
 
 ```properties
-firebase.projectId=ID_REAL_DO_PROJETO
-firebase.apiKey=CHAVE_REAL_DA_API
+firebase.projectId=ID_DO_PROJETO
+firebase.apiKey=CHAVE_WEB_DA_API
 ```
 
-3. Não comite `urna.properties` ao repositório. O arquivo está em `.gitignore`. Para o pacote público das Releases, use a configuração de segredos descrita abaixo e restrinja a chave de API antes de distribuir.
-4. Opcionalmente use as variáveis `URNA_FIRESTORE_PROJECT_ID` e `URNA_FIRESTORE_API_KEY`; elas têm precedência. As antigas `FIRESTORE_PROJECT_ID` e `FIRESTORE_API_KEY` também são aceitas.
-5. Inicie `iniciar.bat` (modo padrão). Sem configuração válida a urna continua local.
+O app também lê `URNA_FIRESTORE_PROJECT_ID` e `URNA_FIRESTORE_API_KEY`. A chave de API é usada pelo cliente Firebase, não concede acesso administrativo; restrinja-a às APIs necessárias para Firestore, Identity Toolkit e Secure Token. Não adicione `urna.properties` ao Git.
 
-## 5. Configurar o pacote automático do GitHub
+Para montar o pacote de Release com Firebase, configure `FIREBASE_PROJECT_ID` em **Settings → Secrets and variables → Actions → Variables** e `FIREBASE_API_KEY` em **Secrets**. O workflow inclui essa configuração no ZIP somente quando os dois valores existem.
 
-Para o ZIP publicado em **Releases** sincronizar com o Firestore sem configuração manual em cada computador, o responsável pelo repositório cadastra uma vez em **Settings → Secrets and variables → Actions**:
+## 3. Cadastrar e votar
 
-1. Em **Variables**, crie `FIREBASE_PROJECT_ID` com o ID do projeto.
-2. Em **Secrets**, crie `FIREBASE_API_KEY` com a chave Web do aplicativo.
-3. Restrinja a chave à Cloud Firestore API no Google Cloud antes de distribuir. A configuração de cliente dentro do ZIP público pode ser extraída; as regras do banco continuam sendo a proteção de dados.
-4. Publique uma tag `v*` para iniciar o workflow. Sem esses valores, o ZIP continua funcionando e grava os votos localmente.
+1. Abra a aplicação e escolha **Primeiro acesso**.
+2. Informe o CPF e crie uma senha. O cadastro já abre a votação.
+3. Nos próximos acessos, escolha **Entrar** e use o mesmo CPF e senha.
+4. Depois de confirmar o último cargo, a sessão é gravada localmente e sincronizada. A urna toca o sinal, fala a mensagem de encerramento e retorna à tela de identificação após cinco segundos.
 
-O workflow grava os valores apenas durante a geração do pacote e não os adiciona ao repositório nem os imprime nos logs. O pacote contém somente configuração pública de cliente, nunca credenciais de serviço.
+Se a mesma conta já tiver votado, o aplicativo informa isso antes de abrir uma nova sessão. A proteção central depende do Firebase. Os modos `--local` e `--memoria` não identificam participantes entre computadores.
 
-## 6. Testar e limpar
+## 4. Conferir a apuração
 
-1. Use somente uma máquina/projeto de teste e faça uma sessão de simulação.
-2. Confira **Firestore Database → Dados → sessoes**. Deve haver um documento cujo ID é o UUID da sessão, com cinco votos anônimos.
-3. Para simular offline, desligue a rede antes do último CONFIRMA e complete a votação. Verifique `dados/votos-pendentes.tsv`; religue a rede e aguarde o reenvio automático. O TSV só é removido depois de resposta de sucesso (200 ou 409).
-4. No console, selecione a coleção/documento de teste e exclua os registros quando terminar. Confirme que não há participantes reais; nenhum dado pessoal deve ser inserido.
+No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada documento usa o formato `cargo_numero`, por exemplo `pres_11` ou `df_1111`, e apresenta `contagem`. Um contador é criado com zero quando a primeira votação válida daquele candidato é registrada. Voto de legenda, branco ou nulo não aumenta a contagem de um candidato. As regras bloqueiam a consulta dessa coleção pelos participantes.
 
-A REST API e o payload tipado são baseados na [referência oficial de documentos](https://firebase.google.com/docs/firestore/reference/rest/v1/projects.databases.documents) e no [guia REST do Firestore](https://firebase.google.com/docs/firestore/use-rest-api). Em 30/10/2026, o usuário informou que configurou o Firebase e salvou uma sessão de teste; a tela mostrou `Firebase configurado` e `Online · tudo enviado`. A conferência independente do documento no console e o teste de reconexão após uma queda real de internet continuam pendentes.
+IDs de resultado correspondentes às candidaturas atuais:
+
+```text
+df_8101  df_8202  df_8303  df_1111  df_2222  df_3333
+de_81001
+sen_820  sen_830  sen_833
+gov_84  gov_82  gov_83  gov_44  gov_55  gov_66
+pres_81  pres_85  pres_83  pres_11  pres_22  pres_33
+```
+
+O envio usa `documents:commit`: a sessão e os incrementos de contagem entram no mesmo lote atômico. Se faltar conexão depois da identificação, a votação permanece no arquivo local e é reenviada quando a conexão voltar. O Firestore aceita somente a primeira participação de cada conta.
+
+## Observação sobre CPF
+
+O CPF funciona como identificador único do cadastro, mas o aplicativo não consulta a Receita Federal, não verifica titularidade e não substitui credenciamento presencial. Os dados de autenticação derivam do CPF no cliente; este projeto é destinado a uma simulação, não a uma eleição oficial.

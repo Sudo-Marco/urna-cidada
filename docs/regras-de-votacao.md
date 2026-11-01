@@ -1,74 +1,73 @@
 # Regras de votação
 
-> Aplicadas por `UrnaService`; candidatos e partidos são fictícios. A simulação não é uma urna oficial.
-
-## Uma sessão de votação
-
-```mermaid
-flowchart TD
-  A[Iniciar uma votação] --> B[Deputado Federal · 4 dígitos]
-  B --> C[Deputado Estadual · 5 dígitos]
-  C --> D[Senador · 3 dígitos · um voto]
-  D --> E[Governador · 2 dígitos]
-  E --> F[Presidente · 2 dígitos]
-  F --> G[Gravar sessão local]
-  G --> H{Firebase configurado e disponível?}
-  H -- sim --> I[Enviar em segundo plano]
-  H -- não --> J[Manter pendente no computador]
-  I --> K[FIM]
-  J --> K
-```
+Os cinco cargos aparecem nesta ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente. A escolha de Senador está simplificada a um voto. Os partidos e programas de candidatura compõem a simulação educativa.
 
 ## Escolha em cada cargo
 
-- **Válido:** número completo cadastrado.
-- **Nulo:** número completo sem candidatura correspondente; a tela avisa antes da confirmação.
-- **Branco:** apertar BRANCO sem digitar nenhum dígito.
-- **Corrigir:** apaga o número ou desmarca branco no cargo atual.
-- **Legenda:** somente nos dois cargos de Deputado. Digitar os dois dígitos do partido (81 a 85 no cargo Estadual) mostra seu nome; confirmar ali registra `LEGENDA` com o número do partido.
-- **Confirmar:** aceita número completo, legenda válida nos cargos proporcionais ou branco; número incompleto não avança.
-- **Persistência:** votos intermediários ficam na memória da sessão; o arquivo local recebe todos os cinco votos ao confirmar o último cargo. A interface executa essa gravação em segundo plano.
-- **Fim:** exibe “FIM”. A urna não recomeça automaticamente; o mediador usa “Iniciar nova votação”.
+- **Válido:** número completo de uma candidatura cadastrada.
+- **Nulo:** número completo sem candidatura correspondente; a tela mostra o aviso antes da confirmação.
+- **Branco:** escolher BRANCO sem digitar algarismos.
+- **Corrigir:** apaga o número digitado ou desmarca branco.
+- **Legenda:** nos cargos proporcionais, confirmar os dois algarismos de um partido registra voto de legenda.
+- **Confirmar:** aceita número completo, legenda válida ou branco. Um número incompleto não avança.
 
-Teclado físico: `0–9`, `B`, `Backspace`, `Enter`. O botão de áudio pode silenciar os bipes. O áudio não é necessário para votar.
+Os votos ficam na memória enquanto a pessoa percorre os cinco cargos. Ao confirmar Presidente, o aplicativo grava os cinco votos juntos no computador e, se configurado, no Firestore. Toca o sinal de encerramento, fala “Você já votou. Obrigado por participar.” e, após cinco segundos, volta à identificação do próximo participante.
 
-## Dados de exemplo
+Atalhos: `0–9` para digitar, `B` para branco, `Backspace` para corrigir e `Enter` para confirmar. O botão de som silencia os bipes e a fala.
 
-A fonte única de candidaturas é `Eleicao.exemplo()` em `src/com/urnacidada/model/Eleicao.java`. Os dados e partidos são usados como conteúdo fictício da simulação. Altere ali e preserve os comprimentos configurados de cada cargo.
+## Candidaturas
 
-| Cargo | Número | Candidato fictício | Partido fictício |
-|---|---:|---|---|
-| Federal | 8101 | Ari Lume | Partido Horizonte Comunitário (fictício) |
-| Federal | 8202 | Bela Nébula | Partido Raízes do Amanhã (fictício) |
-| Federal | 8303 | Cael Brisa | Partido Caminhos Abertos (fictício) |
-| Estadual | 81001 | Meia Bomba | Partido Horizonte Comunitário (fictício) |
-| Senador | 820 | Curupira | Partido Raízes do Amanhã (fictício) |
-| Senador | 830 | Peter Pardo | Partido Caminhos Abertos (fictício) |
-| Senador | 833 | Ivo Pedra-Mansa | Partido Caminhos Abertos (fictício) |
-| Governador | 84 | Zé Gotinha (vice Kiro Horizonte) | Partido Cuidado Coletivo (fictício) |
-| Governador | 82 | Luma Cedro-Doce (vice Miro Brisa-Firme) | Partido Raízes do Amanhã (fictício) |
-| Governador | 83 | Nilo Serra-Clara (vice Ona Vale-Verde) | Partido Caminhos Abertos (fictício) |
-| Presidente | 81 | Pia Sol-Nascente (vice Quim Rio-Calmo) | Partido Horizonte Comunitário (fictício) |
-| Presidente | 85 | Beto (vice Suri Campo-Livre) | Partido Futuro Compartilhado (fictício) |
-| Presidente | 83 | Tali Nuvem-Mansa (vice Uli Trilha-Larga) | Partido Caminhos Abertos (fictício) |
+Os números, partidos e propostas abaixo estão centralizados em `src/com/urnacidada/model/Eleicao.java`.
 
-Os nomes das candidaturas acima foram informados pelo usuário. **Curupira** é uma figura conhecida do folclore e **Zé Gotinha** é um mascote público conhecido; caso o professor exija nomes e personagens totalmente inéditos, troque esses dois nomes antes da apresentação. Não há imagens nem logotipos desses personagens no aplicativo.
+### Deputado Federal · quatro dígitos
 
-## Documento armazenado
+| Número | Candidato | Partido | Propostas |
+|---:|---|---|---|
+| 8101 | Ari Lume | Partido Horizonte Comunitário (fictício) | Ampliar bibliotecas com horários acessíveis; divulgar metas e gastos em linguagem simples. |
+| 8202 | Bela Nébula | Partido Raízes do Amanhã (fictício) | Apoiar formação técnica em escolas públicas; publicar indicadores de acesso à saúde. |
+| 8303 | Cael Brisa | Partido Caminhos Abertos (fictício) | Incentivar transporte público de baixa emissão; ampliar dados abertos sobre serviços. |
+| 1111 | Pedro Henrique Costa | Juventude e Inovação Brasileira (JIB) | Investir em escolas e universidades; primeiro emprego e estágio; pesquisa e inovação; fiscalização dos gastos públicos. |
+| 2222 | Beatriz Rodrigues | Vozes da Cidadania (PVC) | Recursos para hospitais e SUS; prevenção à violência; habitação popular; proteção ao trabalho e incentivo ao emprego. |
+| 3333 | André Martins | Aliança de Desenvolvimento Sustentável (ADS) | Simplificar impostos; combater o crime organizado; investir em saneamento e transporte; modernizar serviços públicos. |
 
-Cada documento `sessoes/{UUID}` contém `votos`, uma lista de cinco mapas. Cada voto inclui `cargo`, `tipo`, `numero` (nulo real no voto branco) e `dataHora` ISO-8601. O arquivo local é TSV UTF-8 e lê linhas do formato histórico já usado pelo projeto.
+### Deputado Estadual · cinco dígitos
 
-Exemplo apenas ilustrativo:
+| Número | Candidato | Partido | Propostas |
+|---:|---|---|---|
+| 81001 | Meia Bomba | Partido Horizonte Comunitário (fictício) | Apoiar bibliotecas comunitárias e leitura; publicar metas anuais de serviços estaduais. |
 
-```text
-sessoes/{uuid-aleatorio}
-  votos: [
-    { cargo: "Deputado Federal", tipo: "VALIDO", numero: "8101", dataHora: "2026-10-29T12:00:00Z" },
-    { cargo: "Deputado Estadual", tipo: "LEGENDA", numero: "81", dataHora: "2026-10-29T12:00:01Z" },
-    { cargo: "Senador", tipo: "BRANCO", numero: null, dataHora: "2026-10-29T12:00:02Z" },
-    { cargo: "Governador", tipo: "NULO", numero: "99", dataHora: "2026-10-29T12:00:03Z" },
-    { cargo: "Presidente", tipo: "VALIDO", numero: "82", dataHora: "2026-10-29T12:00:04Z" }
-  ]
-```
+### Senador · três dígitos
 
-A sessão usa o mesmo UUID como ID do documento. O Firestore usa criação condicional; resposta “já existe” (`409`) é tratada como concluída, e a sessão local só é removida após sucesso, evitando duplicidade em reenvio.
+| Número | Candidato | Partido | Propostas |
+|---:|---|---|---|
+| 820 | Curupira | Partido Raízes do Amanhã (fictício) | Ampliar bibliotecas e espaços de leitura; apoiar formação técnica acessível. |
+| 830 | Peter Pardo | Partido Caminhos Abertos (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
+| 833 | Ivo Pedra-Mansa | Partido Caminhos Abertos (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
+
+### Governador · dois dígitos
+
+| Número | Candidato | Partido | Propostas |
+|---:|---|---|---|
+| 84 | Zé Gotinha | Partido Cuidado Coletivo (fictício) | Ampliar ações educativas de prevenção em saúde; publicar informações de serviços em linguagem simples. |
+| 82 | Luma Cedro-Doce | Partido Raízes do Amanhã (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
+| 83 | Nilo Serra-Clara | Partido Caminhos Abertos (fictício) | Incentivar eficiência energética em serviços públicos; ampliar áreas verdes com manutenção planejada. |
+| 44 | Gabriel Santos | Força e Desenvolvimento Estadual (FDE) | Construir e reformar hospitais; modernizar escolas e ampliar cursos técnicos; melhorar equipamentos e policiamento; recuperar estradas e transporte intermunicipal. |
+| 55 | Camila Ferreira | União pelo Futuro (PUF) | Atrair empresas; ampliar cursos profissionalizantes; reduzir filas de consultas e exames; valorizar atrações naturais e culturais. |
+| 66 | Lucas Almeida | Desenvolvimento e Justiça Social (DJS) | Apoiar agricultura familiar; ampliar acesso à água tratada e coleta de esgoto; fortalecer o policiamento; reformar espaços esportivos. |
+
+### Presidente · dois dígitos
+
+| Número | Candidato | Partido | Propostas |
+|---:|---|---|---|
+| 81 | Pia Sol-Nascente | Partido Horizonte Comunitário (fictício) | Incentivar eficiência energética em serviços públicos; ampliar áreas verdes com manutenção planejada. |
+| 85 | Beto | Partido Futuro Compartilhado (fictício) | Apoiar espaços de convivência, esporte e cultura; divulgar metas e resultados dos serviços públicos. |
+| 83 | Tali Nuvem-Mansa | Partido Caminhos Abertos (fictício) | Ampliar bibliotecas e espaços de leitura; apoiar formação técnica acessível. |
+| 11 | Rafael Mendes | Renovação Nacional (PRN) | Ampliar acesso às universidades e melhorar escolas públicas; fortalecer o SUS; qualificar profissionais; combater o desmatamento e investir em energia solar e eólica. |
+| 22 | Eduardo Carvalho | Aliança pelo Progresso (PAP) | Simplificar impostos; ampliar tecnologia policial; modernizar rodovias, ferrovias e aeroportos; apoiar produtores rurais. |
+| 33 | Mariana Oliveira | Movimento Popular Democrático (MPD) | Ampliar moradia popular; investir no ensino integral e nos professores; reduzir desigualdades; proteger recursos naturais. |
+
+## Persistência e apuração
+
+Com Firebase, a coleção `participantes/{uid}` registra somente `votou: true`. Cada sessão fica em `sessoes/{uuid-aleatorio}` e contém uma impressão digital e os cinco votos. O UID e o CPF não fazem parte do documento de votos. As regras permitem uma marca de participação por conta e não permitem listar sessões.
+
+Votos válidos atualizam `resultados/{cargo}_{numero}`. O total aumenta no mesmo lote atômico que cria a sessão. Voto de legenda, branco e nulo não incrementam contadores de candidatura. Veja a [configuração Firebase](firebase-configuracao.md) para os campos e os IDs de resultado.

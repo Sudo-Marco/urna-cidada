@@ -23,6 +23,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Supplier;
 
 /** Janela principal: junta o painel, o controlador e as teclas do computador. */
 @SuppressWarnings("serial")
@@ -49,21 +50,41 @@ public final class TelaUrna extends JFrame {
     });
     private final PainelUrna painel;
     private final String dicaInicial;
+    private final boolean umaSessaoPorConta;
     private ControladorUrna controlador;
     private final Timer timerEstado;
+    private final Timer timerProximoParticipante;
+    private final Runnable aoFechar;
+    private final Runnable aoReiniciar;
+    private boolean reinicioAutomatico;
 
     public TelaUrna(Eleicao eleicao, VotoRepository repositorio) {
         this(eleicao, repositorio, repositorio.dicaPersistencia());
     }
 
     public TelaUrna(Eleicao eleicao, VotoRepository repositorio, String dicaInicial) {
+        this(eleicao, repositorio, dicaInicial, () -> java.util.UUID.randomUUID().toString(), false);
+    }
+
+    public TelaUrna(Eleicao eleicao, VotoRepository repositorio, String dicaInicial,
+                    Supplier<String> idSessao, boolean umaSessaoPorConta) {
+        this(eleicao, repositorio, dicaInicial, idSessao, umaSessaoPorConta, () -> { }, () -> { });
+    }
+
+    public TelaUrna(Eleicao eleicao, VotoRepository repositorio, String dicaInicial,
+                    Supplier<String> idSessao, boolean umaSessaoPorConta,
+                    Runnable aoFechar, Runnable aoReiniciar) {
         super("Urna Cidadã · Simulador educativo");
         this.repositorio = repositorio;
         this.dicaInicial = dicaInicial;
+        this.umaSessaoPorConta = umaSessaoPorConta;
+        this.aoFechar = aoFechar;
+        this.aoReiniciar = aoReiniciar;
 
         painel = new PainelUrna(new RepasseDeAcoes(), repositorio.descricao());
+        painel.encerrarNoFim(true);
         controlador = new ControladorUrna(eleicao, repositorio, gravacao, SwingUtilities::invokeLater,
-                this::exibirEstado, this::mostrarDicas);
+                this::exibirEstado, this::mostrarDicas, idSessao, umaSessaoPorConta);
 
         setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         setContentPane(painel);
@@ -75,19 +96,31 @@ public final class TelaUrna extends JFrame {
             @Override
             public void windowClosed(WindowEvent e) {
                 encerrar();
+                TelaUrna.this.aoFechar.run();
+                if (reinicioAutomatico) TelaUrna.this.aoReiniciar.run();
             }
         });
 
         timerEstado = new Timer(1000, ev -> painel.atualizarPersistencia(
                 repositorio.estadoPersistencia(), dicaInicial));
+        timerProximoParticipante = new Timer(5000, ev -> {
+            reinicioAutomatico = true;
+            dispose();
+        });
+        timerProximoParticipante.setRepeats(false);
         timerEstado.start();
 
+    }
+
+    /** Publica o primeiro estado depois de mostrar a janela. */
+    public void iniciar() {
         controlador.novaVotacao();
     }
 
     private void exibirEstado(EstadoTela estado) {
         painel.exibir(estado);
         painel.atualizarPersistencia(repositorio.estadoPersistencia(), dicaInicial);
+        if (estado.finalizada() && !timerProximoParticipante.isRunning()) timerProximoParticipante.restart();
     }
 
     public void mostrarAvisoInicial() {
@@ -101,7 +134,10 @@ public final class TelaUrna extends JFrame {
         @Override public void branco() { controlador.branco(); }
         @Override public void corrigir() { controlador.corrigir(); }
         @Override public void confirmar() { controlador.confirmar(); }
-        @Override public void novaVotacao() { controlador.novaVotacao(); }
+        @Override public void novaVotacao() {
+            if (controlador.estado().finalizada()) TelaUrna.this.dispose();
+            else controlador.novaVotacao();
+        }
         @Override public void mostrarDicas() { controlador.mostrarDicas(); }
     }
 
@@ -142,6 +178,7 @@ public final class TelaUrna extends JFrame {
     private void encerrar() {
         gravacao.shutdown();
         timerEstado.stop();
+        timerProximoParticipante.stop();
         if (repositorio instanceof AutoCloseable recurso) {
             try {
                 recurso.close();

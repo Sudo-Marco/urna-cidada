@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import com.urnacidada.model.TipoVoto;
 import com.urnacidada.model.Voto;
 import com.urnacidada.repository.FirestoreRestVotoClient;
+import com.urnacidada.repository.AutenticacaoFirebase;
 import com.urnacidada.repository.VotoRepositoryEmArquivo;
 import com.urnacidada.repository.VotoRepositoryLocalPrimeiro;
 import java.net.InetSocketAddress;
@@ -13,6 +14,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicInteger;
 import static com.urnacidada.testes.MiniTeste.*;
 
@@ -23,7 +25,22 @@ final class LocalPrimeiroTestes {
             new Voto("Deputado Estadual",TipoVoto.LEGENDA,"81",Instant.parse("2026-10-29T12:00:01Z")),
             new Voto("Senador",TipoVoto.BRANCO,null,Instant.parse("2026-10-29T12:00:02Z")),
             new Voto("Governador",TipoVoto.NULO,"99",Instant.parse("2026-10-29T12:00:03Z")),
-            new Voto("Presidente",TipoVoto.VALIDO,"82",Instant.parse("2026-10-29T12:00:04Z"))); }
+            new Voto("Presidente",TipoVoto.VALIDO,"85",Instant.parse("2026-10-29T12:00:04Z"))); }
+
+    private static AutenticacaoFirebase.Sessao sessaoTeste() throws Exception {
+        HttpServer auth=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        auth.createContext("/v1/",e->{ e.getRequestBody().readAllBytes();
+            byte[] body="{\"localId\":\"uid-offline\",\"idToken\":\"token\",\"refreshToken\":\"refresh\",\"expiresIn\":\"3600\"}".getBytes(StandardCharsets.UTF_8);
+            e.sendResponseHeaders(200,body.length); e.getResponseBody().write(body); e.close(); }); auth.start();
+        try { URI base=URI.create("http://127.0.0.1:"+auth.getAddress().getPort()+"/v1/");
+            return new AutenticacaoFirebase("chave",base,base).entrar("52998224725","senha-teste".toCharArray()); }
+        finally { auth.stop(0); }
+    }
+
+    private static FirestoreRestVotoClient cliente(String base, Duration timeout) throws Exception {
+        return new FirestoreRestVotoClient("projeto-ficticio","AIza"+"A".repeat(35),
+                URI.create(base),Duration.ofMillis(200),timeout,sessaoTeste());
+    }
     static void executar() {
         grupo("Persistência local-primeiro e reenvio em segundo plano");
         teste("sem configuração, salva no arquivo e informa modo local", () -> {
@@ -34,13 +51,14 @@ final class LocalPrimeiroTestes {
             }
         });
         teste("offline seguido de online envia sessão e limpa arquivo, sem segunda criação", () -> {
-            AtomicInteger chamadas=new AtomicInteger();
+            AtomicInteger chamadas=new AtomicInteger(), commits=new AtomicInteger();
             HttpServer s=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
             s.createContext("/v1/",e->{ int num=chamadas.incrementAndGet(); e.getRequestBody().readAllBytes();
-                e.sendResponseHeaders(num==1?503:200,-1); e.close(); }); s.start();
+                boolean commit=e.getRequestURI().getPath().endsWith("/documents:commit");
+                if(commit) commits.incrementAndGet();
+                e.sendResponseHeaders(num==1?503:(commit?200:201),-1); e.close(); }); s.start();
             Path p=Files.createTempDirectory("urna-offline-online").resolve("pendentes.tsv");
-            FirestoreRestVotoClient c=new FirestoreRestVotoClient("projeto-ficticio","AIza"+"A".repeat(35),
-                    URI.create("http://127.0.0.1:"+s.getAddress().getPort()+"/v1/"),Duration.ofMillis(200),Duration.ofSeconds(2));
+            FirestoreRestVotoClient c=cliente("http://127.0.0.1:"+s.getAddress().getPort()+"/v1/",Duration.ofSeconds(2));
             try(VotoRepositoryLocalPrimeiro repo=new VotoRepositoryLocalPrimeiro(new VotoRepositoryEmArquivo(p,"local"),c,true)) {
                 repo.salvarSessao("123e4567-e89b-12d3-a456-426614174000",votos());
                 long limite=System.currentTimeMillis()+4000;
@@ -53,23 +71,24 @@ final class LocalPrimeiroTestes {
                     repo.sincronizarAgora();
                     Thread.sleep(10);
                 }
-                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(2,chamadas.get());
+                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(4,chamadas.get()); igual(1,commits.get());
                 igual(0,new VotoRepositoryEmArquivo(p,"local").lerSessoes().size());
             } finally { s.stop(0); }
         });
         teste("ao abrir, envia pendências já existentes", () -> {
-            AtomicInteger chamadas=new AtomicInteger();
+            AtomicInteger chamadas=new AtomicInteger(), commits=new AtomicInteger();
             HttpServer s=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
-            s.createContext("/v1/",e->{ chamadas.incrementAndGet(); e.getRequestBody().readAllBytes(); e.sendResponseHeaders(200,-1); e.close(); }); s.start();
+            s.createContext("/v1/",e->{ chamadas.incrementAndGet(); e.getRequestBody().readAllBytes();
+                boolean commit=e.getRequestURI().getPath().endsWith("/documents:commit"); if(commit) commits.incrementAndGet();
+                e.sendResponseHeaders(commit?200:201,-1); e.close(); }); s.start();
             Path p=Files.createTempDirectory("urna-inicio-pendente").resolve("pendentes.tsv");
             VotoRepositoryEmArquivo arquivo=new VotoRepositoryEmArquivo(p,"local");
             arquivo.salvarSessao("123e4567-e89b-12d3-a456-426614174000",votos());
-            FirestoreRestVotoClient cliente=new FirestoreRestVotoClient("projeto-ficticio","AIza"+"A".repeat(35),
-                    URI.create("http://127.0.0.1:"+s.getAddress().getPort()+"/v1/"),Duration.ofMillis(200),Duration.ofSeconds(2));
+            FirestoreRestVotoClient cliente=cliente("http://127.0.0.1:"+s.getAddress().getPort()+"/v1/",Duration.ofSeconds(2));
             try(VotoRepositoryLocalPrimeiro repo=new VotoRepositoryLocalPrimeiro(arquivo,cliente,true)) {
                 long limite=System.currentTimeMillis()+4000;
                 while(!repo.estadoPersistencia().equals("Online · tudo enviado") && System.currentTimeMillis()<limite) Thread.sleep(10);
-                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(1,chamadas.get()); igual(0,arquivo.lerSessoes().size());
+                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(3,chamadas.get()); igual(1,commits.get()); igual(0,arquivo.lerSessoes().size());
             } finally { s.stop(0); }
         });
         teste("recuo aumenta progressivamente até cinco minutos", () -> {

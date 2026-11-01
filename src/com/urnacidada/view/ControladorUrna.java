@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Faz a ponte entre a tela e o {@link UrnaService}: recebe os pedidos do participante,
@@ -30,27 +31,57 @@ public final class ControladorUrna implements AcoesUrna {
     private final Executor threadDaTela;
     private final Consumer<EstadoTela> aoMudar;
     private final Runnable aoPedirDicas;
+    private final Supplier<String> idSessao;
+    private final boolean umaSessaoPorConta;
 
     private UrnaService urna;
     private boolean gravando;
     private String mensagem = "";
     private TipoMensagem tipoMensagem = TipoMensagem.NENHUMA;
+    private boolean sessaoConcluida;
 
     public ControladorUrna(Eleicao eleicao, VotoRepository repositorio, Executor segundoPlano,
                            Executor threadDaTela, Consumer<EstadoTela> aoMudar, Runnable aoPedirDicas) {
+        this(eleicao, repositorio, segundoPlano, threadDaTela, aoMudar, aoPedirDicas,
+                () -> java.util.UUID.randomUUID().toString(), false);
+    }
+
+    public ControladorUrna(Eleicao eleicao, VotoRepository repositorio, Executor segundoPlano,
+                           Executor threadDaTela, Consumer<EstadoTela> aoMudar, Runnable aoPedirDicas,
+                           Supplier<String> idSessao) {
+        this(eleicao, repositorio, segundoPlano, threadDaTela, aoMudar, aoPedirDicas, idSessao, false);
+    }
+
+    public ControladorUrna(Eleicao eleicao, VotoRepository repositorio, Executor segundoPlano,
+                           Executor threadDaTela, Consumer<EstadoTela> aoMudar, Runnable aoPedirDicas,
+                           Supplier<String> idSessao, boolean umaSessaoPorConta) {
         this.eleicao = Objects.requireNonNull(eleicao, "eleicao");
         this.repositorio = Objects.requireNonNull(repositorio, "repositorio");
         this.segundoPlano = Objects.requireNonNull(segundoPlano, "segundoPlano");
         this.threadDaTela = Objects.requireNonNull(threadDaTela, "threadDaTela");
         this.aoMudar = Objects.requireNonNull(aoMudar, "aoMudar");
         this.aoPedirDicas = Objects.requireNonNull(aoPedirDicas, "aoPedirDicas");
+        this.idSessao = Objects.requireNonNull(idSessao, "idSessao");
+        this.umaSessaoPorConta = umaSessaoPorConta;
     }
 
     // ---------------------------------------------------------------- ações
 
     @Override
     public void novaVotacao() {
-        urna = new UrnaService(eleicao, repositorio);
+        if (umaSessaoPorConta && sessaoConcluida) {
+            informar(TipoMensagem.AVISO, "Esta conta já concluiu a votação.");
+            publicar();
+            return;
+        }
+        try {
+            urna = new UrnaService(eleicao, repositorio, idSessao.get());
+        } catch (IllegalArgumentException e) {
+            urna = null;
+            informar(TipoMensagem.ERRO, e.getMessage());
+            publicar();
+            return;
+        }
         gravando = false;
         informar(TipoMensagem.INFO, "Votação iniciada. Primeiro cargo: " + urna.getCargoAtual().nome() + ".");
         publicar();
@@ -122,6 +153,10 @@ public final class ControladorUrna implements AcoesUrna {
 
     /** Estado atual, útil para testes e para a primeira exibição. */
     public EstadoTela estado() {
+        if (urna == null) {
+            return new EstadoTela(Modo.AGUARDANDO_INICIO, "AGUARDANDO INÍCIO", "", 0, "",
+                    "Preparando votação", "", "", mensagem, tipoMensagem, false);
+        }
         Modo modo = modo();
         if (modo == Modo.FIM) {
             return new EstadoTela(modo, "VOTAÇÃO CONCLUÍDA", "", 0, "", "FIM",
@@ -163,11 +198,13 @@ public final class ControladorUrna implements AcoesUrna {
                     ? "Não foi possível confirmar o voto." : falha.getMessage();
             informar(TipoMensagem.ERRO, texto);
         } else if (sessao.isFinalizada()) {
+            sessaoConcluida = true;
             Optional<String> aviso = repositorio.avisoDaUltimaGravacao();
             if (aviso.isPresent()) {
                 informar(TipoMensagem.AVISO, aviso.get());
             } else {
-                informar(TipoMensagem.SUCESSO, "Seus votos anônimos foram registrados.");
+                informar(TipoMensagem.SUCESSO,
+                        "Você já votou. Obrigado por participar. A próxima identificação abrirá em cinco segundos.");
             }
         } else {
             informar(TipoMensagem.SUCESSO,
@@ -188,6 +225,7 @@ public final class ControladorUrna implements AcoesUrna {
     }
 
     private Modo modo() {
+        if (urna == null) return Modo.AGUARDANDO_INICIO;
         if (urna.isFinalizada()) {
             return Modo.FIM;
         }
@@ -206,7 +244,7 @@ public final class ControladorUrna implements AcoesUrna {
     }
 
     private boolean podeAgir() {
-        return !gravando && !urna.isFinalizada();
+        return urna != null && !gravando && !urna.isFinalizada();
     }
 
     private void informar(TipoMensagem tipo, String texto) {

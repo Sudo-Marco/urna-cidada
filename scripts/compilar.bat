@@ -15,7 +15,7 @@ echo Compilando com JDK 17 ou superior...
 if not exist build mkdir build
 if exist build\classes rmdir /s /q build\classes
 mkdir build\classes
-"%JAVA_HOME%\bin\javac.exe" --add-modules jdk.httpserver --release 17 -encoding UTF-8 -d build\classes -sourcepath src src\com\urnacidada\Main.java src\com\urnacidada\WebMain.java
+"%JAVA_HOME%\bin\javac.exe" --release 17 -encoding UTF-8 -d build\classes -sourcepath src src\com\urnacidada\Main.java
 if errorlevel 1 goto :fail
 if not exist dist mkdir dist
 "%JAVA_HOME%\bin\jar.exe" --create --file dist\urna-cidada.jar --main-class com.urnacidada.Main -C build\classes .

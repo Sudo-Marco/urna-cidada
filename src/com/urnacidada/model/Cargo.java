@@ -15,8 +15,8 @@ public record Cargo(String nome, int digitos, List<Candidato> candidatos) {
         if (nome == null || nome.isBlank() || digitos < 1 || candidatos == null || candidatos.isEmpty()) {
             throw new IllegalArgumentException("Cargo e quantidade de dígitos devem ser válidos.");
         }
-        if (candidatos.size() > 5) {
-            throw new IllegalArgumentException("Cada cargo pode ter no máximo cinco candidaturas.");
+        if (candidatos.size() > 10) {
+            throw new IllegalArgumentException("Cada cargo pode ter no máximo dez candidaturas.");
         }
         if (candidatos.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("A lista do cargo não pode conter candidaturas vazias.");
@@ -78,11 +78,9 @@ public record Cargo(String nome, int digitos, List<Candidato> candidatos) {
             if (proporcional != (candidato instanceof CandidatoProporcional)) {
                 throw new IllegalArgumentException("O tipo de candidatura não corresponde ao cargo " + nome + ".");
             }
-            boolean exigeVice = chave.equals("governador") || chave.equals("presidente");
-            if (exigeVice != candidato.vice().isPresent()) {
-                throw new IllegalArgumentException(exigeVice
-                        ? "Governador e Presidente precisam de vice fictício."
-                        : "Este cargo não deve ter vice no modelo da simulação.");
+            boolean permiteVice = chave.equals("governador") || chave.equals("presidente");
+            if (!permiteVice && candidato.vice().isPresent()) {
+                throw new IllegalArgumentException("Este cargo não deve ter vice no modelo da simulação.");
             }
         }
     }

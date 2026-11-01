@@ -39,6 +39,14 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
                                        FirestoreRestVotoClient cliente,
                                        boolean configuracaoValida,
                                        String avisoConfiguracao) {
+        this(pendentes, cliente, configuracaoValida, avisoConfiguracao, true);
+    }
+
+    public VotoRepositoryLocalPrimeiro(VotoRepositoryEmArquivo pendentes,
+                                       FirestoreRestVotoClient cliente,
+                                       boolean configuracaoValida,
+                                       String avisoConfiguracao,
+                                       boolean sincronizarAoIniciar) {
         this.pendentes = pendentes;
         this.cliente = cliente;
         this.configuracaoValida = configuracaoValida;
@@ -52,7 +60,7 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
             if (avisoConfiguracao != null && !avisoConfiguracao.isBlank()) aviso.set(avisoConfiguracao);
         } else {
             estado.set("Firebase configurado · verificando pendências");
-            sincronizador.execute(this::sincronizarAgora);
+            if (sincronizarAoIniciar) sincronizador.execute(this::sincronizarAgora);
         }
     }
 
@@ -84,7 +92,11 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
                     cliente.criarSessao(sessao.sessaoId(), sessao.votos());
                     enviadas.add(sessao.sessaoId());
                 } catch (FalhaFirestore falha) {
-                    if (falha.tipo() == FalhaFirestore.Tipo.CONFIGURACAO) {
+                    if (falha.tipo() == FalhaFirestore.Tipo.USUARIO_JA_VOTOU) {
+                        configuracaoRejeitada = true;
+                        estado.set("Esta conta já votou");
+                        aviso.set(falha.getMessage());
+                    } else if (falha.tipo() == FalhaFirestore.Tipo.CONFIGURACAO) {
                         configuracaoRejeitada = true;
                         estado.set("Configuração do Firebase inválida");
                         aviso.set("Firebase rejeitou a configuração. A votação continua guardada localmente.");
@@ -115,6 +127,10 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
         } finally {
             sincronizando.set(false);
         }
+    }
+
+    public boolean temPendentes() throws RepositorioException {
+        return !pendentes.lerSessoes().isEmpty();
     }
 
     private void atualizarEstadoPendente() {

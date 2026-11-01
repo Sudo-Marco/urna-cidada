@@ -3,6 +3,7 @@ package com.urnacidada.testes;
 import com.urnacidada.model.TipoVoto;
 import com.urnacidada.model.Voto;
 import com.urnacidada.repository.RepositorioException;
+import com.urnacidada.repository.UsuarioJaVotouException;
 import com.urnacidada.repository.VotoRepository;
 import com.urnacidada.repository.VotoRepositoryComReserva;
 import com.urnacidada.repository.VotoRepositoryEmArquivo;
@@ -94,6 +95,16 @@ final class RepositorioTestes {
             arquivo.salvarSessao("s1", doisVotos());
             arquivo.salvarSessao("s2", doisVotos());
             igual(2, arquivo.lerSessoes().size());
+        });
+
+        teste("arquivo: conta usada com votos diferentes é recusada", () -> {
+            VotoRepositoryEmArquivo arquivo = new VotoRepositoryEmArquivo(arquivoTemporario(), "teste");
+            arquivo.salvarSessao("uid-conta", doisVotos());
+            List<Voto> outrosVotos = List.of(
+                    new Voto("Vereador, Câmara", TipoVoto.VALIDO, "12345", Instant.parse("2026-10-20T13:00:00Z")),
+                    new Voto("Prefeito", TipoVoto.BRANCO, null, Instant.parse("2026-10-20T13:00:05Z")));
+            lanca(UsuarioJaVotouException.class, () -> arquivo.salvarSessao("uid-conta", outrosVotos));
+            igual(1, arquivo.lerSessoes().size());
         });
 
         teste("arquivo inexistente é lido como vazio", () -> {

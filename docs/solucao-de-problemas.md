@@ -1,21 +1,19 @@
 # Solução de problemas
 
-| Mensagem ou sintoma | Causa provável | O que fazer |
+| Mensagem ou situação | Causa | Solução |
 |---|---|---|
-| Java 17 ou superior não encontrado | JDK ausente ou `PATH` antigo | Instale Temurin JDK 17+, feche/reabra o terminal e rode `java -version`, `javac -version` |
-| Não foi encontrado um ambiente gráfico | Execução em servidor/headless, SSH sem encaminhamento gráfico | Inicie pelo desktop Windows/macOS/Linux com ambiente gráfico |
-| Outra urna já está aberta | Trava exclusiva de instância ativa | Feche a outra janela normalmente e tente novamente; se travou, confirme no Gerenciador de Tarefas antes de reiniciar |
-| Não há permissão para gravar os dados | Pasta ao lado do JAR e fallback do perfil indisponíveis | Escolha pasta gravável para `URNA_HOME` ou corrija permissão; faça backup antes de mover dados |
-| “Modo local · configure urna.properties…” | Configuração ausente | Normal se deseja votar offline. Para sincronizar, siga [Firebase configuração](firebase-configuracao.md) |
-| “Configuração do Firebase incompleta” | Só um campo foi preenchido ou arquivo não pode ser lido | Confira `firebase.projectId` e `firebase.apiKey`; não cole a chave em issue ou chat |
-| “Configuração de exemplo não preenchida” | Ainda usa `SEU_PROJECT_ID`/`SUA_CHAVE_API` | Substitua ambos pelos dados de teste do seu projeto |
-| “Configuração do Firebase inválida” | ID/chave inválidos, API não ativada, chave restrita incorretamente ou regras rejeitam os dados | Reveja console, restrições da API e `firestore.rules`. O voto fica no arquivo local |
-| “Sem conexão… N votos guardados neste computador” | Rede indisponível, timeout, limitação ou erro 5xx | Continue a atividade; confira o caminho da dica no rodapé; aguarde conexão e retentativa |
-| “Firebase temporariamente indisponível” | REST recebeu timeout, 408, 429 ou 5xx | Aguarde; as tentativas aumentam de 30 s até 5 min e os dados locais permanecem |
-| Erro HTTP 400/401/403/404 | Projeto, chave, Firestore ou regras inválidos/incompatíveis | Corrija configuração no console. O cliente para de tentar automaticamente enquanto o processo está aberto |
-| TSV existe mas fila não esvazia | Linha inválida/corrompida ou erro persistente no Firestore | Preserve uma cópia do arquivo; consulte `logs/urna.log`; não edite manualmente sem cópia |
-| Som não toca | Sem dispositivo, bloqueio do sistema ou áudio desligado | Clique “Som: ligado”. A urna funciona sem som e falha de áudio é ignorada |
-| Texto pequeno ou cortado | Resolução, DPI ou tamanho de janela | Maximize; confira escala em 100%, 125% e 150%; relate tamanho físico e escala para análise |
-| `scripts\testar.bat` falha | JDK incompatível, fonte alterada ou erro de teste | Leia o primeiro `FALHA`; confirme `javac -version`; não apague `dados/` como tentativa de correção |
+| JDK não encontrado | Java de desenvolvimento não está instalado ou configurado | Instale JDK 17 ou superior e confira `java -version` e `javac -version`. O ZIP de Release já inclui runtime Java. |
+| Não há ambiente gráfico | Programa iniciado em servidor ou terminal sem desktop | Abra a urna em uma sessão Windows, macOS ou Linux com interface gráfica. |
+| Outra urna já está aberta | Uma instância já usa o mesmo perfil | Feche a janela aberta antes de iniciar outra. |
+| CPF inválido | Quantidade de dígitos ou dígitos verificadores incorretos | Digite os 11 algarismos do CPF, com ou sem pontos e traço. |
+| CPF ou senha incorretos | O cadastro não corresponde aos dados informados | Confira o CPF e use a senha definida no primeiro acesso. |
+| CPF já cadastrado | O cadastro já existe no Firebase Authentication | Escolha **Entrar** em vez de **Primeiro acesso**. |
+| CPF já concluiu uma votação | A conta já possui a marca de participação no Firestore | Uma conta participa uma vez. Cada pessoa deve usar seu próprio cadastro. |
+| Votação aguardando sincronização | A sessão está no arquivo local e ainda não chegou ao Firestore | Conecte à internet e abra a urna novamente com o mesmo CPF. |
+| Configuração Firebase incompleta | Um dos campos ou variáveis de configuração não foi preenchido | Confira `firebase.projectId` e `firebase.apiKey` em `urna.properties`. |
+| Configuração Firebase inválida | Chave, projeto, provedor Authentication ou regras não correspondem | Ative Email/Password, confira os dados do projeto e publique `firestore.rules`. A sessão fica no arquivo local quando a rede falha. |
+| Sem conexão com a nuvem | Internet indisponível ou Firebase temporariamente sem resposta | Os votos ficam locais e o sincronizador tenta novamente com intervalos crescentes. |
+| Arquivo local não pode ser gravado | Pasta do aplicativo sem permissão de escrita | Defina `URNA_HOME` para uma pasta gravável ou use `%USERPROFILE%\.urna-cidada\`. |
+| Som ou fala não toca | Saída de áudio ausente, desativada ou silenciada | Ative o som no botão da tela e confira o dispositivo padrão do Windows. A votação continua disponível sem áudio. |
 
-O log é rotativo em `logs/urna.log` (ou pasta do perfil). Ele registra classes de erro e códigos HTTP, nunca a chave API nem corpo/requisição. Antes de compartilhar o log, ainda assim confira se não há informação local inserida manualmente.
+O log fica em `logs/urna.log` ou na pasta `%USERPROFILE%\.urna-cidada\logs`. Ele registra códigos HTTP e classes de erro, sem a chave de API nem o corpo das requisições.

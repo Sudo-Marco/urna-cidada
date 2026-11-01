@@ -32,6 +32,7 @@ public final class VotoRepositoryComReserva implements VotoRepository, AutoClose
             principal.salvarSessao(sessaoId, votos);
             sincronizarPendentes(); // aproveita a conexão para enviar o que ficou guardado
         } catch (RepositorioException falhaPrincipal) {
+            if (falhaPrincipal instanceof UsuarioJaVotouException) throw falhaPrincipal;
             try {
                 reserva.salvarSessao(sessaoId, votos);
                 aviso = "Sem conexão com a nuvem. Os votos foram guardados neste computador "

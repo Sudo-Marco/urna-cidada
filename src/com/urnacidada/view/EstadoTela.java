@@ -30,7 +30,7 @@ public record EstadoTela(
         boolean controlesHabilitados) {
 
     /** Situações possíveis da votação. */
-    public enum Modo { DIGITANDO, CANDIDATO, NUMERO_ERRADO, BRANCO, FIM }
+    public enum Modo { AGUARDANDO_INICIO, DIGITANDO, CANDIDATO, NUMERO_ERRADO, BRANCO, FIM }
 
     /** Natureza da mensagem, usada para escolher a cor. */
     public enum TipoMensagem { NENHUMA, INFO, SUCESSO, AVISO, ERRO }

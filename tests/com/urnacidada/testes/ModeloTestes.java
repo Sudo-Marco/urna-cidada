@@ -43,7 +43,7 @@ final class ModeloTestes {
             List<String> validas = List.of("Ampliar bibliotecas comunitárias.", "Publicar indicadores simples.");
             lanca(IllegalArgumentException.class, () -> new CandidatoProporcional("8101", "Ari", "Partido", "82", validas));
             lanca(IllegalArgumentException.class, () -> new CandidatoMajoritario("81", "Ari", "Partido", "81", List.of("Uma só"), null));
-            lanca(IllegalArgumentException.class, () -> new CandidatoMajoritario("81", "Ari", "Partido", "81", List.of("x".repeat(91), "Outra"), null));
+            lanca(IllegalArgumentException.class, () -> new CandidatoMajoritario("81", "Ari", "Partido", "81", List.of("x".repeat(181), "Outra"), null));
         });
 
         teste("o mesmo tipo Candidato responde de forma diferente (polimorfismo)", () -> {
@@ -70,7 +70,7 @@ final class ModeloTestes {
                 lanca(IllegalArgumentException.class, () ->
                         new Cargo("Prefeito", 2, List.of(new CandidatoMajoritario("111", "Diego", "A")))));
 
-        teste("cargos oficiais validam tamanho, tipo de candidatura e presença de vice", () -> {
+        teste("cargos oficiais validam tamanho e tipo de candidatura", () -> {
             var federal = Eleicao.exemplo().cargos().get(0).candidatos().get(0);
             lanca(IllegalArgumentException.class, () -> new Cargo("Deputado Federal", 5, List.of(federal)));
             lanca(IllegalArgumentException.class, () -> new Cargo("Senador", 3, List.of(
@@ -122,16 +122,31 @@ final class ModeloTestes {
         teste("candidaturas têm números, propostas e vices consistentes", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
             for (Cargo cargo : cargos) {
-                verdade(cargo.candidatos().size() <= 5, "limite de cinco candidaturas");
+                verdade(cargo.candidatos().size() <= 10, "limite de candidaturas");
                 for (Candidato c : cargo.candidatos()) {
                     igual(cargo.digitos(), c.numero().length());
                     verdade(c.numero().startsWith(c.numeroPartido()), "prefixo do partido");
                     verdade(c.propostas().size() >= 2 && c.propostas().size() <= 4, "quantidade de propostas");
-                    verdade(c.propostas().stream().allMatch(p -> p.length() <= 90), "limite de propostas");
-                    verdade(c.vice().isPresent() == (cargo.nome().equals("Governador") || cargo.nome().equals("Presidente")),
+                    verdade(c.propostas().stream().allMatch(p -> p.length() <= 180), "propostas preservadas");
+                    verdade(c.vice().isEmpty() || cargo.nome().equals("Governador") || cargo.nome().equals("Presidente"),
                             "vice apenas em chapa executiva");
                 }
             }
+        });
+
+        teste("novas candidaturas têm nomes, números, partidos e propostas", () -> {
+            List<Cargo> cargos = Eleicao.exemplo().cargos();
+            igual("Rafael Mendes", cargos.get(4).buscarCandidato("11").orElseThrow().nome());
+            igual("Eduardo Carvalho", cargos.get(4).buscarCandidato("22").orElseThrow().nome());
+            igual("Mariana Oliveira", cargos.get(4).buscarCandidato("33").orElseThrow().nome());
+            igual("Gabriel Santos", cargos.get(3).buscarCandidato("44").orElseThrow().nome());
+            igual("Camila Ferreira", cargos.get(3).buscarCandidato("55").orElseThrow().nome());
+            igual("Lucas Almeida", cargos.get(3).buscarCandidato("66").orElseThrow().nome());
+            igual("Pedro Henrique Costa", cargos.get(0).buscarCandidato("1111").orElseThrow().nome());
+            igual("Beatriz Rodrigues", cargos.get(0).buscarCandidato("2222").orElseThrow().nome());
+            igual("André Martins", cargos.get(0).buscarCandidato("3333").orElseThrow().nome());
+            verdade(cargos.get(4).buscarCandidato("11").orElseThrow().propostas().size() == 4,
+                    "propostas presidenciais mantidas");
         });
 
         teste("voto branco não pode ter número; válido e nulo precisam ter", () -> {

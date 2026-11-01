@@ -6,5 +6,5 @@ java -version 2>&1 | grep -Eq '"(17|1[89]|[2-9][0-9])' || { echo 'ERRO: JDK 17 o
 mkdir -p build/classes dist
 rm -rf build/classes
 mkdir -p build/classes
-javac --add-modules jdk.httpserver --release 17 -encoding UTF-8 -d build/classes -sourcepath src src/com/urnacidada/Main.java src/com/urnacidada/WebMain.java
+javac --release 17 -encoding UTF-8 -d build/classes -sourcepath src src/com/urnacidada/Main.java
 jar --create --file dist/urna-cidada.jar --main-class com.urnacidada.Main -C build/classes .

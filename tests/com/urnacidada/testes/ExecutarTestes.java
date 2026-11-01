@@ -17,6 +17,8 @@ public final class ExecutarTestes {
         ControladorUrnaTestes.executar();
         PainelUrnaTestes.executar();
         ConfiguracaoTestes.executar();
+        CpfIdentificadorTestes.executar();
+        AutenticacaoTestes.executar();
         FirestoreTestes.executar();
         LocalPrimeiroTestes.executar();
 

@@ -1,51 +1,25 @@
 # Casos de uso
 
-> Atores e fluxos do simulador. Veja [regras-de-votacao.md](regras-de-votacao.md) para regras e formatos.
-
 ## Atores
 
 | Ator | Papel |
 |---|---|
-| Participante | Escolhe um voto por cargo na simulação |
-| Mediador | Inicia a urna, orienta a atividade e pode iniciar a sessão seguinte |
-| Firestore | Destino opcional de cópia das sessões anônimas |
+| Participante | Identifica-se pelo CPF quando Firebase está ativo e vota nos cinco cargos |
+| Mediador | Abre a aplicação e orienta a simulação |
+| Firebase | Autentica o cadastro e recebe as sessões e contagens, quando configurado |
 
-## Visão geral
+## Identificar participante e votar
 
-```mermaid
-flowchart LR
-  P[Participante] --> V[UC01 Votar nos cinco cargos]
-  P --> B[UC02 Branco, nulo, legenda e corrigir]
-  M[Mediador] --> I[UC03 Iniciar votação]
-  I --> V
-  V --> L[UC04 Gravar localmente ao final]
-  L --> S[UC05 Sincronizar se Firebase estiver configurado]
-  S --> F[Firestore REST]
-  L --> R[Manter pendente em caso de falha]
-```
+1. Na tela de identificação, escolha **Primeiro acesso** para cadastrar CPF e senha ou **Entrar** para usar um cadastro existente.
+2. A urna confere se a conta já possui uma marca de participação. Se já votou, o fluxo termina com uma mensagem.
+3. O participante escolhe um candidato, voto de legenda, branco ou nulo em cada cargo e confirma sua escolha.
+4. Depois de Presidente, a urna grava a votação localmente e envia a sessão e os incrementos de contagem juntos ao Firestore, quando disponível.
+5. A urna toca um sinal, fala a mensagem de encerramento e retorna à identificação após cinco segundos.
 
-### UC01 — Votar nos cinco cargos
+Sem Firebase, o programa pode rodar em modo local ou em memória. Esses modos não identificam a pessoa nem compartilham um bloqueio de votos entre computadores.
 
-| Item | Descrição |
-|---|---|
-| Pré-condição | Aplicativo aberto; aviso de simulação visível |
-| Fluxo | 1. Votar em Deputado Federal. 2. Conferir a candidatura/legenda e confirmar. 3. Repetir para Deputado Estadual, Senador, Governador e Presidente. 4. O sistema persiste a sessão e mostra FIM. |
-| Alternativas | Número completo não cadastrado pode ser corrigido ou confirmado como nulo. Branco é escolha explícita. Número incompleto não pode ser confirmado. |
-| Pós-condição | Cinco escolhas anônimas compõem a mesma sessão. |
-| Limite didático | A simulação pede apenas um voto para Senador. |
+## Sincronizar votação
 
-### UC02 — Corrigir, branco, nulo ou legenda
+O aplicativo salva primeiro em arquivo TSV. Quando há conexão, o sincronizador tenta criar a marca do participante, a sessão aleatória e os incrementos dos votos válidos. Se a rede falhar, mantém a sessão local para tentar novamente. Se outra sessão já usou a conta, o Firestore rejeita a gravação.
 
-O participante pode corrigir os dados antes de confirmar. Branco só é disponível quando nenhum algarismo foi digitado. Nos cargos proporcionais, dois algarismos de partido podem ser confirmados como voto de legenda.
-
-### UC03 — Iniciar uma votação
-
-O mediador executa `iniciar.bat` (modo padrão), `scripts\iniciar.bat --local` ou `demo.bat`. A votação começa no cargo federal. Depois do FIM, botão “Iniciar nova votação” cria outro UUID de sessão.
-
-### UC04 — Gravar localmente
-
-No último CONFIRMA, o sistema grava primeiro um arquivo TSV UTF-8 por substituição atômica. Falha local é reportada e permite tentar novamente; a votação só é encerrada depois que o repositório aceita a gravação.
-
-### UC05 — Sincronizar com Firestore
-
-Se `urna.properties` ou as variáveis de ambiente contiverem configuração válida, a sessão local é enviada em segundo plano pela API REST. HTTP 200 ou 409 conclui e remove a linha local. Falha transitória mantém o registro e agenda nova tentativa com recuo. Erro de configuração mantém os votos locais e suspende retentativas automáticas. A configuração passo a passo está em [firebase-configuracao.md](firebase-configuracao.md).
+Nos cargos proporcionais, os dois dígitos de partido podem ser confirmados como legenda. Voto branco não contém número; número completo sem candidatura é nulo. Mais detalhes estão em [regras-de-votacao.md](regras-de-votacao.md).

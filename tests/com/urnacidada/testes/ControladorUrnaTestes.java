@@ -62,5 +62,17 @@ final class ControladorUrnaTestes {
         teste("resultado de uma confirmação antiga não altera nova votação", () -> {
             prepararAssincrono(); digitar("8101"); controlador.confirmar(); controlador.novaVotacao(); rodarFila(); igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("", ultimo().digitado());
         });
+        teste("conta autenticada não pode iniciar segunda votação depois do FIM", () -> {
+            memoria = new VotoRepositoryEmMemoria(); publicados = new ArrayList<>();
+            controlador = new ControladorUrna(Eleicao.exemplo(), memoria, Runnable::run, Runnable::run,
+                    publicados::add, () -> { }, () -> "uid-abc", true);
+            controlador.novaVotacao();
+            votarTudo("8101", "81001", "820", "84", "85");
+            verdade(ultimo().finalizada(), "primeira sessão concluída");
+            controlador.novaVotacao();
+            verdade(ultimo().finalizada(), "continua no estado final");
+            verdade(ultimo().mensagem().contains("já concluiu"), "mensagem de uma sessão por conta");
+            igual(5, memoria.getVotos().size());
+        });
     }
 }

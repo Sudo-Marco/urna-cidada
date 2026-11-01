@@ -52,7 +52,13 @@ public final class VotoRepositoryEmArquivo implements VotoRepository {
     public void salvarSessao(String sessaoId, List<Voto> votos) throws RepositorioException {
         comTrava(() -> {
             List<String> linhas = new ArrayList<>(lerLinhas());
-            linhas.removeIf(linha -> sessaoId.equals(idDaLinha(linha)));
+            for (String linha : linhas) {
+                if (!sessaoId.equals(idDaLinha(linha))) continue;
+                SessaoSalva existente = decodificar(linha);
+                if (existente.votos().equals(votos)) return null; // repetição idempotente de uma mesma gravação
+                throw new UsuarioJaVotouException(
+                        "Esta conta já tem uma votação registrada. Cada conta pode votar uma vez.");
+            }
             linhas.add(codificar(sessaoId, votos));
             escreverAtomico(linhas);
             return null;

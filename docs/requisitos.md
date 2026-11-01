@@ -1,53 +1,43 @@
-# Requisitos e rastreabilidade — Urna Cidadã
+# Requisitos da Urna Cidadã
 
-Este documento reflete o código e a verificação desta revisão. A especificação detalhada enviada junto com a tarefa orienta o escopo técnico. O enunciado/rubrica do professor em PDF não foi localizado nos arquivos do repositório, ZIP ou anexos disponíveis; requisitos exclusivos desse arquivo são **não verificáveis**. Não se afirma que a aprovação acadêmica foi obtida.
+## Escopo
 
-## Decisões
+Aplicação de simulação eleitoral educativa, feita em Java 17 com interface Swing. A tela e as regras estão no código Java; o projeto não contém interface em HTML, CSS ou JavaScript. A urna não é um sistema eleitoral oficial.
 
-- Java 17+, Swing, sem dependências externas em runtime. Compilação e testes pelos scripts não exigem Maven nem internet.
-- Uma única votação contém cinco cargos e um voto por cargo: Deputado Federal (4 dígitos), Deputado Estadual (5), Senador (3; simplificado a um voto), Governador (2) e Presidente (2), nessa ordem.
-- Os dados de partidos, números, vices e propostas em `Eleicao.exemplo()` são fictícios. Os nomes pedidos e seus números estão distribuídos pelos cargos: Meia Bomba (Deputado Estadual, 81001), Curupira e Peter Pardo (Senador, 820 e 830), Zé Gotinha (Governador, 84) e Beto (Presidente, 85). Os nomes foram fornecidos pelo usuário; Curupira e Zé Gotinha são referências conhecidas, portanto a exigência do professor de usar apenas nomes/figuras inéditos não está atendida até confirmar ou substituir esses dois nomes.
-- A gravação de sessão ocorre no fim do último cargo. Arquivo local é a fonte de verdade; envio Firestore REST é assíncrono e opcional.
-- Nenhum dado pessoal é coletado. Um documento contém UUID da sessão e lista de votos (cargo, tipo, número e data/hora).
+## Requisitos funcionais
 
-## Matriz de rastreabilidade
+| Requisito | Implementação |
+|---|---|
+| Votar em cinco cargos, nesta ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente | `model/Eleicao.java`, `service/UrnaService.java` |
+| Digitar número, conferir candidato, corrigir, votar em branco, nulo ou legenda nos cargos proporcionais | `model/`, `service/`, `view/` |
+| Cadastrar e identificar participantes por CPF quando Firebase está configurado | `repository/CpfIdentificador.java`, `repository/AutenticacaoFirebase.java`, `Main.java` |
+| Impedir segunda votação da mesma conta no Firestore | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
+| Contabilizar votos válidos por candidato sem somar branco, nulo ou legenda | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
+| Manter votos localmente quando a internet falhar e sincronizar depois | `repository/VotoRepositoryLocalPrimeiro.java` |
+| Tocar sinal, falar a mensagem de encerramento e retornar à identificação após cinco segundos | `view/SomUrna.java`, `view/TelaUrna.java` |
+| Distribuir uma versão Windows com runtime Java incluído | `scripts/empacotar.bat`, `.github/workflows/publicar-release.yml` |
 
-| Requisito da missão | Código | Documentação | Evidência de teste/estado |
-|---|---|---|---|
-| Cinco cargos em ordem e números com comprimentos corretos | `model/Eleicao.java`, `Cargo.java` | `regras-de-votacao.md` | `ModeloTestes`, `UrnaServiceTestes`: verificado automaticamente |
-| Nomes e números fictícios solicitados, distribuídos pelos cargos corretos | `model/Eleicao.java` | `regras-de-votacao.md` | `ModeloTestes`: nomes, números e partidos verificados automaticamente; conteúdo das propostas revisado no código |
-| Candidaturas únicas, 2–4 propostas até 90 caracteres, partidos e vices consistentes | `Candidato.java`, subclasses, `Cargo.java` | `regras-de-votacao.md` | `ModeloTestes`: verificado automaticamente |
-| Entrada válida, nula, branca, correção e legenda proporcional | `UrnaService.java`, `TipoVoto.java` | `regras-de-votacao.md` | `UrnaServiceTestes`, `ControladorUrnaTestes`: verificado |
-| Confirmações sequenciais e persistência só após quinto cargo | `UrnaService.java` | `casos-de-uso.md` | fluxo completo nos testes: verificado |
-| Painel, teclado gráfico/físico, estado visual e fim sem reinício automático | `view/PainelUrna.java`, `TelaUrna.java` | `testes.md` | Desenho headless verificado; janela, teclado físico e áudio manual pendentes |
-| Tela principal sem painel lateral, com teclado e confirmação | `view/PainelUrna.java`, `TelaUrna.java` | README, `testes.md` | Layout headless coberto; inspeção visual real e escala 125%/150% pendentes |
-| Local primeiro, escrita atômica, compatibilidade TSV e sincronização assíncrona sem duplicar | `VotoRepositoryEmArquivo.java`, `VotoRepositoryLocalPrimeiro.java` | `operacao-oficina.md`, `testes.md` | Teste local + servidor falso: verificado; indisponibilidade de energia/disco real não simulada |
-| Firestore REST, timeouts, erros de configuração/transitórios e idempotência | `FirestoreRestVotoClient.java` | `firebase-configuracao.md` | HTTP falso: 200, 409, 400/401/403/404, 503, timeout e servidor ausente verificados; usuário configurou Firebase, viu `Online · tudo enviado` e relatou sessão de teste salva; documento não inspecionado diretamente no console |
-| Regras create-only e sem leitura/alteração/exclusão | `firestore.rules` | `firebase-configuracao.md` | Regras inspecionadas e publicação relatada pelo usuário; validação independente no projeto real pendente |
-| Configuração fora do Git, variáveis override e mensagens | `ConfiguracaoUrna.java`, `.gitignore` | `firebase-configuracao.md`, `solucao-de-problemas.md` | Ausente, incompleta, exemplo e sintaticamente válida verificados |
-| Caminhos ao lado do app com fallback de perfil, log rotativo e instância única | `CaminhosAplicacao.java`, `LogUrna.java`, `TravaInstancia.java` | `solucao-de-problemas.md` | Compilação verificada; cenários reais de permissão/múltiplas contas pendentes |
-| JDK 17+, scripts sem Maven e JAR executável | `scripts/*`, `pom.xml` | README, `operacao-oficina.md` | Windows: testes e empacotamento executados; Linux/macOS não executados nesta máquina |
-| Pacote Windows portátil, com runtime incluído, baixável como Release | `scripts/empacotar.bat`, `.github/workflows/publicar-release.yml` | README, `operacao-oficina.md` | Workflow executa testes e cria ZIP versionado em cada tag `v*`; o resultado da publicação pode ser conferido em Actions e Releases |
-| Sem segredo versionado ou dados reais | `.gitignore`, `urna.properties.example` | README, Firebase docs | `urna.properties` permanece ignorado pelo Git; a configuração real está apenas no computador do usuário |
-| Requisitos da rubrica do professor | PDF ausente | este arquivo | **Não verificável** sem o PDF/enunciado |
-| Aparência em computador da oficina, projetor, escala e áudio | interface Swing | `testes.md` | **Pendente manualmente**, sem equipamento verificado |
-| Oficina, autorização e avaliação de impacto | fora da aplicação | materiais existentes preservados | **Não realizado/não verificável** nesta revisão |
+## Identificação e privacidade
 
-## Requisitos não funcionais e limites
+O app valida o formato e os dígitos verificadores do CPF. Em seguida, deriva um identificador técnico para o Firebase Authentication; não envia nem guarda o CPF em texto. A autenticação não consulta base oficial nem comprova titularidade. É um identificador para a simulação.
 
-| Tema | Atendimento | Situação |
-|---|---|---|
-| Privacidade | Só dados da votação e UUID aleatório | Inspecionado no modelo; sem avaliação externa de privacidade |
-| Não perder voto em falha de rede | Persistência local antes da rede | Testado com HTTP falso; falhas físicas de armazenamento não cobertas |
-| Compatibilidade | Fontes `--release 17`; app-image Windows x64 inclui runtime | Gerado no Windows com JDK 25 e o lançador fechou com código 0 usando `--ajuda`; abertura da janela em PC limpo e outros sistemas ainda não testada |
-| Segurança da chave | Não versionada; validação e mascaramento | Inspecionada; chave de API continua pública e escrita anônima pode ser abusada |
-| Legibilidade | Layout testado sem janela a 1366×768 e 1120×680 | Automático no painel; DPI real e projetor pendentes |
-| Uso eleitoral real | Não é objetivo nem seguro | Não usar como urna oficial |
+No Firestore, `participantes/{uid}` guarda apenas a marca de uso. Os cinco votos são armazenados em `sessoes/{uuid-aleatorio}`, sem o CPF e sem o UID. Os totais ficam em `resultados/{cargo}_{numero}`. No modo local, não há bloqueio central entre computadores.
 
-## Atualização do pacote portátil
+## Candidaturas
 
-Ações de publicação estão em `.github/workflows/publicar-release.yml`. Quando uma tag `v*` é enviada ao GitHub, a ação compila e testa no Windows, cria um pacote app-image com runtime Java incluído e publica o ZIP em Releases. O ZIP não inclui `urna.properties`: sem configuração do Firebase, a urna funciona em modo local e os dados permanecem naquele computador. A primeira execução da ação e o teste num computador Windows limpo ainda precisam ser verificados.
+Os candidatos adicionados pelo usuário foram cadastrados conforme os cargos e números fornecidos:
 
-## Não verificável
+| Cargo | Números e nomes |
+|---|---|
+| Presidente | 11 Rafael Mendes; 22 Eduardo Carvalho; 33 Mariana Oliveira |
+| Governador | 44 Gabriel Santos; 55 Camila Ferreira; 66 Lucas Almeida |
+| Deputado Federal | 1111 Pedro Henrique Costa; 2222 Beatriz Rodrigues; 3333 André Martins |
 
-O PDF do professor não estava disponível no repositório ou nos anexos fornecidos para esta rodada. Portanto, não foi possível montar uma correspondência a itens que só existam nessa rubrica. Solicitar o arquivo e revisar esta matriz é o passo necessário para verificar esses critérios. Nenhum requisito de extensão foi inferido a partir de textos que não estavam disponíveis.
+As propostas e partidos estão em `Eleicao.exemplo()` e em [regras-de-votacao.md](regras-de-votacao.md). As candidaturas existentes para Deputado Estadual e Senador foram preservadas.
+
+## Execução e armazenamento
+
+- Compilação, execução e testes usam JDK 17 ou superior; Maven não é necessário.
+- O pacote Windows inclui o runtime Java e não exige instalação separada.
+- O modo demo guarda dados somente em memória; `--local` usa arquivo local; o modo padrão usa Firebase quando configurado e, caso contrário, permanece local.
+- A configuração Firebase fica em `urna.properties`, fora do controle de versão.

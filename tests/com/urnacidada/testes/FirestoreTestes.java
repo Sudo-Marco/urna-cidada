@@ -1,62 +1,189 @@
 package com.urnacidada.testes;
 
 import com.sun.net.httpserver.HttpServer;
-import com.urnacidada.model.Eleicao;
 import com.urnacidada.model.TipoVoto;
 import com.urnacidada.model.Voto;
+import com.urnacidada.repository.AutenticacaoFirebase;
 import com.urnacidada.repository.FalhaFirestore;
 import com.urnacidada.repository.FirestoreRestVotoClient;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import static com.urnacidada.testes.MiniTeste.*;
 
 final class FirestoreTestes {
+    private static final String UID = "uid-abc";
+    private static final String SESSAO = "00000000-0000-4000-8000-000000000001";
     private FirestoreTestes() { }
-    private static List<Voto> votos() { return List.of(
-            new Voto("Deputado Federal", TipoVoto.VALIDO, "8101", Instant.parse("2026-10-29T12:00:00Z")),
-            new Voto("Deputado Estadual", TipoVoto.LEGENDA, "81", Instant.parse("2026-10-29T12:00:01Z")),
-            new Voto("Senador", TipoVoto.BRANCO, null, Instant.parse("2026-10-29T12:00:02Z")),
-            new Voto("Governador", TipoVoto.NULO, "99", Instant.parse("2026-10-29T12:00:03Z")),
-            new Voto("Presidente", TipoVoto.VALIDO, "82", Instant.parse("2026-10-29T12:00:04Z"))); }
-    private static HttpServer servidor(int status, AtomicInteger chamadas, StringBuilder corpo,
-                                      boolean atrasar) throws Exception {
-        HttpServer s=HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        s.createContext("/v1/", exchange -> {
-            chamadas.incrementAndGet(); if (corpo != null) corpo.append(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+
+    private static List<Voto> votos() {
+        return List.of(
+                new Voto("Deputado Federal", TipoVoto.VALIDO, "8101", Instant.parse("2026-10-29T12:00:00Z")),
+                new Voto("Deputado Estadual", TipoVoto.LEGENDA, "81", Instant.parse("2026-10-29T12:00:01Z")),
+                new Voto("Senador", TipoVoto.BRANCO, null, Instant.parse("2026-10-29T12:00:02Z")),
+                new Voto("Governador", TipoVoto.NULO, "99", Instant.parse("2026-10-29T12:00:03Z")),
+                new Voto("Presidente", TipoVoto.VALIDO, "85", Instant.parse("2026-10-29T12:00:04Z")));
+    }
+
+    private static HttpServer servidor(int statusCommit, String hashLido, AtomicInteger chamadas,
+                                       AtomicInteger commits, StringBuilder corpos,
+                                       StringBuilder autorizacoes, boolean atrasar) throws Exception {
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/v1/", exchange -> {
+            chamadas.incrementAndGet();
+            String metodo = exchange.getRequestMethod();
+            String caminho = exchange.getRequestURI().getPath();
+            String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
+            if (!body.isEmpty() && corpos != null) corpos.append(body);
+            if (autorizacoes != null) autorizacoes.append(exchange.getRequestHeaders().getFirst("Authorization"));
             if (atrasar) try { Thread.sleep(500); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
-            exchange.sendResponseHeaders(status, -1); exchange.close();
-        }); s.start(); return s;
+
+            int status;
+            byte[] content = new byte[0];
+            if (caminho.endsWith("/documents:commit")) {
+                commits.incrementAndGet();
+                status = statusCommit;
+            } else if ("GET".equals(metodo) && caminho.contains("/documents/sessoes/")) {
+                status = hashLido == null ? 404 : 200;
+                if (hashLido != null) content = ("{\"fields\":{\"impressao\":{\"stringValue\":\"" + hashLido + "\"}}}")
+                        .getBytes(StandardCharsets.UTF_8);
+            } else if ("GET".equals(metodo) && caminho.contains("/documents/participantes/")) {
+                status = hashLido == null ? 404 : 200;
+            } else {
+                status = statusCommit >= 400 && statusCommit != 409 ? statusCommit : 201;
+            }
+            exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+            exchange.sendResponseHeaders(status, content.length);
+            if (content.length > 0) exchange.getResponseBody().write(content);
+            exchange.close();
+        });
+        server.start();
+        return server;
     }
-    private static FirestoreRestVotoClient cliente(HttpServer s, Duration timeout) {
-        return new FirestoreRestVotoClient("projeto-ficticio", "AIza"+"A".repeat(35),
-                URI.create("http://127.0.0.1:"+s.getAddress().getPort()+"/v1/"), Duration.ofMillis(300), timeout);
+
+    private static AutenticacaoFirebase.Sessao usuarioTeste() throws Exception {
+        HttpServer auth = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        auth.createContext("/v1/", exchange -> {
+            String path = exchange.getRequestURI().getPath();
+            exchange.getRequestBody().readAllBytes();
+            String body = "{\"localId\":\"" + UID + "\",\"idToken\":\"id-token\",\"refreshToken\":\"refresh-token\",\"expiresIn\":\"3600\"}";
+            byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
+            exchange.sendResponseHeaders(200, bytes.length);
+            exchange.getResponseBody().write(bytes);
+            exchange.close();
+        });
+        auth.start();
+        try {
+            URI base = URI.create("http://127.0.0.1:" + auth.getAddress().getPort() + "/v1/");
+            return new AutenticacaoFirebase("AIza" + "A".repeat(35), base, base)
+                    .entrar("52998224725", "senha-teste-123".toCharArray());
+        } finally { auth.stop(0); }
     }
+
+    private static FirestoreRestVotoClient cliente(HttpServer server, Duration timeout) throws Exception {
+        return new FirestoreRestVotoClient("projeto-ficticio", "AIza" + "A".repeat(35),
+                URI.create("http://127.0.0.1:" + server.getAddress().getPort() + "/v1/"),
+                Duration.ofMillis(300), timeout, usuarioTeste());
+    }
+
+    private static String impressao(List<Voto> votos) throws Exception {
+        var metodoJson = FirestoreRestVotoClient.class.getDeclaredMethod("json", List.class);
+        metodoJson.setAccessible(true);
+        String json = (String) metodoJson.invoke(null, votos);
+        byte[] bytes = MessageDigest.getInstance("SHA-256").digest(json.getBytes(StandardCharsets.UTF_8));
+        return HexFormat.of().formatHex(bytes);
+    }
+
     static void executar() {
-        grupo("Cliente REST do Firestore (servidor HTTP local falso)");
-        for (int status : new int[]{200, 409}) teste("HTTP "+status+" é aceito como sucesso idempotente", () -> {
-            AtomicInteger n=new AtomicInteger(); StringBuilder corpo=new StringBuilder(); HttpServer s=servidor(status,n,corpo,false);
-            try { cliente(s,Duration.ofSeconds(2)).criarSessao("123e4567-e89b-12d3-a456-426614174000",votos()); igual(1,n.get());
-                verdade(corpo.toString().contains("stringValue") && corpo.toString().contains("arrayValue") && corpo.toString().contains("nullValue"), "corpo usa tipos REST Firestore");
-                verdade(corpo.toString().contains("LEGENDA"), "tipo de voto de legenda enviado");
-            } finally { s.stop(0); }
+        grupo("Cliente REST autenticado do Firestore (servidor HTTP local falso)");
+
+        teste("grava sessão e incrementa apenas dois candidatos em lote atômico autenticado", () -> {
+            AtomicInteger chamadas = new AtomicInteger(), commits = new AtomicInteger();
+            StringBuilder corpos = new StringBuilder(), autorizacoes = new StringBuilder();
+            HttpServer server = servidor(200, null, chamadas, commits, corpos, autorizacoes, false);
+            try {
+                cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos());
+                igual(3, chamadas.get());
+                igual(1, commits.get());
+                verdade(corpos.toString().contains("df_8101") && corpos.toString().contains("pres_85"), "IDs dos candidatos no Firestore");
+                verdade(corpos.toString().contains("increment") && corpos.toString().contains("\"integerValue\":\"1\""), "contador incrementado atomicamente");
+                verdade(corpos.toString().contains("arrayValue") && corpos.toString().contains("nullValue"), "sessão usa tipos REST Firestore");
+                verdade(corpos.toString().contains("LEGENDA"), "legenda guardada sem contar como candidato");
+                verdade(corpos.toString().contains("documents/participantes/" + UID)
+                        && corpos.toString().contains("\"votou\":{\"booleanValue\":true}"), "marca de participação separada criada no mesmo lote");
+                verdade(!corpos.toString().contains("52998224725"), "CPF não acompanha os documentos de voto");
+                verdade(corpos.toString().contains(SESSAO), "sessão usa UUID aleatório");
+                verdade(autorizacoes.toString().contains("Bearer id-token"), "requisições enviam token Firebase");
+            } finally { server.stop(0); }
         });
-        for (int status : new int[]{400,401,403,404}) teste("HTTP "+status+" é classificado como erro de configuração", () -> {
-            HttpServer s=servidor(status,new AtomicInteger(),null,false);
-            try { FalhaFirestore f=lanca(FalhaFirestore.class, () -> cliente(s,Duration.ofSeconds(2)).criarSessao("sessao",votos())); igual(FalhaFirestore.Tipo.CONFIGURACAO,f.tipo()); }
-            finally { s.stop(0); }
+
+        teste("HTTP 409 no commit é idempotente quando a sessão existente tem os mesmos votos", () -> {
+            AtomicInteger chamadas = new AtomicInteger(), commits = new AtomicInteger();
+            HttpServer server = servidor(409, impressao(votos()), chamadas, commits, null, null, false);
+            try {
+                cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos());
+                igual(1, commits.get());
+                igual(4, chamadas.get());
+            } finally { server.stop(0); }
         });
-        teste("HTTP 503 é transitório", () -> { HttpServer s=servidor(503,new AtomicInteger(),null,false);
-            try { igual(FalhaFirestore.Tipo.TRANSITORIA,lanca(FalhaFirestore.class,()->cliente(s,Duration.ofSeconds(2)).criarSessao("s",votos())).tipo()); } finally { s.stop(0); }});
-        teste("tempo esgotado é transitório", () -> { HttpServer s=servidor(200,new AtomicInteger(),null,true);
-            try { igual(FalhaFirestore.Tipo.TRANSITORIA,lanca(FalhaFirestore.class,()->cliente(s,Duration.ofMillis(80)).criarSessao("s",votos())).tipo()); } finally { s.stop(0); }});
+
+        teste("HTTP 409 com outra sessão informa que o CPF já votou", () -> {
+            AtomicInteger chamadas = new AtomicInteger(), commits = new AtomicInteger();
+            HttpServer server = servidor(409, "f".repeat(64), chamadas, commits, null, null, false);
+            try {
+                FalhaFirestore falha = lanca(FalhaFirestore.class,
+                        () -> cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos()));
+                igual(FalhaFirestore.Tipo.USUARIO_JA_VOTOU, falha.tipo());
+            } finally { server.stop(0); }
+        });
+
+        teste("consulta de pré-voto detecta CPF já usado pela marca do participante", () -> {
+            AtomicInteger chamadas = new AtomicInteger();
+            HttpServer server = servidor(200, "f".repeat(64), chamadas, new AtomicInteger(), null, null, false);
+            try { verdade(cliente(server, Duration.ofSeconds(2)).participanteJaVotou(), "documento já existe"); }
+            finally { server.stop(0); }
+        });
+
+        teste("consulta de pré-voto libera conta sem documento", () -> {
+            HttpServer server = servidor(200, null, new AtomicInteger(), new AtomicInteger(), null, null, false);
+            try { verdade(!cliente(server, Duration.ofSeconds(2)).participanteJaVotou(), "documento ainda não existe"); }
+            finally { server.stop(0); }
+        });
+
+        for (int status : new int[]{400, 401, 403, 404}) teste("HTTP " + status + " é erro de configuração", () -> {
+            HttpServer server = servidor(status, null, new AtomicInteger(), new AtomicInteger(), null, null, false);
+            try {
+                FalhaFirestore falha = lanca(FalhaFirestore.class,
+                        () -> cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos()));
+                igual(FalhaFirestore.Tipo.CONFIGURACAO, falha.tipo());
+            } finally { server.stop(0); }
+        });
+
+        teste("HTTP 503 é transitório", () -> {
+            HttpServer server = servidor(503, null, new AtomicInteger(), new AtomicInteger(), null, null, false);
+            try { igual(FalhaFirestore.Tipo.TRANSITORIA, lanca(FalhaFirestore.class,
+                    () -> cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos())).tipo()); }
+            finally { server.stop(0); }
+        });
+
+        teste("tempo esgotado é transitório", () -> {
+            HttpServer server = servidor(200, null, new AtomicInteger(), new AtomicInteger(), null, null, true);
+            try { igual(FalhaFirestore.Tipo.TRANSITORIA, lanca(FalhaFirestore.class,
+                    () -> cliente(server, Duration.ofMillis(80)).criarSessao(SESSAO, votos())).tipo()); }
+            finally { server.stop(0); }
+        });
+
         teste("servidor indisponível mantém falha transitória", () -> {
-            FirestoreRestVotoClient c=new FirestoreRestVotoClient("projeto-ficticio","AIza"+"A".repeat(35),URI.create("http://127.0.0.1:1/v1/"),Duration.ofMillis(100),Duration.ofMillis(150));
-            igual(FalhaFirestore.Tipo.TRANSITORIA,lanca(FalhaFirestore.class,()->c.criarSessao("s",votos())).tipo());
+            FirestoreRestVotoClient client = new FirestoreRestVotoClient("projeto-ficticio", "AIza" + "A".repeat(35),
+                    URI.create("http://127.0.0.1:1/v1/"), Duration.ofMillis(100), Duration.ofMillis(150), usuarioTeste());
+            igual(FalhaFirestore.Tipo.TRANSITORIA,
+                    lanca(FalhaFirestore.class, () -> client.criarSessao(SESSAO, votos())).tipo());
         });
     }
 }

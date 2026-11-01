@@ -43,8 +43,8 @@ public abstract class Candidato {
         }
         List<String> copia = List.copyOf(propostas);
         if (copia.size() < 2 || copia.size() > 4
-                || copia.stream().anyMatch(p -> p == null || p.isBlank() || p.length() > 90)) {
-            throw new IllegalArgumentException("Cada candidato precisa ter de duas a quatro propostas de até 90 caracteres.");
+                || copia.stream().anyMatch(p -> p == null || p.isBlank() || p.length() > 180)) {
+            throw new IllegalArgumentException("Cada candidato precisa ter de duas a quatro propostas de até 180 caracteres.");
         }
         this.numero = numero;
         this.nome = nome;

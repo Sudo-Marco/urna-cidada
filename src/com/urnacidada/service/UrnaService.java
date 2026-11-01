@@ -31,7 +31,7 @@ public class UrnaService {
 
     private final Eleicao eleicao;
     private final VotoRepository repositorio;
-    private final String sessaoId = UUID.randomUUID().toString();
+    private final String sessaoId;
     private final List<Voto> votos = new ArrayList<>();
 
     private int indiceCargo = 0;
@@ -40,8 +40,13 @@ public class UrnaService {
     private boolean finalizada = false;
 
     public UrnaService(Eleicao eleicao, VotoRepository repositorio) {
+        this(eleicao, repositorio, UUID.randomUUID().toString());
+    }
+
+    public UrnaService(Eleicao eleicao, VotoRepository repositorio, String sessaoId) {
         this.eleicao = Objects.requireNonNull(eleicao, "eleicao");
         this.repositorio = Objects.requireNonNull(repositorio, "repositorio");
+        this.sessaoId = Objects.requireNonNull(sessaoId, "sessaoId");
     }
 
     // ---------- consulta de estado (a tela usa para se desenhar) ----------

@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.1"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.2"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -25,18 +25,26 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
 (
   echo URNA CIDADA - SIMULACAO EDUCATIVA - NAO E UMA URNA OFICIAL
   echo.
+  echo COMPATIBILIDADE
+  echo Pacote para Windows 64 bits. O Java ja esta incluido; nao instale JDK, Maven ou VS Code.
+  echo A aplicacao usa interface grafica Java Swing. Nao precisa de navegador.
+  echo.
   echo INICIO RAPIDO
-  echo 1. Extraia a pasta UrnaCidada para Documentos ou Area de Trabalho.
-  echo 2. De um duplo clique em UrnaCidada.exe. Nao precisa instalar Java, VS Code, Git ou Maven.
-  echo 3. Para uma votacao, escolha candidatos e confirme cada cargo; ao final use Iniciar nova votacao.
+  echo 1. Extraia o ZIP inteiro para Documentos ou Area de Trabalho.
+  echo 2. Abra a pasta UrnaCidada e de duplo clique em UrnaCidada.exe.
+  echo 3. Com Firebase, identifique-se com CPF e senha. Cada cadastro pode votar uma vez.
+  echo 4. Ao terminar, a urna toca o sinal, fala a mensagem de encerramento e retorna a identificacao em 5 segundos.
+  echo 5. Sem Firebase, a urna funciona localmente, sem bloqueio de repeticao entre computadores.
   echo.
   echo DADOS
-  echo Sem urna.properties, os votos ficam no computador em modo local. Copie a pasta inteira para preservar os dados.
-  echo Sem configuracao Firebase, os votos ficam locais. Um pacote publico com Firebase so deve ser criado pelo workflow e apos restringir a chave publica a API do Firestore.
+  echo Sem configuracao Firebase, os votos ficam no computador em modo local.
+  echo Com Firebase configurado e internet, a urna sincroniza as sessoes. Sem internet, mantem pendencias locais.
+  echo Copie a pasta inteira para preservar os dados locais.
   echo Nunca envie urna.properties ao codigo-fonte.
   echo.
   echo Se o Windows bloquear o arquivo, use Propriedades e marque Desbloquear antes de abrir.
-  echo Esta simulacao nao e um sistema eleitoral oficial e nao coleta dados pessoais.
+  echo O CPF nao e enviado nem gravado em texto; o app usa um identificador tecnico derivado do numero.
+  echo A identificacao serve para a simulacao e nao consulta uma base oficial de titulares.
 ) > dist\pacote-portatil\UrnaCidada\LEIA-ME.txt
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path 'dist\pacote-portatil\UrnaCidada' -DestinationPath 'dist\UrnaCidada-Windows-x64.zip' -Force"
