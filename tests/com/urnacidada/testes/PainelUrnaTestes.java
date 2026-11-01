@@ -300,12 +300,12 @@ final class PainelUrnaTestes {
                     }, () -> { });
             controlador[0].novaVotacao();
 
-            for (String botao : List.of("8", "1", "0", "1", "CONFIRMA",
-                    "8", "2", "0", "0", "2", "CONFIRMA",
-                    "8", "1", "1", "CONFIRMA", "8", "1", "CONFIRMA", "8", "2", "CONFIRMA")) {
+            for (String botao : List.of("1", "7", "3", "6", "CONFIRMA",
+                    "1", "4", "CONFIRMA",
+                    "1", "3", "CONFIRMA")) {
                 achar(painel[0], botao).doClick(0);
             }
-            igual(5, memoria.getVotos().size());
+            igual(3, memoria.getVotos().size());
             verdade(achar(painel[0], "Iniciar nova votação").isVisible(), "chegou ao FIM");
         });
     }
