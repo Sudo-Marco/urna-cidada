@@ -28,7 +28,7 @@ Os números, partidos e propostas abaixo estão centralizados em `src/com/urnaci
 | 8303 | Cael Brisa | Partido Caminhos Abertos (fictício) | Incentivar transporte público de baixa emissão; ampliar dados abertos sobre serviços. |
 | 1111 | Pedro Henrique Costa | Juventude e Inovação Brasileira (JIB) | Investir em escolas e universidades; primeiro emprego e estágio; pesquisa e inovação; fiscalização dos gastos públicos. |
 | 2222 | Beatriz Rodrigues | Vozes da Cidadania (PVC) | Recursos para hospitais e SUS; prevenção à violência; habitação popular; proteção ao trabalho e incentivo ao emprego. |
-| 3333 | André Martins | Aliança de Desenvolvimento Sustentável (ADS) | Simplificar impostos; combater o crime organizado; investir em saneamento e transporte; modernizar serviços públicos. |
+| 3333 | André Martins | Aliança de Desenvolvimento Sustentável (ADS) | Simplificar impostos; combater o crime organizado; investir em saneamento e transporte; incentivar a modernização dos serviços públicos. |
 
 ### Deputado Estadual · cinco dígitos
 
@@ -51,7 +51,7 @@ Os números, partidos e propostas abaixo estão centralizados em `src/com/urnaci
 | 84 | Zé Gotinha | Partido Cuidado Coletivo (fictício) | Ampliar ações educativas de prevenção em saúde; publicar informações de serviços em linguagem simples. |
 | 82 | Luma Cedro-Doce | Partido Raízes do Amanhã (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
 | 83 | Nilo Serra-Clara | Partido Caminhos Abertos (fictício) | Incentivar eficiência energética em serviços públicos; ampliar áreas verdes com manutenção planejada. |
-| 44 | Gabriel Santos | Força e Desenvolvimento Estadual (FDE) | Construir e reformar hospitais; modernizar escolas e ampliar cursos técnicos; melhorar equipamentos e policiamento; recuperar estradas e transporte intermunicipal. |
+| 44 | Gabriel Santos | Força e Desenvolvimento Estadual (FDE) | Construir e reformar hospitais; modernizar escolas e ampliar cursos técnicos; melhorar os equipamentos policiais e ampliar o policiamento; recuperar estradas e transporte intermunicipal. |
 | 55 | Camila Ferreira | União pelo Futuro (PUF) | Atrair empresas; ampliar cursos profissionalizantes; reduzir filas de consultas e exames; valorizar atrações naturais e culturais. |
 | 66 | Lucas Almeida | Desenvolvimento e Justiça Social (DJS) | Apoiar agricultura familiar; ampliar acesso à água tratada e coleta de esgoto; fortalecer o policiamento; reformar espaços esportivos. |
 

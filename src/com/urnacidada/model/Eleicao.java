@@ -44,7 +44,7 @@ public record Eleicao(List<Cargo> cargos) {
                         "Economia: simplificar impostos e reduzir a burocracia para pequenos negócios.",
                         "Segurança: propor medidas legislativas de combate ao crime organizado.",
                         "Infraestrutura: defender investimentos federais em saneamento e transporte.",
-                        "Tecnologia: incentivar o desenvolvimento tecnológico e modernizar os serviços públicos."))));
+                        "Tecnologia: incentivar o desenvolvimento tecnológico e a modernização dos serviços públicos."))));
 
         Cargo estadual = new Cargo("Deputado Estadual", 5, List.of(
                 proporcional("81001", "Meia Bomba", horizonte, "81", List.of("Apoiar bibliotecas comunitárias e leitura.", "Publicar metas anuais de serviços estaduais."))));
@@ -61,7 +61,7 @@ public record Eleicao(List<Cargo> cargos) {
                 majoritario("44", "Gabriel Santos", "Força e Desenvolvimento Estadual (FDE)", "44", List.of(
                         "Saúde: construir e reformar hospitais regionais.",
                         "Educação: modernizar escolas estaduais e ampliar cursos técnicos.",
-                        "Segurança: melhorar equipamentos policiais e ampliar o policiamento.",
+                        "Segurança: melhorar os equipamentos policiais e ampliar o policiamento.",
                         "Infraestrutura: recuperar estradas estaduais e melhorar o transporte intermunicipal."), null),
                 majoritario("55", "Camila Ferreira", "União pelo Futuro (PUF)", "55", List.of(
                         "Economia: atrair empresas e incentivar o empreendedorismo.",

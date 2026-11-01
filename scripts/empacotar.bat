@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.2"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.3"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
