@@ -3,6 +3,7 @@ package com.urnacidada;
 import com.urnacidada.model.Eleicao;
 import com.urnacidada.repository.AutenticacaoFirebase;
 import com.urnacidada.repository.FirestoreRestVotoClient;
+import com.urnacidada.repository.FirestoreAdminClient;
 import com.urnacidada.repository.VotoRepository;
 import com.urnacidada.repository.VotoRepositoryEmArquivo;
 import com.urnacidada.repository.VotoRepositoryEmMemoria;
@@ -10,6 +11,8 @@ import com.urnacidada.repository.VotoRepositoryLocalPrimeiro;
 import com.urnacidada.view.TelaUrna;
 
 import javax.swing.JFormattedTextField;
+import javax.swing.JPasswordField;
+import javax.swing.JTextField;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -19,15 +22,17 @@ import java.awt.GridLayout;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 /** Entrada da aplicação, autenticação Firebase opcional e seleção dos modos. */
 public final class Main {
     private static final String AJUDA = """
             Urna Cidadã — simulação educativa
-            Uso: iniciar.bat [--local | --memoria | --ajuda]
+            Uso: iniciar.bat [--local | --memoria | --administrar | --ajuda]
               padrão     autenticação Firebase se configurada; caso contrário, modo local
               --local    apenas arquivo local, sem rede
               --memoria  demonstração; nenhum dado é mantido
+              --administrar abre as ferramentas protegidas de administração
               --ajuda    mostra esta ajuda
             """;
 
@@ -35,7 +40,8 @@ public final class Main {
 
     public static void main(String[] args) {
         if (args.length > 1 || (args.length == 1 && !args[0].equals("--local")
-                && !args[0].equals("--memoria") && !args[0].equals("--ajuda") && !args[0].equals("-h"))) {
+                && !args[0].equals("--memoria") && !args[0].equals("--administrar")
+                && !args[0].equals("--ajuda") && !args[0].equals("-h"))) {
             falha("Opção não reconhecida.\n\n" + AJUDA, null);
             return;
         }
@@ -58,14 +64,23 @@ public final class Main {
             Path logs = CaminhosAplicacao.resolverPastaLogs(app, perfil);
             LogUrna.configurar(logs);
 
-            ConfiguracaoUrna config = modo.equals("padrao")
+            boolean modoAdministracao = modo.equals("--administrar");
+            ConfiguracaoUrna config = modo.equals("padrao") || modoAdministracao
                     ? ConfiguracaoUrna.carregar(app.resolve("urna.properties"))
                     : new ConfiguracaoUrna("", "", ConfiguracaoUrna.Estado.AUSENTE, "");
             AutenticacaoFirebase.Sessao usuario = null;
             if (config.valida()) {
                 AutenticacaoFirebase autenticacao = new AutenticacaoFirebase(config.apiKey());
-                usuario = autenticar(autenticacao);
+                usuario = modoAdministracao ? autenticarAdministrador(autenticacao) : autenticar(autenticacao);
                 if (usuario == null) return; // cancelar o fluxo de identificação
+            }
+            if (modoAdministracao) {
+                if (usuario == null) {
+                    falha("Configure o Firebase para usar a administração.", null);
+                    return;
+                }
+                executarAdministracao(config, usuario, dados);
+                return;
             }
 
             trava = TravaInstancia.tentar(dados.resolve(".urna-instancia.lock"));
@@ -168,6 +183,64 @@ public final class Main {
         }
     }
 
+    private static AutenticacaoFirebase.Sessao autenticarAdministrador(AutenticacaoFirebase autenticacao) {
+        JTextField email = new JTextField(24);
+        JPasswordField senha = new JPasswordField(24);
+        JPanel painel = new JPanel(new GridLayout(4, 1, 4, 4));
+        painel.add(new JLabel("E-mail da conta administrativa"));
+        painel.add(email);
+        painel.add(new JLabel("Senha de administrador"));
+        painel.add(senha);
+        int resultado = JOptionPane.showConfirmDialog(null, painel,
+                "Acesso administrativo", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (resultado != JOptionPane.OK_OPTION) return null;
+        char[] valorSenha = senha.getPassword();
+        try {
+            return autenticacao.entrarAdministrador(email.getText().strip(), valorSenha);
+        } catch (com.urnacidada.repository.RepositorioException e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Acesso administrativo", JOptionPane.ERROR_MESSAGE);
+            return null;
+        } finally {
+            Arrays.fill(valorSenha, '\0');
+        }
+    }
+
+    private static void executarAdministracao(ConfiguracaoUrna config,
+                                               AutenticacaoFirebase.Sessao usuario,
+                                               Path dados) {
+        TravaInstancia travaAdmin = null;
+        try {
+            FirestoreAdminClient administrador = new FirestoreAdminClient(config.projectId(), config.apiKey(), usuario);
+            if (!administrador.ehAdministrador()) {
+                JOptionPane.showMessageDialog(null,
+                        "Esta conta não tem permissão de administrador no Firestore.",
+                        "Acesso negado", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            travaAdmin = TravaInstancia.tentar(dados.resolve(".urna-instancia.lock"));
+            if (travaAdmin == null) throw new IOException("Feche as outras janelas da urna antes de apagar os dados.");
+
+            int acao = JOptionPane.showOptionDialog(null,
+                    "Conta administrativa confirmada.", "Administração da urna",
+                    JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
+                    null, new Object[]{"Apagar dados salvos", "Cancelar"}, "Cancelar");
+            if (acao != 0 || !confirmarApagamento()) return;
+
+            int documentos = administrador.apagarDadosVotacao();
+            int arquivos = CaminhosAplicacao.apagarArquivosDeVoto(dados);
+            JOptionPane.showMessageDialog(null,
+                    "Limpeza concluída. " + documentos + " documentos foram removidos do Firestore e "
+                            + arquivos + " arquivos de voto deste computador.",
+                    "Dados apagados", JOptionPane.INFORMATION_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null,
+                    e.getMessage() == null ? "Não foi possível concluir a limpeza." : e.getMessage(),
+                    "Limpeza incompleta", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            if (travaAdmin != null) try { travaAdmin.close(); } catch (IOException ignored) { }
+        }
+    }
+
     private static JFormattedTextField campoCpf() {
         try {
             MaskFormatter mascara = new MaskFormatter("###.###.###-##");
@@ -181,6 +254,18 @@ public final class Main {
         } catch (java.text.ParseException e) {
             throw new IllegalStateException("Não foi possível preparar o campo de CPF.", e);
         }
+    }
+
+    private static boolean confirmarApagamento() {
+        int confirmacao = JOptionPane.showConfirmDialog(null,
+                "Isso apaga sessões, contadores e marcas de voto no Firestore, além dos arquivos de voto deste computador. "
+                        + "Votos pendentes em outros computadores podem voltar a ser enviados quando a conexão retornar. "
+                        + "A ação não pode ser desfeita. Os registros de administradores serão mantidos.",
+                "Confirmar limpeza da urna", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (confirmacao != JOptionPane.YES_OPTION) return false;
+        String palavra = JOptionPane.showInputDialog(null,
+                "Para confirmar, digite APAGAR:", "Confirmação administrativa", JOptionPane.WARNING_MESSAGE);
+        return "APAGAR".equals(palavra);
     }
 
     private static void falha(String texto, Exception causa) {

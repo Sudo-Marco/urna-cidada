@@ -13,6 +13,7 @@
 | Votação aguardando sincronização | A sessão está no arquivo local e ainda não chegou ao Firestore | Conecte à internet e abra a urna novamente com o mesmo CPF. |
 | Configuração Firebase incompleta | Um dos campos ou variáveis de configuração não foi preenchido | Confira `firebase.projectId` e `firebase.apiKey` em `urna.properties`. |
 | Configuração Firebase inválida | Chave, projeto, provedor Authentication ou regras não correspondem | Ative Email/Password, confira os dados do projeto e publique `firestore.rules`. A sessão fica no arquivo local quando a rede falha. |
+| Acesso administrativo negado | A conta não tem `administradores/{uid}` com `ativo: true`, ou as regras ainda não foram publicadas | Use a conta administrativa criada no Firebase e publique as regras atualizadas. |
 | Sem conexão com a nuvem | Internet indisponível ou Firebase temporariamente sem resposta | Os votos ficam locais e o sincronizador tenta novamente com intervalos crescentes. |
 | Arquivo local não pode ser gravado | Pasta do aplicativo sem permissão de escrita | Defina `URNA_HOME` para uma pasta gravável ou use `%USERPROFILE%\.urna-cidada\`. |
 | Som ou fala não toca | Saída de áudio ausente, desativada ou silenciada | Ative o som no botão da tela e confira o dispositivo padrão do Windows. A votação continua disponível sem áudio. |

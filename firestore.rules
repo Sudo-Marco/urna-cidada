@@ -6,6 +6,18 @@ service cloud.firestore {
         && request.auth.token.firebase.sign_in_provider == 'password';
     }
 
+    function administrador() {
+      return autenticado()
+        && exists(/databases/$(database)/documents/administradores/$(request.auth.uid))
+        && get(/databases/$(database)/documents/administradores/$(request.auth.uid)).data.ativo == true;
+    }
+
+    match /administradores/{uid} {
+      // O responsável cria estes marcadores pelo Console Firebase; clientes não podem alterá-los.
+      allow get: if autenticado() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
     function uuidValido(id) {
       return id.matches('^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$');
     }
@@ -79,8 +91,8 @@ service cloud.firestore {
     }
 
     match /participantes/{uid} {
-      allow get: if autenticado() && request.auth.uid == uid;
-      allow list: if false;
+      allow get: if (autenticado() && request.auth.uid == uid) || administrador();
+      allow list: if administrador();
 
       // O documento guarda somente o fato de que aquela conta já participou.
       allow create: if autenticado()
@@ -88,7 +100,8 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['votou'])
         && request.resource.data.keys().hasOnly(['votou'])
         && request.resource.data.votou == true;
-      allow update, delete: if false;
+      allow update: if false;
+      allow delete: if administrador();
     }
 
     match /sessoes/{sessaoId} {
@@ -108,13 +121,15 @@ service cloud.firestore {
         && (request.resource.data.votos[4].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Presidente', request.resource.data.votos[4].numero))).data.ultimaSessaoId == sessaoId);
 
       // IDs UUID não seguem UID nem CPF e não podem ser listados.
-      allow get: if autenticado() && uuidValido(sessaoId);
-      allow list, update, delete: if false;
+      allow get: if (autenticado() && uuidValido(sessaoId)) || administrador();
+      allow list: if administrador();
+      allow update: if false;
+      allow delete: if administrador();
     }
 
     match /resultados/{resultadoId} {
       // A apuração fica disponível aos responsáveis pelo projeto no Console Firebase.
-      allow read: if false;
+      allow read: if administrador();
 
       allow create: if autenticado()
         && request.resource.data.keys().hasAll(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
@@ -133,7 +148,7 @@ service cloud.firestore {
         && uuidValido(request.resource.data.ultimaSessaoId)
         && votoDaSessao(request.resource.data.ultimaSessaoId, resource.data.cargo, resource.data.numero);
 
-      allow delete: if false;
+      allow delete: if administrador();
     }
   }
 }

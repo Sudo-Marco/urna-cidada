@@ -9,6 +9,7 @@ Para compilar e rodar os scripts, use JDK 17 ou superior. A versão distribuída
 | `demo.bat` ou `scripts\demo.bat` | Demonstração em memória |
 | `scripts\iniciar.bat --local` | Votos em arquivo local |
 | `scripts\iniciar.bat` | Firebase configurado, ou modo local se não houver configuração |
+| `scripts\administrar.bat` | Limpeza de Firestore autorizada para uma conta administrativa |
 | `scripts\testar.bat` | Suíte de testes Java |
 | `scripts\empacotar.bat` | Pacote Windows x64 com runtime incluído |
 
@@ -22,6 +23,8 @@ Em Linux/macOS, use os scripts equivalentes em `scripts/` com `sh`.
 4. Com Firebase, identifique cada participante pelo CPF. No primeiro acesso, escolha **Primeiro acesso**; nos demais, **Entrar**.
 
 Sem configuração Firebase, a urna funciona no computador e não identifica participantes entre máquinas. Para configurar Authentication e Cloud Firestore, consulte [firebase-configuracao.md](firebase-configuracao.md).
+
+Para apagar uma eleição, execute `scripts\administrar.bat` e entre com uma conta administrativa separada. O UID precisa ter um documento `administradores/{uid}` com `ativo: true`. A limpeza pede confirmação e apaga dados remotos e arquivos de voto apenas desse computador. Votos pendentes guardados em outros computadores podem voltar a ser sincronizados depois. O ZIP do Windows inclui o iniciador `UrnaCidadaAdmin.exe`.
 
 ## Durante a votação
 

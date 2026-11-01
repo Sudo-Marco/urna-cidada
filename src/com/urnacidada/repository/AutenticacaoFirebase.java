@@ -52,6 +52,16 @@ public final class AutenticacaoFirebase {
         return criarSessao(resposta);
     }
 
+    /** Login separado para a conta administrativa, que mantém uma senha própria. */
+    public Sessao entrarAdministrador(String email, char[] senha) throws RepositorioException {
+        if (email == null || email.isBlank() || senha == null || senha.length == 0) {
+            throw new RepositorioException("Informe o e-mail e a senha da conta administrativa.", null);
+        }
+        String resposta = postAuth("accounts:signInWithPassword", "{\"email\":" + aspas(email.strip())
+                + ",\"password\":" + aspas(new String(senha)) + ",\"returnSecureToken\":true}");
+        return criarSessao(resposta);
+    }
+
     private Sessao criarSessao(String resposta) throws RepositorioException {
         String idToken = campo(resposta, "idToken");
         String refreshToken = campo(resposta, "refreshToken");
@@ -102,9 +112,9 @@ public final class AutenticacaoFirebase {
 
     private static String mensagemErro(String erro, int status) {
         if (erro.contains("EMAIL_EXISTS")) return "Este CPF já tem cadastro. Escolha Entrar.";
-        if (erro.contains("EMAIL_NOT_FOUND")) return "Este CPF ainda não tem cadastro. Escolha Primeiro acesso.";
+        if (erro.contains("EMAIL_NOT_FOUND")) return "Conta não encontrada. Confira o CPF ou escolha Primeiro acesso.";
         if (erro.contains("INVALID_LOGIN_CREDENTIALS") || erro.contains("INVALID_PASSWORD")) {
-            return "Não foi possível entrar com este CPF. Se ele foi cadastrado em uma versão anterior, a conta precisa ser migrada.";
+            return "CPF ou credenciais administrativas incorretas. Confira os dados e tente novamente.";
         }
         if (erro.contains("WEAK_PASSWORD")) return "Não foi possível criar a credencial técnica do CPF.";
         if (erro.contains("OPERATION_NOT_ALLOWED")) return "Ative o provedor Email/Senha em Firebase Authentication.";

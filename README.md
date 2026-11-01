@@ -50,7 +50,8 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Encerramento automático | ✅ Sinal sonoro, mensagem falada e retorno à identificação em cinco segundos |
 | Gravação local e fila de pendências para sincronização | ✅ Implementada; o fluxo offline→online tem cobertura automatizada com servidor HTTP local falso |
 | Apuração no Cloud Firestore | ✅ Contadores por candidato atualizados junto com cada sessão; regras em `firestore.rules` |
-| Pacote portátil para Windows | ✅ Publicado na Release `v1.0.3`, com runtime Java e configuração Firebase |
+| Limpeza administrativa | ✅ Comando separado, conta Firebase administrativa e confirmação em duas etapas |
+| Pacote portátil para Windows | ✅ Publicado na Release `v1.0.4`, com runtime Java, Firebase e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -60,7 +61,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na [Release v1.0.3](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.3). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na [Release v1.0.4](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.4). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -74,6 +75,7 @@ scripts\iniciar.bat
 scripts\iniciar.bat --local
 scripts\iniciar.bat --memoria
 scripts\iniciar.bat --ajuda
+scripts\administrar.bat
 ```
 
 ### Modos de gravação
@@ -84,6 +86,7 @@ scripts\iniciar.bat --ajuda
 | `scripts\iniciar.bat --local` | Gravação somente no computador | Arquivo local de votos |
 | `scripts\iniciar.bat --memoria` | Demonstração sem persistência | Só na memória |
 | `scripts\iniciar.bat` | Modo padrão local-primeiro | Arquivo local; com Firebase configurado e internet, sincroniza com o Firestore |
+| `scripts\administrar.bat` | Administração protegida do Firebase | Apaga dados da eleição no Firestore e arquivos de voto deste computador |
 
 A urna grava a sessão localmente antes de tentar enviá-la. Sem internet, ela mantém a sessão pendente no computador e tenta sincronizar automaticamente quando a conexão volta. Sem configuração válida do Firebase, continua funcionando em modo local.
 
@@ -105,7 +108,7 @@ sh scripts/testar.sh
 
 ## GitHub
 
-O pacote portátil para Windows está na página [Releases](https://github.com/Sudo-Marco/urna-cidada/releases). O ZIP inclui runtime Java; não exige instalar JDK, VS Code, Git ou Maven. O workflow do GitHub executa a suíte de testes e monta o pacote a cada tag `v*`. Para desenvolvimento e execução a partir do código, leia [docs/operacao-oficina.md](docs/operacao-oficina.md).
+O pacote portátil para Windows está na página [Releases](https://github.com/Sudo-Marco/urna-cidada/releases). O ZIP inclui runtime Java; não exige instalar JDK, VS Code, Git ou Maven. O arquivo `UrnaCidadaAdmin.exe` abre o acesso administrativo; ele exige uma conta separada e autorizada no Firestore. O workflow do GitHub executa a suíte de testes e monta o pacote a cada tag `v*`. Para desenvolvimento e execução a partir do código, leia [docs/operacao-oficina.md](docs/operacao-oficina.md).
 
 ### Atalhos do teclado do computador
 
@@ -159,7 +162,7 @@ No Windows, execute:
 scripts\testar.bat
 ```
 
-Não precisa de Maven nem de internet. A suíte de testes também foi executada com sucesso pelo workflow de publicação da Release `v1.0.3`. A matriz está em [testes.md](docs/testes.md).
+Não precisa de Maven nem de internet. A suíte de testes também foi executada pelo workflow de publicação da Release `v1.0.4`. A matriz está em [testes.md](docs/testes.md).
 
 Os testes cobrem as regras de votação, a validação de CPF, a persistência local e a sincronização simulada com servidor HTTP local falso. Veja [testes.md](docs/testes.md) para a matriz completa.
 
@@ -209,6 +212,7 @@ A regra de votação não conhece a tela nem o banco de dados. O diagrama está 
 - O CPF é validado pelos dígitos verificadores; a urna não consulta uma base oficial para confirmar o titular.
 - A proteção contra voto repetido entre computadores depende de autenticação e regras do Firebase. Os modos `--local` e `--memoria` não fazem esse bloqueio centralizado.
 - A apuração fica na coleção `resultados` do Firestore e pode ser consultada pela equipe responsável no Console Firebase.
+- O acesso administrativo usa uma conta Firebase separada, marcada em `administradores/{uid}`. A limpeza local alcança somente o computador em que o comando é executado; máquinas offline mantêm seus próprios arquivos.
 - O pacote pronto é para Windows 64 bits. Para executar o código-fonte, é necessário JDK 17 ou superior.
 - A oficina e a avaliação de impacto ainda não aconteceram; os arquivos de `docs/` são modelos de trabalho.
 

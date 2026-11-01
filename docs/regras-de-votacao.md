@@ -71,3 +71,5 @@ Os números, partidos e propostas abaixo estão centralizados em `src/com/urnaci
 Com Firebase, a coleção `participantes/{uid}` registra somente `votou: true`. Cada sessão fica em `sessoes/{uuid-aleatorio}` e contém uma impressão digital e os cinco votos. O UID e o CPF não fazem parte do documento de votos. As regras permitem uma marca de participação por conta e não permitem listar sessões.
 
 Votos válidos atualizam `resultados/{cargo}_{numero}`. O total aumenta no mesmo lote atômico que cria a sessão. Voto de legenda, branco e nulo não incrementam contadores de candidatura. Veja a [configuração Firebase](firebase-configuracao.md) para os campos e os IDs de resultado.
+
+Uma conta administrativa separada, marcada por `administradores/{uid}` com `ativo: true`, pode apagar os documentos de `participantes`, `sessoes` e `resultados`. A regra não permite que o aplicativo crie ou altere os marcadores de administrador.

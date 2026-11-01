@@ -42,6 +42,21 @@ public final class CaminhosAplicacao {
         throw new IOException("Não há permissão para gravar o log da urna.");
     }
 
+    /** Remove arquivos de votação somente deste computador; os logs e a configuração ficam intactos. */
+    public static int apagarArquivosDeVoto(Path pastaDados) throws IOException {
+        if (!Files.isDirectory(pastaDados)) return 0;
+        int removidos = 0;
+        try (var arquivos = Files.list(pastaDados)) {
+            for (Path arquivo : arquivos.toList()) {
+                String nome = arquivo.getFileName().toString();
+                if (Files.isRegularFile(arquivo) && nome.startsWith("votos-") && nome.endsWith(".tsv")) {
+                    if (Files.deleteIfExists(arquivo)) removidos++;
+                }
+            }
+        }
+        return removidos;
+    }
+
     private static boolean testarGravacao(Path pasta) {
         try {
             Files.createDirectories(pasta);

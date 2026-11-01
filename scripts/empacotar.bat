@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.3"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.4"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -17,7 +17,7 @@ mkdir dist\entrada-portatil
 copy /y dist\urna-cidada.jar dist\entrada-portatil\urna-cidada.jar >nul
 
 echo Criando aplicativo portatil com Java incluido...
-jpackage --type app-image --name UrnaCidada --input dist\entrada-portatil --main-jar urna-cidada.jar --main-class com.urnacidada.Main --app-version "%URNA_APP_VERSION%" --vendor "Projeto Urna Cidada" --dest dist\pacote-portatil
+jpackage --type app-image --name UrnaCidada --input dist\entrada-portatil --main-jar urna-cidada.jar --main-class com.urnacidada.Main --add-launcher "UrnaCidadaAdmin=scripts\administrador.properties" --app-version "%URNA_APP_VERSION%" --vendor "Projeto Urna Cidada" --dest dist\pacote-portatil
 if errorlevel 1 goto :package_error
 
 copy /y urna.properties.example dist\pacote-portatil\UrnaCidada\app\urna.properties.example >nul
@@ -32,9 +32,11 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
   echo INICIO RAPIDO
   echo 1. Extraia o ZIP inteiro para Documentos ou Area de Trabalho.
   echo 2. Abra a pasta UrnaCidada e de duplo clique em UrnaCidada.exe.
-  echo 3. Com Firebase, identifique-se com CPF e senha. Cada cadastro pode votar uma vez.
+  echo 3. Com Firebase, identifique-se somente com CPF. No primeiro uso, escolha Primeiro acesso.
   echo 4. Ao terminar, a urna toca o sinal, fala a mensagem de encerramento e retorna a identificacao em 5 segundos.
   echo 5. Sem Firebase, a urna funciona localmente, sem bloqueio de repeticao entre computadores.
+  echo 6. UrnaCidadaAdmin.exe abre a limpeza administrativa; exige conta admin separada e permissao no Firestore.
+  echo    A limpeza apaga dados do Firestore e arquivos de voto apenas deste computador.
   echo.
   echo DADOS
   echo Sem configuracao Firebase, os votos ficam no computador em modo local.
@@ -45,6 +47,8 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
   echo Se o Windows bloquear o arquivo, use Propriedades e marque Desbloquear antes de abrir.
   echo O CPF nao e enviado nem gravado em texto; o app usa um identificador tecnico derivado do numero.
   echo A identificacao serve para a simulacao e nao consulta uma base oficial de titulares.
+  echo O botao administrativo apaga sessoes, contadores e marcas de voto; esta acao nao pode ser desfeita.
+  echo Votos pendentes em outros computadores podem voltar a ser enviados quando a conexao retornar.
 ) > dist\pacote-portatil\UrnaCidada\LEIA-ME.txt
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path 'dist\pacote-portatil\UrnaCidada' -DestinationPath 'dist\UrnaCidada-Windows-x64.zip' -Force"
