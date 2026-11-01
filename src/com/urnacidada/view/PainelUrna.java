@@ -2,11 +2,17 @@ package com.urnacidada.view;
 
 import com.urnacidada.view.EstadoTela.Modo;
 import com.urnacidada.view.EstadoTela.TipoMensagem;
+import com.urnacidada.model.Cargo;
+import com.urnacidada.model.Candidato;
+import com.urnacidada.model.Eleicao;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -49,6 +55,7 @@ public final class PainelUrna extends JPanel {
     }
 
     private final AcoesUrna acoes;
+    private final Eleicao eleicao;
     private final JLabel persistencia = rotulo(11, Font.PLAIN, CINZA);
     private boolean fimTocado;
     private boolean encerrarNoFim;
@@ -68,9 +75,15 @@ public final class PainelUrna extends JPanel {
     private final JButton btnConfirma = botao("CONFIRMA", new Color(0x1E7B4F));
     private final JButton btnNova = botao("Iniciar nova votação", AZUL);
     private final JButton btnDicas = botao("Dicas contra desinformação", AZUL);
+    private final JButton btnNumerosCandidatos = botao("Números dos candidatos", AZUL);
 
     public PainelUrna(AcoesUrna acoes, String descricaoDaGravacao) {
+        this(acoes, descricaoDaGravacao, Eleicao.exemplo());
+    }
+
+    public PainelUrna(AcoesUrna acoes, String descricaoDaGravacao, Eleicao eleicao) {
         this.acoes = Objects.requireNonNull(acoes, "acoes");
+        this.eleicao = Objects.requireNonNull(eleicao, "eleicao");
         setLayout(new BorderLayout(0, 14));
         setBackground(FUNDO);
         setBorder(new EmptyBorder(18, 24, 14, 24));
@@ -233,6 +246,7 @@ public final class PainelUrna extends JPanel {
         });
 
         btnDicas.addActionListener(ev -> acoes.mostrarDicas());
+        btnNumerosCandidatos.addActionListener(ev -> mostrarNumerosDosCandidatos());
         btnNova.addActionListener(ev -> acoes.novaVotacao());
         btnNova.setVisible(false);
 
@@ -244,10 +258,29 @@ public final class PainelUrna extends JPanel {
         acoesRodape.setOpaque(false);
         acoesRodape.add(som);
         acoesRodape.add(btnDicas);
+        acoesRodape.add(btnNumerosCandidatos);
         rodape.add(acoesRodape, BorderLayout.WEST);
         rodape.add(informacao, BorderLayout.CENTER);
         rodape.add(btnNova, BorderLayout.EAST);
         return rodape;
+    }
+
+    private void mostrarNumerosDosCandidatos() {
+        StringBuilder lista = new StringBuilder();
+        for (Cargo cargo : eleicao.cargos()) {
+            if (!lista.isEmpty()) lista.append('\n');
+            lista.append(cargo.nome()).append('\n');
+            for (Candidato candidato : cargo.candidatos()) {
+                lista.append(candidato.numero()).append("  —  ").append(candidato.nome()).append('\n');
+            }
+        }
+        JTextArea conteudo = new JTextArea(lista.toString(), 21, 34);
+        conteudo.setEditable(false);
+        conteudo.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
+        conteudo.setBorder(new EmptyBorder(10, 12, 10, 12));
+        conteudo.setCaretPosition(0);
+        JOptionPane.showMessageDialog(this, new JScrollPane(conteudo),
+                "Números dos candidatos", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // ------------------------------------------------------------------ detalhes visuais

@@ -2,6 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0"
+set "URNA_HOME=%CD%"
 where java >nul 2>nul
 if errorlevel 1 goto :java_error
 for /f "tokens=3" %%v in ('java -version 2^>^&1 ^| findstr /i "version"') do set "JAVA_VERSION=%%v"

@@ -26,7 +26,7 @@ O documento de participação e a sessão são gravados juntos. As regras impede
 
 ## 2. Configurar a aplicação
 
-Copie `urna.properties.example` para `urna.properties`, na pasta do aplicativo, e informe os valores do projeto:
+Para executar pelo código-fonte, copie `urna.properties.example` para `urna.properties` na raiz do projeto e informe os valores do Firebase. O comando `iniciar.bat` usa essa pasta para encontrar a configuração. No ZIP portátil, o arquivo fica na pasta `UrnaCidada\app`.
 
 ```properties
 firebase.projectId=ID_DO_PROJETO

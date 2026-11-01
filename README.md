@@ -46,12 +46,14 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Votação em cinco cargos (Deputado Federal, Deputado Estadual, Senador, Governador e Presidente), com branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
 | Candidatos de demonstração | ✅ Inclui as nove candidaturas adicionadas para Presidente, Governador e Deputado Federal; relação completa em `docs/regras-de-votacao.md` |
 | Interface Swing, teclado na tela, atalhos e avisos | ✅ Implementada em Java |
+| Consulta de números dos candidatos | ✅ Botão abre a relação de cargos, números e nomes durante a votação |
+| Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
 | Identificação por CPF e bloqueio de repetição | ✅ Disponível quando o Firebase está configurado |
 | Encerramento automático | ✅ Sinal sonoro, mensagem falada e retorno à identificação em cinco segundos |
 | Gravação local e fila de pendências para sincronização | ✅ Implementada; o fluxo offline→online tem cobertura automatizada com servidor HTTP local falso |
 | Apuração no Cloud Firestore | ✅ Contadores por candidato atualizados junto com cada sessão; regras em `firestore.rules` |
 | Limpeza administrativa | ✅ Comando separado, conta Firebase administrativa e confirmação em duas etapas |
-| Pacote portátil para Windows | ✅ Publicado na Release `v1.0.5`, com runtime Java, Firebase e iniciador administrativo |
+| Pacote portátil para Windows | ✅ Publicado na Release `v1.0.6`, com runtime Java, Firebase e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -61,7 +63,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na [Release v1.0.5](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.5). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na [Release v1.0.6](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.6). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -70,6 +72,7 @@ Na pasta do projeto, dê duplo clique em `demo.bat` para abrir a urna em modo de
 No terminal, também é possível executar:
 
 ```bat
+iniciar.bat
 scripts\demo.bat
 scripts\iniciar.bat
 scripts\iniciar.bat --local
@@ -77,6 +80,8 @@ scripts\iniciar.bat --memoria
 scripts\iniciar.bat --ajuda
 scripts\administrar.bat
 ```
+
+No terminal integrado do VS Code, aberto na pasta do projeto, execute `.\iniciar.bat`. O comando recompila o código Java atual e abre a urna. Os diálogos de identificação aparecem em primeiro plano. Na tela de votação, use **Números dos candidatos** para consultar cargos, números e nomes.
 
 ### Modos de gravação
 
@@ -162,7 +167,7 @@ No Windows, execute:
 scripts\testar.bat
 ```
 
-Não precisa de Maven nem de internet. A suíte de testes também foi executada pelo workflow de publicação da Release `v1.0.5`. A matriz está em [testes.md](docs/testes.md).
+Não precisa de Maven nem de internet. A suíte de testes também foi executada pelo workflow de publicação da Release `v1.0.6`. A matriz está em [testes.md](docs/testes.md).
 
 Os testes cobrem as regras de votação, a validação de CPF, a persistência local e a sincronização simulada com servidor HTTP local falso. Veja [testes.md](docs/testes.md) para a matriz completa.
 

@@ -81,7 +81,7 @@ public final class TelaUrna extends JFrame {
         this.aoFechar = aoFechar;
         this.aoReiniciar = aoReiniciar;
 
-        painel = new PainelUrna(new RepasseDeAcoes(), repositorio.descricao());
+        painel = new PainelUrna(new RepasseDeAcoes(), repositorio.descricao(), eleicao);
         painel.encerrarNoFim(true);
         controlador = new ControladorUrna(eleicao, repositorio, gravacao, SwingUtilities::invokeLater,
                 this::exibirEstado, this::mostrarDicas, idSessao, umaSessaoPorConta);

@@ -156,29 +156,28 @@ public final class Main {
     private static AutenticacaoFirebase.Sessao autenticar(AutenticacaoFirebase autenticacao)
             throws com.urnacidada.repository.RepositorioException {
         Object[] opcoes = {"Entrar", "Primeiro acesso", "Cancelar"};
-        int escolha = JOptionPane.showOptionDialog(null,
+        int escolha = DialogosUrna.opcoes(null,
                 "Identifique-se somente com seu CPF. Cada CPF cadastrado pode votar uma vez; não é necessária senha.",
-                "Urna Cidadã — participante", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
-                null, opcoes, opcoes[0]);
+                "Urna Cidadã — participante", JOptionPane.QUESTION_MESSAGE, opcoes, opcoes[0]);
         if (escolha == 2 || escolha < 0) return null;
         JFormattedTextField campoCpf = campoCpf();
         JPanel painelCpf = new JPanel(new GridLayout(2, 1, 4, 4));
         painelCpf.add(new JLabel("CPF (000.000.000-00)"));
         painelCpf.add(campoCpf);
-        int resultado = JOptionPane.showConfirmDialog(null, painelCpf,
-                "Identificação do participante", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        int resultado = DialogosUrna.confirmar(null, painelCpf, "Identificação do participante",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (resultado != JOptionPane.OK_OPTION) return null;
         String cpf;
         try { cpf = com.urnacidada.repository.CpfIdentificador.normalizar(campoCpf.getText()); }
         catch (IllegalArgumentException erro) {
-            JOptionPane.showMessageDialog(null, erro.getMessage(), "CPF inválido", JOptionPane.ERROR_MESSAGE);
+            DialogosUrna.mensagem(null, erro.getMessage(), "CPF inválido", JOptionPane.ERROR_MESSAGE);
             return null;
         }
         try {
             if (escolha == 0) return autenticacao.entrar(cpf);
             return autenticacao.cadastrar(cpf);
         } catch (com.urnacidada.repository.RepositorioException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Autenticação Firebase", JOptionPane.ERROR_MESSAGE);
+            DialogosUrna.mensagem(null, e.getMessage(), "Autenticação Firebase", JOptionPane.ERROR_MESSAGE);
             return null;
         }
     }
@@ -191,14 +190,14 @@ public final class Main {
         painel.add(email);
         painel.add(new JLabel("Senha de administrador"));
         painel.add(senha);
-        int resultado = JOptionPane.showConfirmDialog(null, painel,
-                "Acesso administrativo", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        int resultado = DialogosUrna.confirmar(null, painel, "Acesso administrativo",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
         if (resultado != JOptionPane.OK_OPTION) return null;
         char[] valorSenha = senha.getPassword();
         try {
             return autenticacao.entrarAdministrador(email.getText().strip(), valorSenha);
         } catch (com.urnacidada.repository.RepositorioException e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Acesso administrativo", JOptionPane.ERROR_MESSAGE);
+            DialogosUrna.mensagem(null, e.getMessage(), "Acesso administrativo", JOptionPane.ERROR_MESSAGE);
             return null;
         } finally {
             Arrays.fill(valorSenha, '\0');
@@ -212,7 +211,7 @@ public final class Main {
         try {
             FirestoreAdminClient administrador = new FirestoreAdminClient(config.projectId(), config.apiKey(), usuario);
             if (!administrador.ehAdministrador()) {
-                JOptionPane.showMessageDialog(null,
+                DialogosUrna.mensagem(null,
                         "Esta conta não tem permissão de administrador no Firestore.",
                         "Acesso negado", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -220,20 +219,19 @@ public final class Main {
             travaAdmin = TravaInstancia.tentar(dados.resolve(".urna-instancia.lock"));
             if (travaAdmin == null) throw new IOException("Feche as outras janelas da urna antes de apagar os dados.");
 
-            int acao = JOptionPane.showOptionDialog(null,
-                    "Conta administrativa confirmada.", "Administração da urna",
-                    JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE,
-                    null, new Object[]{"Apagar dados salvos", "Cancelar"}, "Cancelar");
+            int acao = DialogosUrna.opcoes(null, "Conta administrativa confirmada.",
+                    "Administração da urna", JOptionPane.WARNING_MESSAGE,
+                    new Object[]{"Apagar dados salvos", "Cancelar"}, "Cancelar");
             if (acao != 0 || !confirmarApagamento()) return;
 
             int documentos = administrador.apagarDadosVotacao();
             int arquivos = CaminhosAplicacao.apagarArquivosDeVoto(dados);
-            JOptionPane.showMessageDialog(null,
+            DialogosUrna.mensagem(null,
                     "Limpeza concluída. " + documentos + " documentos foram removidos do Firestore e "
                             + arquivos + " arquivos de voto deste computador.",
                     "Dados apagados", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null,
+            DialogosUrna.mensagem(null,
                     e.getMessage() == null ? "Não foi possível concluir a limpeza." : e.getMessage(),
                     "Limpeza incompleta", JOptionPane.ERROR_MESSAGE);
         } finally {
@@ -257,20 +255,20 @@ public final class Main {
     }
 
     private static boolean confirmarApagamento() {
-        int confirmacao = JOptionPane.showConfirmDialog(null,
+        int confirmacao = DialogosUrna.confirmar(null,
                 "Isso apaga sessões, contadores e marcas de voto no Firestore, além dos arquivos de voto deste computador. "
                         + "Votos pendentes em outros computadores podem voltar a ser enviados quando a conexão retornar. "
                         + "A ação não pode ser desfeita. Os registros de administradores serão mantidos.",
                 "Confirmar limpeza da urna", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirmacao != JOptionPane.YES_OPTION) return false;
-        String palavra = JOptionPane.showInputDialog(null,
-                "Para confirmar, digite APAGAR:", "Confirmação administrativa", JOptionPane.WARNING_MESSAGE);
+        String palavra = DialogosUrna.entrada(null, "Para confirmar, digite APAGAR:",
+                "Confirmação administrativa", JOptionPane.WARNING_MESSAGE);
         return "APAGAR".equals(palavra);
     }
 
     private static void falha(String texto, Exception causa) {
         if (causa != null) LogUrna.logger().severe("Falha fatal: " + causa.getClass().getSimpleName());
-        if (!GraphicsEnvironment.isHeadless()) JOptionPane.showMessageDialog(null, texto,
+        if (!GraphicsEnvironment.isHeadless()) DialogosUrna.mensagem(null, texto,
                 "Urna Cidadã — não foi possível iniciar", JOptionPane.ERROR_MESSAGE);
         else System.err.println(texto);
     }

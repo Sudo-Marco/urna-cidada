@@ -6,7 +6,7 @@
 
   <groupId>com.urnacidada</groupId>
   <artifactId>urna-cidada</artifactId>
-  <version>1.0.5</version>
+  <version>1.0.6</version>
   <name>Urna Cidadã</name>
   <description>Simulador educativo de urna eletrônica (Java, Swing e Cloud Firestore)</description>
 
