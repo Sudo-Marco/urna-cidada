@@ -12,7 +12,7 @@ import java.util.Map;
 public record Cargo(String nome, int digitos, List<Candidato> candidatos) {
 
     public Cargo {
-        if (nome == null || nome.isBlank() || digitos < 1 || candidatos == null || candidatos.isEmpty()) {
+        if (nome == null || nome.isBlank() || digitos < 1 || candidatos == null) {
             throw new IllegalArgumentException("Cargo e quantidade de dígitos devem ser válidos.");
         }
         if (candidatos.size() > 10) {

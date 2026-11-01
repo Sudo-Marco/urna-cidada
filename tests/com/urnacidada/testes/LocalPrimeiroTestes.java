@@ -21,11 +21,11 @@ import static com.urnacidada.testes.MiniTeste.*;
 final class LocalPrimeiroTestes {
     private LocalPrimeiroTestes() { }
     private static List<Voto> votos() { return List.of(
-            new Voto("Deputado Federal",TipoVoto.VALIDO,"8101",Instant.parse("2026-10-29T12:00:00Z")),
-            new Voto("Deputado Estadual",TipoVoto.LEGENDA,"81",Instant.parse("2026-10-29T12:00:01Z")),
+            new Voto("Deputado Federal",TipoVoto.VALIDO,"1111",Instant.parse("2026-10-29T12:00:00Z")),
+            new Voto("Deputado Estadual",TipoVoto.NULO,"99999",Instant.parse("2026-10-29T12:00:01Z")),
             new Voto("Senador",TipoVoto.BRANCO,null,Instant.parse("2026-10-29T12:00:02Z")),
             new Voto("Governador",TipoVoto.NULO,"99",Instant.parse("2026-10-29T12:00:03Z")),
-            new Voto("Presidente",TipoVoto.VALIDO,"85",Instant.parse("2026-10-29T12:00:04Z"))); }
+            new Voto("Presidente",TipoVoto.VALIDO,"11",Instant.parse("2026-10-29T12:00:04Z"))); }
 
     private static AutenticacaoFirebase.Sessao sessaoTeste() throws Exception {
         HttpServer auth=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);

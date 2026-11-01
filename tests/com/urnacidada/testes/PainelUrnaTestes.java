@@ -220,12 +220,15 @@ final class PainelUrnaTestes {
             desenhar(painel);
         });
 
-        caso("tela principal não exibe painel lateral de candidatos", () -> {
+        caso("lista fixa de candidatos aparece na lateral da tela", () -> {
             PainelUrna painel = new PainelUrna(new Gravador(), "teste");
             painel.exibir(new EstadoTela(Modo.DIGITANDO, "DEPUTADO ESTADUAL", "CARGO 2 DE 5", 5,
                     "", "Digite o número do candidato", "", "", "", TipoMensagem.INFO, true));
             desenhar(painel, new Dimension(1366, 768));
-            verdade(!contemTexto(painel, "CANDIDATOS ·"), "a lista lateral não deve aparecer");
+            verdade(contemTexto(painel, "NÚMEROS DOS CANDIDATOS"), "título da lista fixa");
+            verdade(contemTexto(painel, "1111  Pedro Henrique Costa"), "candidatura federal na lista");
+            verdade(contemTexto(painel, "55  Camila Ferreira"), "candidatura ao governo na lista");
+            verdade(achar(painel, "Números dos candidatos") == null, "a lista não depende de botão ou janela");
         });
 
         caso("estados de candidato de todos os cargos cabem no mínimo e em 1366x768", () -> {

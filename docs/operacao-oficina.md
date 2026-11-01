@@ -35,7 +35,7 @@ Explique que esta é uma simulação educativa. Os cargos são Deputado Federal,
 
 Ao confirmar Presidente, a urna salva a sessão, toca o sinal, diz “Você já votou. Obrigado por participar.” e, em cinco segundos, retorna à identificação do próximo participante. A tecla `Enter` confirma, `B` escolhe branco, `Backspace` corrige e as teclas numéricas inserem o voto.
 
-O botão **Números dos candidatos** abre uma lista simples com os cinco cargos, números e nomes dos candidatos.
+Os cargos, números e nomes dos candidatos ficam visíveis em uma lista fixa no canto superior esquerdo da tela.
 
 A fala usa a síntese de voz do Windows e seleciona uma voz em português do Brasil quando disponível.
 

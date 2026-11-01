@@ -62,7 +62,7 @@ final class ModeloTestes {
 
         teste("cargo encontra candidato pelo número e devolve vazio se não existe", () -> {
             Cargo cargo = Eleicao.exemplo().cargos().get(0);
-            igual("Ari Lume", cargo.buscarCandidato("8101").orElseThrow().nome());
+            igual("Pedro Henrique Costa", cargo.buscarCandidato("1111").orElseThrow().nome());
             verdade(cargo.buscarCandidato("99999").isEmpty(), "número inexistente");
         });
 
@@ -107,16 +107,13 @@ final class ModeloTestes {
 
         teste("candidatos pedidos usam os números correspondentes a cada cargo", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
-            igual("Meia Bomba", cargos.get(1).buscarCandidato("81001").orElseThrow().nome());
-            igual("Curupira", cargos.get(2).buscarCandidato("820").orElseThrow().nome());
-            igual("Peter Pardo", cargos.get(2).buscarCandidato("830").orElseThrow().nome());
-            igual("Zé Gotinha", cargos.get(3).buscarCandidato("84").orElseThrow().nome());
-            igual("Beto", cargos.get(4).buscarCandidato("85").orElseThrow().nome());
-            igual("Partido Horizonte Comunitário (fictício)", cargos.get(1).buscarCandidato("81001").orElseThrow().partido());
-            igual("Partido Raízes do Amanhã (fictício)", cargos.get(2).buscarCandidato("820").orElseThrow().partido());
-            igual("Partido Caminhos Abertos (fictício)", cargos.get(2).buscarCandidato("830").orElseThrow().partido());
-            igual("Partido Cuidado Coletivo (fictício)", cargos.get(3).buscarCandidato("84").orElseThrow().partido());
-            igual("Partido Futuro Compartilhado (fictício)", cargos.get(4).buscarCandidato("85").orElseThrow().partido());
+            igual(9, cargos.stream().mapToInt(c -> c.candidatos().size()).sum());
+            verdade(cargos.get(1).candidatos().isEmpty(), "Deputado Estadual sem candidaturas");
+            verdade(cargos.get(2).candidatos().isEmpty(), "Senador sem candidaturas");
+            igual("Gabriel Santos", cargos.get(3).buscarCandidato("44").orElseThrow().nome());
+            igual("Rafael Mendes", cargos.get(4).buscarCandidato("11").orElseThrow().nome());
+            igual("Desenvolvimento e Justiça Social (DJS)", cargos.get(3).buscarCandidato("66").orElseThrow().partido());
+            igual("Aliança pelo Progresso (PAP)", cargos.get(4).buscarCandidato("22").orElseThrow().partido());
         });
 
         teste("candidaturas têm números, propostas e vices consistentes", () -> {

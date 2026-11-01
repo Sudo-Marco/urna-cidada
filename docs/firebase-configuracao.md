@@ -64,12 +64,12 @@ No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada doc
 IDs de resultado correspondentes às candidaturas atuais:
 
 ```text
-df_8101  df_8202  df_8303  df_1111  df_2222  df_3333
-de_81001
-sen_820  sen_830  sen_833
-gov_84  gov_82  gov_83  gov_44  gov_55  gov_66
-pres_81  pres_85  pres_83  pres_11  pres_22  pres_33
+df_1111  df_2222  df_3333
+gov_44  gov_55  gov_66
+pres_11  pres_22  pres_33
 ```
+
+Documentos de apurações antigas no Firestore não são removidos quando o cadastro de candidatos muda. A lista acima mostra somente os IDs das candidaturas desta versão.
 
 O envio usa `documents:commit`: a sessão e os incrementos de contagem entram no mesmo lote atômico. Se faltar conexão depois da identificação, a votação permanece no arquivo local e é reenviada quando a conexão voltar. O Firestore aceita somente a primeira participação de cada conta.
 

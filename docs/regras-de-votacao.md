@@ -1,6 +1,6 @@
 # Regras de votação
 
-Os cinco cargos aparecem nesta ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente. A escolha de Senador está simplificada a um voto. Os partidos e programas de candidatura compõem a simulação educativa.
+Os cinco cargos aparecem nesta ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente. A escolha de Senador está simplificada a um voto. Os nove números são únicos entre todas as candidaturas. A tela de votação mantém a relação de candidatos no canto superior esquerdo.
 
 ## Escolha em cada cargo
 
@@ -23,48 +23,33 @@ Os números, partidos e propostas abaixo estão centralizados em `src/com/urnaci
 
 | Número | Candidato | Partido | Propostas |
 |---:|---|---|---|
-| 8101 | Ari Lume | Partido Horizonte Comunitário (fictício) | Ampliar bibliotecas com horários acessíveis; divulgar metas e gastos em linguagem simples. |
-| 8202 | Bela Nébula | Partido Raízes do Amanhã (fictício) | Apoiar formação técnica em escolas públicas; publicar indicadores de acesso à saúde. |
-| 8303 | Cael Brisa | Partido Caminhos Abertos (fictício) | Incentivar transporte público de baixa emissão; ampliar dados abertos sobre serviços. |
-| 1111 | Pedro Henrique Costa | Juventude e Inovação Brasileira (JIB) | Investir em escolas e universidades; primeiro emprego e estágio; pesquisa e inovação; fiscalização dos gastos públicos. |
-| 2222 | Beatriz Rodrigues | Vozes da Cidadania (PVC) | Recursos para hospitais e SUS; prevenção à violência; habitação popular; proteção ao trabalho e incentivo ao emprego. |
-| 3333 | André Martins | Aliança de Desenvolvimento Sustentável (ADS) | Simplificar impostos; combater o crime organizado; investir em saneamento e transporte; incentivar a modernização dos serviços públicos. |
+| 1111 | Pedro Henrique Costa | Juventude e Inovação Brasileira (JIB) | Educação: propor mais investimentos nas escolas e universidades públicas. Juventude: defender programas de primeiro emprego e estágio. Tecnologia: incentivar pesquisas científicas e inovação. Transparência: fiscalizar os gastos públicos e cobrar responsabilidade dos governantes. |
+| 2222 | Beatriz Rodrigues | Vozes da Cidadania (PVC) | Saúde: defender mais recursos para hospitais e unidades do SUS. Proteção à mulher: fortalecer políticas de prevenção à violência. Moradia: defender investimentos em habitação popular. Trabalho: propor medidas de proteção aos trabalhadores e incentivo ao emprego. |
+| 3333 | André Martins | Aliança de Desenvolvimento Sustentável (ADS) | Economia: simplificar impostos e reduzir a burocracia para pequenos negócios. Segurança: propor medidas legislativas de combate ao crime organizado. Infraestrutura: defender investimentos federais em saneamento e transporte. Tecnologia: incentivar o desenvolvimento tecnológico e a modernização dos serviços públicos. |
 
 ### Deputado Estadual · cinco dígitos
 
-| Número | Candidato | Partido | Propostas |
-|---:|---|---|---|
-| 81001 | Meia Bomba | Partido Horizonte Comunitário (fictício) | Apoiar bibliotecas comunitárias e leitura; publicar metas anuais de serviços estaduais. |
+Não há candidaturas cadastradas para este cargo. É possível votar em branco ou digitar um número completo, que será registrado como voto nulo.
 
 ### Senador · três dígitos
 
-| Número | Candidato | Partido | Propostas |
-|---:|---|---|---|
-| 820 | Curupira | Partido Raízes do Amanhã (fictício) | Ampliar bibliotecas e espaços de leitura; apoiar formação técnica acessível. |
-| 830 | Peter Pardo | Partido Caminhos Abertos (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
-| 833 | Ivo Pedra-Mansa | Partido Caminhos Abertos (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
+Não há candidaturas cadastradas para este cargo. É possível votar em branco ou digitar um número completo, que será registrado como voto nulo.
 
 ### Governador · dois dígitos
 
 | Número | Candidato | Partido | Propostas |
 |---:|---|---|---|
-| 84 | Zé Gotinha | Partido Cuidado Coletivo (fictício) | Ampliar ações educativas de prevenção em saúde; publicar informações de serviços em linguagem simples. |
-| 82 | Luma Cedro-Doce | Partido Raízes do Amanhã (fictício) | Planejar trajetos seguros para pedestres; integrar melhor o transporte público. |
-| 83 | Nilo Serra-Clara | Partido Caminhos Abertos (fictício) | Incentivar eficiência energética em serviços públicos; ampliar áreas verdes com manutenção planejada. |
-| 44 | Gabriel Santos | Força e Desenvolvimento Estadual (FDE) | Construir e reformar hospitais; modernizar escolas e ampliar cursos técnicos; melhorar os equipamentos policiais e ampliar o policiamento; recuperar estradas e transporte intermunicipal. |
-| 55 | Camila Ferreira | União pelo Futuro (PUF) | Atrair empresas; ampliar cursos profissionalizantes; reduzir filas de consultas e exames; valorizar atrações naturais e culturais. |
-| 66 | Lucas Almeida | Desenvolvimento e Justiça Social (DJS) | Apoiar agricultura familiar; ampliar acesso à água tratada e coleta de esgoto; fortalecer o policiamento; reformar espaços esportivos. |
+| 44 | Gabriel Santos | Força e Desenvolvimento Estadual (FDE) | Saúde: construir e reformar hospitais regionais. Educação: modernizar escolas estaduais e ampliar cursos técnicos. Segurança: melhorar os equipamentos policiais e ampliar o policiamento. Infraestrutura: recuperar estradas estaduais e melhorar o transporte intermunicipal. |
+| 55 | Camila Ferreira | União pelo Futuro (PUF) | Economia: atrair empresas e incentivar o empreendedorismo. Educação: ampliar cursos profissionalizantes para jovens e adultos. Saúde: reduzir as filas de consultas e exames. Turismo: valorizar as atrações naturais e culturais do estado. |
+| 66 | Lucas Almeida | Desenvolvimento e Justiça Social (DJS) | Agricultura: apoiar pequenos produtores rurais e a agricultura familiar. Saneamento: ampliar o acesso à água tratada e à coleta de esgoto. Segurança: fortalecer o policiamento nas cidades. Esporte: construir e reformar espaços esportivos públicos. |
 
 ### Presidente · dois dígitos
 
 | Número | Candidato | Partido | Propostas |
 |---:|---|---|---|
-| 81 | Pia Sol-Nascente | Partido Horizonte Comunitário (fictício) | Incentivar eficiência energética em serviços públicos; ampliar áreas verdes com manutenção planejada. |
-| 85 | Beto | Partido Futuro Compartilhado (fictício) | Apoiar espaços de convivência, esporte e cultura; divulgar metas e resultados dos serviços públicos. |
-| 83 | Tali Nuvem-Mansa | Partido Caminhos Abertos (fictício) | Ampliar bibliotecas e espaços de leitura; apoiar formação técnica acessível. |
-| 11 | Rafael Mendes | Renovação Nacional (PRN) | Ampliar acesso às universidades e melhorar escolas públicas; fortalecer o SUS; qualificar profissionais; combater o desmatamento e investir em energia solar e eólica. |
-| 22 | Eduardo Carvalho | Aliança pelo Progresso (PAP) | Simplificar impostos; ampliar tecnologia policial; modernizar rodovias, ferrovias e aeroportos; apoiar produtores rurais. |
-| 33 | Mariana Oliveira | Movimento Popular Democrático (MPD) | Ampliar moradia popular; investir no ensino integral e nos professores; reduzir desigualdades; proteger recursos naturais. |
+| 11 | Rafael Mendes | Renovação Nacional (PRN) | Educação: ampliar o acesso às universidades e melhorar a infraestrutura das escolas públicas. Saúde: fortalecer o atendimento do SUS e reduzir as filas de consultas e exames. Emprego: incentivar pequenas empresas e criar programas de qualificação profissional. Meio ambiente: combater o desmatamento e investir em energia solar e eólica. |
+| 22 | Eduardo Carvalho | Aliança pelo Progresso (PAP) | Economia: simplificar impostos e incentivar o crescimento das empresas. Segurança: ampliar os investimentos em equipamentos e tecnologia policial. Infraestrutura: modernizar rodovias, ferrovias e aeroportos. Agricultura: oferecer apoio financeiro e tecnológico aos produtores rurais. |
+| 33 | Mariana Oliveira | Movimento Popular Democrático (MPD) | Moradia: ampliar programas habitacionais para famílias de baixa renda. Educação: investir no ensino integral e na valorização dos professores. Direitos sociais: combater a desigualdade e ampliar políticas de inclusão. Meio ambiente: incentivar energias renováveis e proteger os recursos naturais. |
 
 ## Persistência e apuração
 

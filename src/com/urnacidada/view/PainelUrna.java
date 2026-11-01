@@ -9,10 +9,8 @@ import com.urnacidada.model.Eleicao;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
@@ -75,7 +73,6 @@ public final class PainelUrna extends JPanel {
     private final JButton btnConfirma = botao("CONFIRMA", new Color(0x1E7B4F));
     private final JButton btnNova = botao("Iniciar nova votação", AZUL);
     private final JButton btnDicas = botao("Dicas contra desinformação", AZUL);
-    private final JButton btnNumerosCandidatos = botao("Números dos candidatos", AZUL);
 
     public PainelUrna(AcoesUrna acoes, String descricaoDaGravacao) {
         this(acoes, descricaoDaGravacao, Eleicao.exemplo());
@@ -142,13 +139,57 @@ public final class PainelUrna extends JPanel {
     }
 
     private JPanel criarCorpo() {
-        JPanel corpo = new JPanel(new BorderLayout(20, 0));
+        JPanel corpo = new JPanel(new BorderLayout(14, 0));
         corpo.setOpaque(false);
         JPanel teclado = criarTeclado();
         teclado.setPreferredSize(new Dimension(LARGURA_DO_TECLADO, 10)); // largura fixa: não muda com o texto
+        corpo.add(criarPainelCandidatos(), BorderLayout.WEST);
         corpo.add(criarTela(), BorderLayout.CENTER);
         corpo.add(teclado, BorderLayout.EAST);
         return corpo;
+    }
+
+    private JScrollPane criarPainelCandidatos() {
+        JPanel lista = new JPanel();
+        lista.setLayout(new javax.swing.BoxLayout(lista, javax.swing.BoxLayout.Y_AXIS));
+        lista.setBackground(Color.WHITE);
+        lista.setBorder(new EmptyBorder(12, 10, 12, 8));
+
+        JLabel tituloLista = rotulo(13, Font.BOLD, AZUL);
+        tituloLista.setText("NÚMEROS DOS CANDIDATOS");
+        tituloLista.setAlignmentX(0f);
+        lista.add(tituloLista);
+        lista.add(javax.swing.Box.createVerticalStrut(8));
+
+        for (Cargo cargo : eleicao.cargos()) {
+            JLabel tituloCargo = rotulo(11, Font.BOLD, CINZA);
+            tituloCargo.setText(cargo.nome().toUpperCase(java.util.Locale.ROOT));
+            tituloCargo.setAlignmentX(0f);
+            lista.add(tituloCargo);
+            if (cargo.candidatos().isEmpty()) {
+                JLabel semCandidaturas = rotulo(11, Font.ITALIC, CINZA);
+                semCandidaturas.setText("Sem candidaturas");
+                semCandidaturas.setAlignmentX(0f);
+                lista.add(semCandidaturas);
+            } else {
+                for (Candidato candidato : cargo.candidatos()) {
+                    JLabel item = rotulo(12, Font.PLAIN, TEXTO);
+                    item.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+                    item.setText(candidato.numero() + "  " + candidato.nome());
+                    item.setAlignmentX(0f);
+                    lista.add(item);
+                }
+            }
+            lista.add(javax.swing.Box.createVerticalStrut(8));
+        }
+
+        JScrollPane painel = new JScrollPane(lista);
+        painel.setPreferredSize(new Dimension(232, 10));
+        painel.setMinimumSize(new Dimension(216, 10));
+        painel.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        painel.getVerticalScrollBar().setUnitIncrement(14);
+        painel.setBorder(BorderFactory.createLineBorder(new Color(0xBEC8D2), 1));
+        return painel;
     }
 
     private JPanel criarTela() {
@@ -246,7 +287,6 @@ public final class PainelUrna extends JPanel {
         });
 
         btnDicas.addActionListener(ev -> acoes.mostrarDicas());
-        btnNumerosCandidatos.addActionListener(ev -> mostrarNumerosDosCandidatos());
         btnNova.addActionListener(ev -> acoes.novaVotacao());
         btnNova.setVisible(false);
 
@@ -258,29 +298,10 @@ public final class PainelUrna extends JPanel {
         acoesRodape.setOpaque(false);
         acoesRodape.add(som);
         acoesRodape.add(btnDicas);
-        acoesRodape.add(btnNumerosCandidatos);
         rodape.add(acoesRodape, BorderLayout.WEST);
         rodape.add(informacao, BorderLayout.CENTER);
         rodape.add(btnNova, BorderLayout.EAST);
         return rodape;
-    }
-
-    private void mostrarNumerosDosCandidatos() {
-        StringBuilder lista = new StringBuilder();
-        for (Cargo cargo : eleicao.cargos()) {
-            if (!lista.isEmpty()) lista.append('\n');
-            lista.append(cargo.nome()).append('\n');
-            for (Candidato candidato : cargo.candidatos()) {
-                lista.append(candidato.numero()).append("  —  ").append(candidato.nome()).append('\n');
-            }
-        }
-        JTextArea conteudo = new JTextArea(lista.toString(), 21, 34);
-        conteudo.setEditable(false);
-        conteudo.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 14));
-        conteudo.setBorder(new EmptyBorder(10, 12, 10, 12));
-        conteudo.setCaretPosition(0);
-        JOptionPane.showMessageDialog(this, new JScrollPane(conteudo),
-                "Números dos candidatos", JOptionPane.INFORMATION_MESSAGE);
     }
 
     // ------------------------------------------------------------------ detalhes visuais

@@ -25,7 +25,7 @@ No Firestore, `participantes/{uid}` guarda apenas a marca de uso. Os cinco votos
 
 ## Candidaturas
 
-Os candidatos adicionados pelo usuário foram cadastrados conforme os cargos e números fornecidos:
+As nove candidaturas cadastradas usam números exclusivos:
 
 | Cargo | Números e nomes |
 |---|---|
@@ -33,7 +33,7 @@ Os candidatos adicionados pelo usuário foram cadastrados conforme os cargos e n
 | Governador | 44 Gabriel Santos; 55 Camila Ferreira; 66 Lucas Almeida |
 | Deputado Federal | 1111 Pedro Henrique Costa; 2222 Beatriz Rodrigues; 3333 André Martins |
 
-As propostas e partidos estão em `Eleicao.exemplo()` e em [regras-de-votacao.md](regras-de-votacao.md). As candidaturas existentes para Deputado Estadual e Senador foram preservadas.
+As propostas e partidos estão em `Eleicao.exemplo()` e em [regras-de-votacao.md](regras-de-votacao.md). Deputado Estadual e Senador permanecem na sequência dos cinco cargos, sem candidaturas; nesses cargos, a pessoa pode votar em branco ou nulo.
 
 ## Execução e armazenamento
 
