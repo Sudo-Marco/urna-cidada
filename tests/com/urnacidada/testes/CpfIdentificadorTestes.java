@@ -22,6 +22,9 @@ final class CpfIdentificadorTestes {
             igual(primeiro, CpfIdentificador.emailFirebase("52998224725"));
             verdade(primeiro.startsWith("cpf-") && primeiro.endsWith("@example.com"), "formato técnico");
             verdade(!primeiro.contains("52998224725"), "sem CPF em texto claro");
+            String credencial = CpfIdentificador.senhaTecnicaFirebase("529.982.247-25");
+            igual(credencial, CpfIdentificador.senhaTecnicaFirebase("52998224725"));
+            verdade(!credencial.contains("52998224725"), "credencial técnica não contém CPF em texto claro");
         });
     }
 }

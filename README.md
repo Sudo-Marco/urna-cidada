@@ -198,7 +198,7 @@ A regra de votação não conhece a tela nem o banco de dados. O diagrama está 
 
 ## 🔒 Privacidade e segurança
 
-- O acesso Firebase usa CPF e senha. A aplicação valida os dígitos do CPF e deriva um identificador técnico; não envia nem salva o CPF em texto.
+- O acesso Firebase pede somente o CPF, no formato `000.000.000-00`. A aplicação valida os dígitos e deriva as credenciais técnicas; não envia nem salva o CPF em texto.
 - Cada sessão de voto guarda um UUID aleatório e votos com **cargo, tipo, número e data/hora**.
 - `urna.properties` contém a configuração Firebase e está ignorado pelo Git. **Não** envie esse arquivo, dados de votação ou credenciais de serviço ao GitHub.
 - A chave de API Firebase é pública por natureza. As regras do Firestore permitem somente a gravação prevista pelo projeto e bloqueiam a leitura das sessões e da apuração pelas contas de participantes.

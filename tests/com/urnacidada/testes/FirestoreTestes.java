@@ -82,7 +82,7 @@ final class FirestoreTestes {
         try {
             URI base = URI.create("http://127.0.0.1:" + auth.getAddress().getPort() + "/v1/");
             return new AutenticacaoFirebase("AIza" + "A".repeat(35), base, base)
-                    .entrar("52998224725", "senha-teste-123".toCharArray());
+                    .entrar("52998224725");
         } finally { auth.stop(0); }
     }
 

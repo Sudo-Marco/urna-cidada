@@ -9,6 +9,7 @@ import java.util.HexFormat;
 /** Valida o CPF informado e cria um identificador técnico sem transmitir seus dígitos ao Firebase. */
 public final class CpfIdentificador {
     private static final byte[] SALT = "urna-cidada-identificador-v1".getBytes(StandardCharsets.UTF_8);
+    private static final byte[] CREDENCIAL_SALT = "urna-cidada-credencial-v1".getBytes(StandardCharsets.UTF_8);
     private static final int ITERACOES = 120_000;
 
     private CpfIdentificador() { }
@@ -25,15 +26,24 @@ public final class CpfIdentificador {
     }
 
     public static String emailFirebase(String entrada) {
+        return "cpf-" + derivar(entrada, SALT) + "@example.com";
+    }
+
+    /** Credencial técnica determinística: o participante não informa uma senha separada. */
+    public static String senhaTecnicaFirebase(String entrada) {
+        return "U" + derivar(entrada, CREDENCIAL_SALT);
+    }
+
+    private static String derivar(String entrada, byte[] sal) {
         String cpf = normalizar(entrada);
         char[] segredo = cpf.toCharArray();
-        PBEKeySpec especificacao = new PBEKeySpec(segredo, SALT, ITERACOES, 256);
+        PBEKeySpec especificacao = new PBEKeySpec(segredo, sal, ITERACOES, 256);
         try {
             byte[] resumo = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
                     .generateSecret(especificacao).getEncoded();
-            return "cpf-" + HexFormat.of().formatHex(resumo) + "@example.com";
+            return HexFormat.of().formatHex(resumo);
         } catch (GeneralSecurityException e) {
-            throw new IllegalStateException("Não foi possível preparar o identificador do participante.", e);
+            throw new IllegalStateException("Não foi possível preparar as credenciais técnicas do participante.", e);
         } finally {
             especificacao.clearPassword();
             java.util.Arrays.fill(segredo, '\0');

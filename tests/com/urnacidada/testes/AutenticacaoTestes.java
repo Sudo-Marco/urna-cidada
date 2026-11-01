@@ -43,30 +43,29 @@ final class AutenticacaoTestes {
     }
 
     static void executar() {
-        grupo("Firebase Authentication: CPF e senha");
+        grupo("Firebase Authentication: CPF sem senha digitada");
 
         teste("cadastro abre a conta e prepara a sessão da votação", () -> {
             AtomicInteger chamadas = new AtomicInteger();
             StringBuilder corpos = new StringBuilder();
             HttpServer server = servidor(null, chamadas, corpos);
-            char[] senha = "senha-teste-123".toCharArray();
             try {
-                AutenticacaoFirebase.Sessao sessao = cliente(server).cadastrar(CPF, senha);
+                AutenticacaoFirebase.Sessao sessao = cliente(server).cadastrar(CPF);
                 igual("uid-abc", sessao.uid());
                 igual("id-token", sessao.token());
                 igual(1, chamadas.get());
                 verdade(corpos.toString().contains("accounts:signUp"), "cadastro solicitado");
                 verdade(corpos.toString().contains(CpfIdentificador.emailFirebase(CPF)), "identificador técnico derivado enviado");
                 verdade(!corpos.toString().contains("52998224725"), "CPF não enviado ao Firebase Auth");
-                verdade(corpos.toString().contains("senha-teste-123"), "senha enviada ao endpoint HTTPS de Auth");
-            } finally { java.util.Arrays.fill(senha, '\0'); server.stop(0); }
+                verdade(corpos.toString().contains(CpfIdentificador.senhaTecnicaFirebase(CPF)), "credencial técnica derivada enviada ao endpoint HTTPS de Auth");
+            } finally { server.stop(0); }
         });
 
         teste("login com o mesmo CPF prepara uma sessão autenticada", () -> {
             AtomicInteger chamadas = new AtomicInteger();
             HttpServer server = servidor(null, chamadas, null);
             try {
-                AutenticacaoFirebase.Sessao sessao = cliente(server).entrar(CPF, "senha-teste-123".toCharArray());
+                AutenticacaoFirebase.Sessao sessao = cliente(server).entrar(CPF);
                 igual("uid-abc", sessao.uid());
                 igual("id-token", sessao.token());
                 igual(1, chamadas.get());
@@ -77,7 +76,7 @@ final class AutenticacaoTestes {
             HttpServer server = servidor("EMAIL_EXISTS", new AtomicInteger(), null);
             try {
                 RepositorioException falha = lanca(RepositorioException.class,
-                        () -> cliente(server).cadastrar(CPF, "senha-teste-123".toCharArray()));
+                        () -> cliente(server).cadastrar(CPF));
                 verdade(falha.getMessage().contains("Este CPF já tem cadastro"), "erro traduzido para a tela");
             } finally { server.stop(0); }
         });

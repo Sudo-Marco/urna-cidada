@@ -6,7 +6,8 @@
 | Não há ambiente gráfico | Programa iniciado em servidor ou terminal sem desktop | Abra a urna em uma sessão Windows, macOS ou Linux com interface gráfica. |
 | Outra urna já está aberta | Uma instância já usa o mesmo perfil | Feche a janela aberta antes de iniciar outra. |
 | CPF inválido | Quantidade de dígitos ou dígitos verificadores incorretos | Digite os 11 algarismos do CPF, com ou sem pontos e traço. |
-| CPF ou senha incorretos | O cadastro não corresponde aos dados informados | Confira o CPF e use a senha definida no primeiro acesso. |
+| CPF ainda não cadastrado | Não existe uma conta para esse CPF | Escolha **Primeiro acesso** para criar o cadastro. |
+| CPF cadastrado em versão anterior | A conta antiga foi criada com uma senha digitada pelo participante | A conta precisa ser migrada para o acesso por CPF desta versão. |
 | CPF já cadastrado | O cadastro já existe no Firebase Authentication | Escolha **Entrar** em vez de **Primeiro acesso**. |
 | CPF já concluiu uma votação | A conta já possui a marca de participação no Firestore | Uma conta participa uma vez. Cada pessoa deve usar seu próprio cadastro. |
 | Votação aguardando sincronização | A sessão está no arquivo local e ainda não chegou ao Firestore | Conecte à internet e abra a urna novamente com o mesmo CPF. |

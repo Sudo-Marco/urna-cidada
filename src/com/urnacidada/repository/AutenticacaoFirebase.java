@@ -36,17 +36,19 @@ public final class AutenticacaoFirebase {
         this.http = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
     }
 
-    /** Registra uma conta cujo email técnico é derivado do CPF validado. */
-    public Sessao cadastrar(String cpf, char[] senha) throws RepositorioException {
+    /** Registra uma conta técnica derivada do CPF; não pede senha ao participante. */
+    public Sessao cadastrar(String cpf) throws RepositorioException {
         String resposta = postAuth("accounts:signUp", "{\"email\":" + aspas(CpfIdentificador.emailFirebase(cpf))
-                + ",\"password\":" + aspas(new String(senha)) + ",\"returnSecureToken\":true}");
+                + ",\"password\":" + aspas(CpfIdentificador.senhaTecnicaFirebase(cpf))
+                + ",\"returnSecureToken\":true}");
         return criarSessao(resposta);
     }
 
-    /** Inicia sessão usando o CPF validado como identificador de conta. */
-    public Sessao entrar(String cpf, char[] senha) throws RepositorioException {
+    /** Inicia sessão usando as credenciais técnicas derivadas do CPF validado. */
+    public Sessao entrar(String cpf) throws RepositorioException {
         String resposta = postAuth("accounts:signInWithPassword", "{\"email\":" + aspas(CpfIdentificador.emailFirebase(cpf))
-                + ",\"password\":" + aspas(new String(senha)) + ",\"returnSecureToken\":true}");
+                + ",\"password\":" + aspas(CpfIdentificador.senhaTecnicaFirebase(cpf))
+                + ",\"returnSecureToken\":true}");
         return criarSessao(resposta);
     }
 
@@ -100,9 +102,11 @@ public final class AutenticacaoFirebase {
 
     private static String mensagemErro(String erro, int status) {
         if (erro.contains("EMAIL_EXISTS")) return "Este CPF já tem cadastro. Escolha Entrar.";
-        if (erro.contains("INVALID_LOGIN_CREDENTIALS") || erro.contains("EMAIL_NOT_FOUND")
-                || erro.contains("INVALID_PASSWORD")) return "CPF ou senha incorretos. Confira e tente novamente.";
-        if (erro.contains("WEAK_PASSWORD")) return "A senha precisa ter pelo menos seis caracteres.";
+        if (erro.contains("EMAIL_NOT_FOUND")) return "Este CPF ainda não tem cadastro. Escolha Primeiro acesso.";
+        if (erro.contains("INVALID_LOGIN_CREDENTIALS") || erro.contains("INVALID_PASSWORD")) {
+            return "Não foi possível entrar com este CPF. Se ele foi cadastrado em uma versão anterior, a conta precisa ser migrada.";
+        }
+        if (erro.contains("WEAK_PASSWORD")) return "Não foi possível criar a credencial técnica do CPF.";
         if (erro.contains("OPERATION_NOT_ALLOWED")) return "Ative o provedor Email/Senha em Firebase Authentication.";
         if (erro.contains("TOO_MANY_ATTEMPTS_TRY_LATER")) return "Muitas tentativas. Aguarde um pouco antes de tentar novamente.";
         if (erro.contains("API_KEY_INVALID") || status == 403) return "Configuração de Firebase Authentication inválida.";

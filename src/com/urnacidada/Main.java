@@ -9,16 +9,16 @@ import com.urnacidada.repository.VotoRepositoryEmMemoria;
 import com.urnacidada.repository.VotoRepositoryLocalPrimeiro;
 import com.urnacidada.view.TelaUrna;
 
-import javax.swing.JPasswordField;
+import javax.swing.JFormattedTextField;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
+import javax.swing.text.MaskFormatter;
 import java.awt.GridLayout;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 
 /** Entrada da aplicação, autenticação Firebase opcional e seleção dos modos. */
 public final class Main {
@@ -142,47 +142,45 @@ public final class Main {
             throws com.urnacidada.repository.RepositorioException {
         Object[] opcoes = {"Entrar", "Primeiro acesso", "Cancelar"};
         int escolha = JOptionPane.showOptionDialog(null,
-                "Identifique-se com seu CPF. Cada CPF cadastrado pode votar uma vez.",
+                "Identifique-se somente com seu CPF. Cada CPF cadastrado pode votar uma vez; não é necessária senha.",
                 "Urna Cidadã — participante", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE,
                 null, opcoes, opcoes[0]);
         if (escolha == 2 || escolha < 0) return null;
-        String cpfEntrada = JOptionPane.showInputDialog(null, "CPF", "Identificação do participante", JOptionPane.QUESTION_MESSAGE);
-        if (cpfEntrada == null || cpfEntrada.isBlank()) return null;
+        JFormattedTextField campoCpf = campoCpf();
+        JPanel painelCpf = new JPanel(new GridLayout(2, 1, 4, 4));
+        painelCpf.add(new JLabel("CPF (000.000.000-00)"));
+        painelCpf.add(campoCpf);
+        int resultado = JOptionPane.showConfirmDialog(null, painelCpf,
+                "Identificação do participante", JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (resultado != JOptionPane.OK_OPTION) return null;
         String cpf;
-        try { cpf = com.urnacidada.repository.CpfIdentificador.normalizar(cpfEntrada); }
+        try { cpf = com.urnacidada.repository.CpfIdentificador.normalizar(campoCpf.getText()); }
         catch (IllegalArgumentException erro) {
             JOptionPane.showMessageDialog(null, erro.getMessage(), "CPF inválido", JOptionPane.ERROR_MESSAGE);
             return null;
         }
-        JPasswordField senha = campoSenha("Senha (mínimo de seis caracteres)");
-        if (senha == null) return null;
-        char[] senhaValor = senha.getPassword();
         try {
-            if (escolha == 0) return autenticacao.entrar(cpf, senhaValor);
-            char[] confirmacao = null;
-            try {
-                JPasswordField confirmar = campoSenha("Digite a senha novamente");
-                if (confirmar == null) return null;
-                confirmacao = confirmar.getPassword();
-                if (!Arrays.equals(senhaValor, confirmacao)) {
-                    JOptionPane.showMessageDialog(null, "As senhas não conferem.", "Cadastro", JOptionPane.ERROR_MESSAGE);
-                    return null;
-                }
-                return autenticacao.cadastrar(cpf, senhaValor);
-            } finally { if (confirmacao != null) Arrays.fill(confirmacao, '\0'); }
+            if (escolha == 0) return autenticacao.entrar(cpf);
+            return autenticacao.cadastrar(cpf);
         } catch (com.urnacidada.repository.RepositorioException e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Autenticação Firebase", JOptionPane.ERROR_MESSAGE);
             return null;
-        } finally { Arrays.fill(senhaValor, '\0'); }
+        }
     }
 
-    private static JPasswordField campoSenha(String rotulo) {
-        JPasswordField campo = new JPasswordField(22);
-        JPanel painel = new JPanel(new GridLayout(2, 1, 4, 4));
-        painel.add(new JLabel(rotulo));
-        painel.add(campo);
-        return JOptionPane.showConfirmDialog(null, painel, "Conta do participante",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.OK_OPTION ? campo : null;
+    private static JFormattedTextField campoCpf() {
+        try {
+            MaskFormatter mascara = new MaskFormatter("###.###.###-##");
+            mascara.setPlaceholderCharacter(' ');
+            mascara.setValidCharacters("0123456789");
+            mascara.setAllowsInvalid(false);
+            mascara.setCommitsOnValidEdit(true);
+            JFormattedTextField campo = new JFormattedTextField(mascara);
+            campo.setColumns(14);
+            return campo;
+        } catch (java.text.ParseException e) {
+            throw new IllegalStateException("Não foi possível preparar o campo de CPF.", e);
+        }
     }
 
     private static void falha(String texto, Exception causa) {

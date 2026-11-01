@@ -4,7 +4,7 @@ Esta configuração habilita o cadastro por CPF, a prevenção de uma segunda vo
 
 ## Como os dados são separados
 
-O aplicativo valida os dígitos do CPF e deriva no computador um identificador técnico para usar com o provedor Email/Password do Firebase Authentication. O CPF em texto não é enviado nem gravado. Esse cadastro não consulta uma base oficial e não confirma a titularidade do documento; serve à simulação educativa.
+O aplicativo pede somente o CPF, valida os dígitos e deriva no computador credenciais técnicas para usar com o provedor Email/Password do Firebase Authentication. O participante não cria nem digita uma senha. O CPF em texto não é enviado nem gravado. Esse cadastro não consulta uma base oficial e não confirma a titularidade do documento; serve à simulação educativa.
 
 | Local | Documento | Conteúdo |
 |---|---|---|
@@ -39,8 +39,8 @@ Para montar o pacote de Release com Firebase, configure `FIREBASE_PROJECT_ID` em
 ## 3. Cadastrar e votar
 
 1. Abra a aplicação e escolha **Primeiro acesso**.
-2. Informe o CPF e crie uma senha. O cadastro já abre a votação.
-3. Nos próximos acessos, escolha **Entrar** e use o mesmo CPF e senha.
+2. Informe o CPF no formato `000.000.000-00`. O cadastro já abre a votação e não pede senha.
+3. Nos próximos acessos, escolha **Entrar** e informe o mesmo CPF.
 4. Depois de confirmar o último cargo, a sessão é gravada localmente e sincronizada. A urna toca o sinal, fala a mensagem de encerramento e retorna à tela de identificação após cinco segundos.
 
 Se a mesma conta já tiver votado, o aplicativo informa isso antes de abrir uma nova sessão. A proteção central depende do Firebase. Os modos `--local` e `--memoria` não identificam participantes entre computadores.

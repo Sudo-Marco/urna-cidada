@@ -33,7 +33,7 @@ final class LocalPrimeiroTestes {
             byte[] body="{\"localId\":\"uid-offline\",\"idToken\":\"token\",\"refreshToken\":\"refresh\",\"expiresIn\":\"3600\"}".getBytes(StandardCharsets.UTF_8);
             e.sendResponseHeaders(200,body.length); e.getResponseBody().write(body); e.close(); }); auth.start();
         try { URI base=URI.create("http://127.0.0.1:"+auth.getAddress().getPort()+"/v1/");
-            return new AutenticacaoFirebase("chave",base,base).entrar("52998224725","senha-teste".toCharArray()); }
+            return new AutenticacaoFirebase("chave",base,base).entrar("52998224725"); }
         finally { auth.stop(0); }
     }
 
