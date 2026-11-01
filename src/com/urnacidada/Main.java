@@ -174,7 +174,7 @@ public final class Main {
         String cpf;
         try { cpf = com.urnacidada.repository.CpfIdentificador.normalizar(campoCpf.getText()); }
         catch (IllegalArgumentException erro) {
-            DialogosUrna.mensagem(null, erro.getMessage(), "CPF inválido", JOptionPane.ERROR_MESSAGE);
+            DialogosUrna.mensagem(null, erro.getMessage(), "Identificador inválido", JOptionPane.ERROR_MESSAGE);
             return null;
         }
         try {

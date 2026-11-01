@@ -8,9 +8,9 @@ Aplicação de simulação eleitoral educativa, feita em Java 17 com interface S
 
 | Requisito | Implementação |
 |---|---|
-| Votar em cinco cargos, nesta ordem: Deputado Federal, Deputado Estadual, Senador, Governador e Presidente | `model/Eleicao.java`, `service/UrnaService.java` |
+| Votar em três cargos, nesta ordem: Deputado Federal, Governador e Presidente | `model/Eleicao.java`, `service/UrnaService.java` |
 | Digitar número, conferir candidato, corrigir, votar em branco, nulo ou legenda nos cargos proporcionais | `model/`, `service/`, `view/` |
-| Cadastrar e identificar participantes por CPF quando Firebase está configurado | `repository/CpfIdentificador.java`, `repository/AutenticacaoFirebase.java`, `Main.java` |
+| Cadastrar e identificar participantes por sequência de onze algarismos na máscara CPF quando Firebase está configurado | `repository/CpfIdentificador.java`, `repository/AutenticacaoFirebase.java`, `Main.java` |
 | Impedir segunda votação da mesma conta no Firestore | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
 | Contabilizar votos válidos por candidato sem somar branco, nulo ou legenda | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
 | Manter votos localmente quando a internet falhar e sincronizar depois | `repository/VotoRepositoryLocalPrimeiro.java` |
@@ -19,9 +19,9 @@ Aplicação de simulação eleitoral educativa, feita em Java 17 com interface S
 
 ## Identificação e privacidade
 
-O app valida o formato e os dígitos verificadores do CPF. Em seguida, deriva um identificador técnico para o Firebase Authentication; não envia nem guarda o CPF em texto. A autenticação não consulta base oficial nem comprova titularidade. É um identificador para a simulação.
+O app exige onze algarismos no formato visual `000.000.000-00`, mas não verifica dígitos verificadores nem titularidade. O valor pode ser inventado para a simulação. Em seguida, deriva um identificador técnico para o Firebase Authentication; não envia nem guarda o valor em texto. O Firebase impede que o mesmo identificador crie mais de uma conta.
 
-No Firestore, `participantes/{uid}` guarda apenas a marca de uso. Os cinco votos são armazenados em `sessoes/{uuid-aleatorio}`, sem o CPF e sem o UID. Os totais ficam em `resultados/{cargo}_{numero}`. No modo local, não há bloqueio central entre computadores.
+No Firestore, `participantes/{uid}` guarda apenas a marca de uso. Os três votos são armazenados em `sessoes/{uuid-aleatorio}`, sem o identificador digitado e sem o UID. Os totais ficam em `resultados/{cargo}_{numero}`. No modo local, não há bloqueio central entre computadores.
 
 ## Candidaturas
 
@@ -29,11 +29,11 @@ As nove candidaturas cadastradas usam números exclusivos:
 
 | Cargo | Números e nomes |
 |---|---|
-| Presidente | 11 Rafael Mendes; 22 Eduardo Carvalho; 33 Mariana Oliveira |
-| Governador | 44 Gabriel Santos; 55 Camila Ferreira; 66 Lucas Almeida |
-| Deputado Federal | 1111 Pedro Henrique Costa; 2222 Beatriz Rodrigues; 3333 André Martins |
+| Presidente | 13 Rafael Mendes; 27 Eduardo Carvalho; 39 Mariana Oliveira |
+| Governador | 14 Gabriel Santos; 28 Camila Ferreira; 37 Lucas Almeida |
+| Deputado Federal | 1736 Pedro Henrique Costa; 5730 Beatriz Rodrigues; 9462 André Martins |
 
-As propostas e partidos estão em `Eleicao.exemplo()` e em [regras-de-votacao.md](regras-de-votacao.md). Deputado Estadual e Senador permanecem na sequência dos cinco cargos, sem candidaturas; nesses cargos, a pessoa pode votar em branco ou nulo.
+As propostas e partidos estão em `Eleicao.exemplo()` e em [regras-de-votacao.md](regras-de-votacao.md). Deputado Estadual e Senador não fazem parte da votação.
 
 ## Execução e armazenamento
 

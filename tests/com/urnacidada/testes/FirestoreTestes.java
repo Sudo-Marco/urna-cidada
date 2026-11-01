@@ -24,11 +24,9 @@ final class FirestoreTestes {
 
     private static List<Voto> votos() {
         return List.of(
-                new Voto("Deputado Federal", TipoVoto.VALIDO, "1111", Instant.parse("2026-10-29T12:00:00Z")),
-                new Voto("Deputado Estadual", TipoVoto.NULO, "99999", Instant.parse("2026-10-29T12:00:01Z")),
-                new Voto("Senador", TipoVoto.BRANCO, null, Instant.parse("2026-10-29T12:00:02Z")),
-                new Voto("Governador", TipoVoto.NULO, "99", Instant.parse("2026-10-29T12:00:03Z")),
-                new Voto("Presidente", TipoVoto.VALIDO, "11", Instant.parse("2026-10-29T12:00:04Z")));
+                new Voto("Deputado Federal", TipoVoto.VALIDO, "1736", Instant.parse("2026-10-29T12:00:00Z")),
+                new Voto("Governador", TipoVoto.BRANCO, null, Instant.parse("2026-10-29T12:00:01Z")),
+                new Voto("Presidente", TipoVoto.VALIDO, "13", Instant.parse("2026-10-29T12:00:02Z")));
     }
 
     private static HttpServer servidor(int statusCommit, String hashLido, AtomicInteger chamadas,
@@ -111,10 +109,10 @@ final class FirestoreTestes {
                 cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos());
                 igual(3, chamadas.get());
                 igual(1, commits.get());
-                verdade(corpos.toString().contains("df_1111") && corpos.toString().contains("pres_11"), "IDs dos candidatos no Firestore");
+                verdade(corpos.toString().contains("df_1736") && corpos.toString().contains("pres_13"), "IDs dos candidatos no Firestore");
                 verdade(corpos.toString().contains("increment") && corpos.toString().contains("\"integerValue\":\"1\""), "contador incrementado atomicamente");
                 verdade(corpos.toString().contains("arrayValue") && corpos.toString().contains("nullValue"), "sessão usa tipos REST Firestore");
-                verdade(corpos.toString().contains("NULO"), "voto nulo guardado sem contar como candidato");
+                verdade(corpos.toString().contains("BRANCO"), "voto branco guardado sem contar como candidato");
                 verdade(corpos.toString().contains("documents/participantes/" + UID)
                         && corpos.toString().contains("\"votou\":{\"booleanValue\":true}"), "marca de participação separada criada no mesmo lote");
                 verdade(!corpos.toString().contains("52998224725"), "CPF não acompanha os documentos de voto");

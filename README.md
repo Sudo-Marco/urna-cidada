@@ -34,7 +34,7 @@
 
 Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ciência da Computação, 2026.2). Une duas frentes:
 
-1. **O software:** uma urna de demonstração em Java 17 e Swing, com votação em cinco cargos. Os dados são gravados primeiro no computador e, quando o Firebase está configurado e há internet, sincronizados com o Cloud Firestore.
+1. **O software:** uma urna de demonstração em Java 17 e Swing, com votação em três cargos: Deputado Federal, Governador e Presidente. Os dados são gravados primeiro no computador e, quando o Firebase está configurado e há internet, sincronizados com o Cloud Firestore.
 2. **A ação educativa:** uma oficina com estudantes do Ensino Médio para conversar sobre cidadania digital, uso responsável da internet e como identificar desinformação eleitoral.
 
 ## 🚧 Situação do projeto
@@ -43,17 +43,17 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 | Parte | Situação |
 |---|---|
-| Votação em cinco cargos (Deputado Federal, Deputado Estadual, Senador, Governador e Presidente), com branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
-| Candidatos de demonstração | ✅ Somente as nove candidaturas definidas para Presidente, Governador e Deputado Federal; Deputado Estadual e Senador não têm candidaturas cadastradas |
+| Votação em três cargos (Deputado Federal, Governador e Presidente), com branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
+| Candidatos de demonstração | ✅ Nove candidaturas, distribuídas pelos três cargos |
 | Interface Swing, teclado na tela, atalhos e avisos | ✅ Implementada em Java |
 | Consulta de números dos candidatos | ✅ Relação fixa no canto superior esquerdo da tela de votação |
 | Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
-| Identificação por CPF e bloqueio de repetição | ✅ Disponível quando o Firebase está configurado |
+| Identificação com máscara de CPF (11 algarismos) e bloqueio de cadastro repetido | ✅ Disponível quando o Firebase está configurado; não valida dígitos verificadores |
 | Encerramento automático | ✅ Sinal sonoro, mensagem falada e retorno à identificação em cinco segundos |
 | Gravação local e fila de pendências para sincronização | ✅ Implementada; o fluxo offline→online tem cobertura automatizada com servidor HTTP local falso |
 | Apuração no Cloud Firestore | ✅ Contadores por candidato atualizados junto com cada sessão; regras em `firestore.rules` |
 | Limpeza administrativa | ✅ Comando separado, conta Firebase administrativa e confirmação em duas etapas |
-| Pacote portátil para Windows | ✅ Publicado na Release `v1.0.7`, com runtime Java, Firebase e iniciador administrativo |
+| Pacote portátil para Windows | ✅ Publicado na Release `v1.0.8`, com runtime Java, Firebase e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -63,7 +63,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na [Release v1.0.7](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.7). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe o pacote portátil na [Release v1.0.8](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.8). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -129,25 +129,21 @@ O pacote portátil para Windows está na página [Releases](https://github.com/S
 ```mermaid
 flowchart TD
     A([Identificação por CPF, se Firebase estiver configurado]) --> B[Deputado Federal: 4 dígitos]
-    B --> C[Deputado Estadual: 5 dígitos]
-    C --> D[Senador: 3 dígitos]
-    D --> E[Governador: 2 dígitos]
-    E --> F[Presidente: 2 dígitos]
-    F --> G{Confirma o último voto?}
-    G -->|Sim| H[Grava localmente e sincroniza com Firestore se disponível]
-    H --> I[Sinal sonoro e mensagem falada]
-    I --> J[Após 5 segundos, volta à identificação]
+    B --> C[Governador: 2 dígitos]
+    C --> D[Presidente: 2 dígitos]
+    D --> E{Confirma o último voto?}
+    E -->|Sim| F[Grava localmente e sincroniza com Firestore se disponível]
+    F --> G[Sinal sonoro e mensagem falada]
+    G --> H[Após 5 segundos, volta à identificação]
 ```
 
 Os cargos permanecem na ordem mostrada no fluxo e definem quantos dígitos o campo aceita. Os números abaixo não são preenchidos pela urna: o eleitor os digita na etapa correspondente.
 
 | Cargo | Dígitos | Candidaturas de exemplo | Partido fictício |
 |---|---:|---|---|
-| Deputado Federal | 4 | 1111 — Pedro Henrique Costa; 2222 — Beatriz Rodrigues; 3333 — André Martins | Juventude e Inovação Brasileira (JIB); Vozes da Cidadania (PVC); Aliança de Desenvolvimento Sustentável (ADS) |
-| Deputado Estadual | 5 | Sem candidaturas cadastradas | Voto em branco ou nulo |
-| Senador | 3 | Sem candidaturas cadastradas | Voto em branco ou nulo |
-| Governador | 2 | 44 — Gabriel Santos; 55 — Camila Ferreira; 66 — Lucas Almeida | Força e Desenvolvimento Estadual (FDE); União pelo Futuro (PUF); Desenvolvimento e Justiça Social (DJS) |
-| Presidente | 2 | 11 — Rafael Mendes; 22 — Eduardo Carvalho; 33 — Mariana Oliveira | Renovação Nacional (PRN); Aliança pelo Progresso (PAP); Movimento Popular Democrático (MPD) |
+| Deputado Federal | 4 | 1736 — Pedro Henrique Costa; 5730 — Beatriz Rodrigues; 9462 — André Martins | Juventude e Inovação Brasileira (JIB); Vozes da Cidadania (PVC); Aliança de Desenvolvimento Sustentável (ADS) |
+| Governador | 2 | 14 — Gabriel Santos; 28 — Camila Ferreira; 37 — Lucas Almeida | Força e Desenvolvimento Estadual (FDE); União pelo Futuro (PUF); Desenvolvimento e Justiça Social (DJS) |
+| Presidente | 2 | 13 — Rafael Mendes; 27 — Eduardo Carvalho; 39 — Mariana Oliveira | Renovação Nacional (PRN); Aliança pelo Progresso (PAP); Movimento Popular Democrático (MPD) |
 
 Ao digitar um número reconhecido, a tela apresenta o candidato e o partido; um número completo que não corresponda ao cargo atual é tratado como voto nulo. As propostas e os partidos estão em [regras-de-votacao.md](docs/regras-de-votacao.md).
 
@@ -157,7 +153,7 @@ Ao digitar um número reconhecido, a tela apresenta o candidato e o partido; um 
 - **Voto em branco:** escolha explícita, sem digitar número.
 - **Sem internet:** a sessão fica guardada no computador e aguarda a próxima tentativa automática de sincronização.
 
-O Senado é simplificado a um voto. Detalhes em [regras-de-votacao.md](docs/regras-de-votacao.md) e [casos-de-uso.md](docs/casos-de-uso.md).
+Os três cargos e as candidaturas seguem a relação acima. Detalhes em [regras-de-votacao.md](docs/regras-de-votacao.md) e [casos-de-uso.md](docs/casos-de-uso.md).
 
 ## 🧪 Testes
 
@@ -169,7 +165,7 @@ scripts\testar.bat
 
 Não precisa de Maven nem de internet. O workflow de publicação executa a suíte de testes antes de montar o pacote. A matriz está em [testes.md](docs/testes.md).
 
-Os testes cobrem as regras de votação, a validação de CPF, a persistência local e a sincronização simulada com servidor HTTP local falso. Veja [testes.md](docs/testes.md) para a matriz completa.
+Os testes cobrem as regras de votação, o formato do identificador, a persistência local e a sincronização simulada com servidor HTTP local falso. Veja [testes.md](docs/testes.md) para a matriz completa.
 
 ## 📁 Estrutura
 
@@ -206,7 +202,7 @@ A regra de votação não conhece a tela nem o banco de dados. O diagrama está 
 
 ## 🔒 Privacidade e segurança
 
-- O acesso Firebase pede somente o CPF, no formato `000.000.000-00`. A aplicação valida os dígitos e deriva as credenciais técnicas; não envia nem salva o CPF em texto.
+- O acesso Firebase pede somente um identificador de 11 algarismos no formato `000.000.000-00`, por exemplo `123.456.789-00`. Aceita sequências inventadas sem validar os dígitos verificadores. Deriva credenciais técnicas e não envia nem salva os algarismos em texto.
 - Cada sessão de voto guarda um UUID aleatório e votos com **cargo, tipo, número e data/hora**.
 - `urna.properties` contém a configuração Firebase e está ignorado pelo Git. **Não** envie esse arquivo, dados de votação ou credenciais de serviço ao GitHub.
 - A chave de API Firebase é pública por natureza. As regras do Firestore permitem somente a gravação prevista pelo projeto e bloqueiam a leitura das sessões e da apuração pelas contas de participantes.
@@ -214,7 +210,7 @@ A regra de votação não conhece a tela nem o banco de dados. O diagrama está 
 
 ## ⚠️ Limitações conhecidas
 
-- O CPF é validado pelos dígitos verificadores; a urna não consulta uma base oficial para confirmar o titular.
+- O campo usa o formato visual de CPF, mas aceita sequências inventadas de 11 algarismos e não verifica titularidade. O bloqueio central de cadastro repetido depende do Firebase Authentication.
 - A proteção contra voto repetido entre computadores depende de autenticação e regras do Firebase. Os modos `--local` e `--memoria` não fazem esse bloqueio centralizado.
 - A apuração fica na coleção `resultados` do Firestore e pode ser consultada pela equipe responsável no Console Firebase.
 - O acesso administrativo usa uma conta Firebase separada, marcada em `administradores/{uid}`. A limpeza local alcança somente o computador em que o comando é executado; máquinas offline mantêm seus próprios arquivos.

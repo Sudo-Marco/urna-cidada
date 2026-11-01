@@ -8,13 +8,15 @@ final class CpfIdentificadorTestes {
     private CpfIdentificadorTestes() { }
 
     static void executar() {
-        grupo("CPF: validação e identificador técnico");
+        grupo("Identificador em formato CPF e credencial técnica");
         teste("normaliza CPF digitado com pontuação", () ->
                 igual("52998224725", CpfIdentificador.normalizar("529.982.247-25")));
-        teste("rejeita CPF com dígito verificador incorreto", () ->
-                lanca(IllegalArgumentException.class, () -> CpfIdentificador.normalizar("529.982.247-26")));
-        teste("rejeita sequência repetida e caracteres fora do formato", () -> {
-            lanca(IllegalArgumentException.class, () -> CpfIdentificador.normalizar("111.111.111-11"));
+        teste("aceita identificadores inventados com onze dígitos, mesmo sem dígitos verificadores reais", () -> {
+            igual("12345678900", CpfIdentificador.normalizar("123.456.789-00"));
+            igual("11111111111", CpfIdentificador.normalizar("111.111.111-11"));
+        });
+        teste("exige onze dígitos e rejeita caracteres fora do formato", () -> {
+            lanca(IllegalArgumentException.class, () -> CpfIdentificador.normalizar("123.456.789-0"));
             lanca(IllegalArgumentException.class, () -> CpfIdentificador.normalizar("abc52998224725"));
         });
         teste("deriva um identificador estável sem conter os dígitos do CPF", () -> {

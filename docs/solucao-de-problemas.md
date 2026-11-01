@@ -5,7 +5,7 @@
 | JDK não encontrado | Java de desenvolvimento não está instalado ou configurado | Instale JDK 17 ou superior e confira `java -version` e `javac -version`. O ZIP de Release já inclui runtime Java. |
 | Não há ambiente gráfico | Programa iniciado em servidor ou terminal sem desktop | Abra a urna em uma sessão Windows, macOS ou Linux com interface gráfica. |
 | Outra urna já está aberta | Uma instância já usa o mesmo perfil | Feche a janela aberta antes de iniciar outra. |
-| CPF inválido | Quantidade de dígitos ou dígitos verificadores incorretos | Digite os 11 algarismos do CPF, com ou sem pontos e traço. |
+| Identificador fora do formato | Quantidade diferente de onze algarismos ou caracteres não numéricos | Digite onze algarismos no formato `000.000.000-00`. A simulação não verifica dígitos verificadores. |
 | CPF ainda não cadastrado | Não existe uma conta para esse CPF | Escolha **Primeiro acesso** para criar o cadastro. |
 | CPF cadastrado em versão anterior | A conta antiga foi criada com uma senha digitada pelo participante | A conta precisa ser migrada para o acesso por CPF desta versão. |
 | CPF já cadastrado | O cadastro já existe no Firebase Authentication | Escolha **Entrar** em vez de **Primeiro acesso**. |

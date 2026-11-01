@@ -35,44 +35,44 @@ final class ControladorUrnaTestes {
     private static void caso(String nome, MiniTeste.Corpo corpo) { teste(nome, () -> { memoria = new VotoRepositoryEmMemoria(); preparar(memoria); corpo.rodar(); }); }
     static void executar() {
         grupo("Tela: estado apresentado pelo ControladorUrna");
-        caso("inicia no primeiro dos cinco cargos", () -> { igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("CARGO 1 DE 5", ultimo().progresso()); igual(4, ultimo().posicoes()); });
-        caso("candidato válido mostra nome, partido e explicação", () -> { digitar("1111"); igual(Modo.CANDIDATO, ultimo().modo()); igual("Pedro Henrique Costa", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); verdade(ultimo().explicacao().contains("proporcional")); });
+        caso("inicia no primeiro dos três cargos", () -> { igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("CARGO 1 DE 3", ultimo().progresso()); igual(4, ultimo().posicoes()); });
+        caso("candidato válido mostra nome, partido e explicação", () -> { digitar("1736"); igual(Modo.CANDIDATO, ultimo().modo()); igual("Pedro Henrique Costa", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); verdade(ultimo().explicacao().contains("proporcional")); });
         caso("número completo desconhecido avisa que será nulo", () -> { digitar("9999"); igual(Modo.NUMERO_ERRADO, ultimo().modo()); igual("VOTO NULO", ultimo().detalhe()); igual(TipoMensagem.AVISO, ultimo().tipoMensagem()); });
-        caso("dois primeiros dígitos de partido mostram legenda", () -> { digitar("11"); igual("VOTO DE LEGENDA", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); });
+        caso("dois primeiros dígitos de partido mostram legenda", () -> { digitar("17"); igual("VOTO DE LEGENDA", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); });
         caso("branco mostra confirmação e não exige caixas", () -> { controlador.branco(); igual(Modo.BRANCO, ultimo().modo()); igual(0, ultimo().posicoes()); });
-        caso("corrigir limpa número e branco", () -> { digitar("81"); controlador.corrigir(); igual("", ultimo().digitado()); controlador.branco(); controlador.corrigir(); igual(Modo.DIGITANDO, ultimo().modo()); });
+        caso("corrigir limpa número e branco", () -> { digitar("17"); controlador.corrigir(); igual("", ultimo().digitado()); controlador.branco(); controlador.corrigir(); igual(Modo.DIGITANDO, ultimo().modo()); });
         caso("número incompleto não avança", () -> { digitar("8"); controlador.confirmar(); igual("DEPUTADO FEDERAL", ultimo().cargo()); igual(TipoMensagem.ERRO, ultimo().tipoMensagem()); });
-        caso("confirmação avança sem gravar os votos ainda", () -> { digitar("1111"); controlador.confirmar(); igual("DEPUTADO ESTADUAL", ultimo().cargo()); igual("CARGO 2 DE 5", ultimo().progresso()); igual(0, memoria.getVotos().size()); });
+        caso("confirmação avança ao segundo cargo sem gravar os votos", () -> { digitar("1736"); controlador.confirmar(); igual("GOVERNADOR", ultimo().cargo()); igual("CARGO 2 DE 3", ultimo().progresso()); igual(0, memoria.getVotos().size()); });
         caso("governador mostra explicação majoritária", () -> {
-            votarTudo("1111", "99999", "999"); digitar("44");
+            votarTudo("1736"); digitar("14");
             verdade(ultimo().explicacao().contains("majoritário"));
         });
-        caso("sequência completa termina em FIM e grava cinco votos", () -> { votarTudo("1111", "99999", "999", "44", "11"); verdade(ultimo().finalizada()); igual(5, memoria.getVotos().size()); });
+        caso("sequência completa termina em FIM e grava três votos", () -> { votarTudo("1736", "14", "13"); verdade(ultimo().finalizada()); igual(3, memoria.getVotos().size()); });
         teste("falha temporária do repositório é mostrada e pode ser repetida", () -> {
             AtomicInteger tentativas = new AtomicInteger(); VotoRepositoryEmMemoria destino = new VotoRepositoryEmMemoria();
             preparar((id, votos) -> { if (tentativas.getAndIncrement() == 0) throw new RepositorioException("sem rede", null); destino.salvarSessao(id, votos); });
-            votarTudo("1111", "99999", "999", "44"); digitar("11"); controlador.confirmar();
+            votarTudo("1736", "14"); digitar("13"); controlador.confirmar();
             igual(TipoMensagem.ERRO, ultimo().tipoMensagem()); verdade(!ultimo().finalizada()); controlador.confirmar(); verdade(ultimo().finalizada());
         });
         grupo("Tela: gravação em segundo plano");
         teste("interface desabilita controles até a gravação terminar", () -> {
-            prepararAssincrono(); digitar("1111"); controlador.confirmar(); verdade(!ultimo().controlesHabilitados()); int antes=publicados.size(); controlador.digitar('9'); igual(antes, publicados.size());
-            fila.remove(0).run(); igual("DEPUTADO ESTADUAL", ultimo().cargo()); verdade(ultimo().controlesHabilitados());
+            prepararAssincrono(); digitar("1736"); controlador.confirmar(); verdade(!ultimo().controlesHabilitados()); int antes=publicados.size(); controlador.digitar('9'); igual(antes, publicados.size());
+            fila.remove(0).run(); igual("GOVERNADOR", ultimo().cargo()); verdade(ultimo().controlesHabilitados());
         });
         teste("resultado de uma confirmação antiga não altera nova votação", () -> {
-            prepararAssincrono(); digitar("1111"); controlador.confirmar(); controlador.novaVotacao(); rodarFila(); igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("", ultimo().digitado());
+            prepararAssincrono(); digitar("1736"); controlador.confirmar(); controlador.novaVotacao(); rodarFila(); igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("", ultimo().digitado());
         });
         teste("conta autenticada não pode iniciar segunda votação depois do FIM", () -> {
             memoria = new VotoRepositoryEmMemoria(); publicados = new ArrayList<>();
             controlador = new ControladorUrna(Eleicao.exemplo(), memoria, Runnable::run, Runnable::run,
                     publicados::add, () -> { }, () -> "uid-abc", true);
             controlador.novaVotacao();
-            votarTudo("1111", "99999", "999", "44", "11");
+            votarTudo("1736", "14", "13");
             verdade(ultimo().finalizada(), "primeira sessão concluída");
             controlador.novaVotacao();
             verdade(ultimo().finalizada(), "continua no estado final");
             verdade(ultimo().mensagem().contains("já concluiu"), "mensagem de uma sessão por conta");
-            igual(5, memoria.getVotos().size());
+            igual(3, memoria.getVotos().size());
         });
     }
 }

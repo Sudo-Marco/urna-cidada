@@ -4,13 +4,13 @@ Esta configuração habilita o cadastro por CPF, a prevenção de uma segunda vo
 
 ## Como os dados são separados
 
-O aplicativo pede somente o CPF, valida os dígitos e deriva no computador credenciais técnicas para usar com o provedor Email/Password do Firebase Authentication. O participante não cria nem digita uma senha. O CPF em texto não é enviado nem gravado. Esse cadastro não consulta uma base oficial e não confirma a titularidade do documento; serve à simulação educativa.
+O aplicativo pede onze algarismos no formato visual `000.000.000-00` (por exemplo, `123.456.789-00`) e deriva no computador credenciais técnicas para usar com o provedor Email/Password do Firebase Authentication. Não calcula dígitos verificadores: pode ser qualquer sequência inventada de onze algarismos. O participante não cria nem digita uma senha. O valor em texto não é enviado nem gravado. O identificador serve somente à simulação educativa e não confirma titularidade.
 
 | Local | Documento | Conteúdo |
 |---|---|---|
-| Firebase Authentication | Conta técnica | UID, identificador derivado do CPF e credencial protegida pelo Firebase |
+| Firebase Authentication | Conta técnica | UID, identificador derivado da sequência digitada e credencial protegida pelo Firebase |
 | Firestore | `participantes/{uid}` | Apenas `votou: true`; criado uma vez por conta |
-| Firestore | `sessoes/{uuid-aleatorio}` | Impressão digital e cinco votos; ID sem CPF ou UID |
+| Firestore | `sessoes/{uuid-aleatorio}` | Impressão digital e três votos; ID sem identificador ou UID |
 | Firestore | `resultados/{cargo}_{numero}` | Contagem agregada e ID aleatório da última sessão que alterou o total |
 | Firestore | `administradores/{uid}` | `ativo: true` para uma conta administrativa separada |
 | Computador | `votos-pendentes-{uid}.tsv` | Sessões que ainda aguardam sincronização |
@@ -22,7 +22,7 @@ O documento de participação e a sessão são gravados juntos. As regras impede
 1. Crie um projeto em [Firebase Console](https://console.firebase.google.com/).
 2. Em **Authentication → Sign-in method**, ative **Email/Password**. Não é necessário configurar envio de email: o endereço usado pela aplicação é técnico e não recebe mensagens.
 3. Crie o banco Cloud Firestore `(default)`.
-4. Em **Firestore Database → Regras**, publique o conteúdo de [`firestore.rules`](../firestore.rules).
+4. Em **Firestore Database → Regras**, publique o conteúdo atualizado de [`firestore.rules`](../firestore.rules). Esta versão aceita sessões com três votos e a lista atual de candidatos.
 
 ## 2. Configurar a aplicação
 
@@ -51,28 +51,28 @@ A limpeza remove os documentos das coleções `participantes`, `sessoes` e `resu
 ## 4. Cadastrar e votar
 
 1. Abra a aplicação e escolha **Primeiro acesso**.
-2. Informe o CPF no formato `000.000.000-00`. O cadastro já abre a votação e não pede senha.
-3. Nos próximos acessos, escolha **Entrar** e informe o mesmo CPF.
+2. Informe onze algarismos no formato `000.000.000-00`. Podem ser números inventados; os dígitos verificadores não são calculados. O cadastro já abre a votação e não pede senha.
+3. Nos próximos acessos, escolha **Entrar** e informe a mesma sequência de onze algarismos.
 4. Depois de confirmar o último cargo, a sessão é gravada localmente e sincronizada. A urna toca o sinal, fala a mensagem de encerramento e retorna à tela de identificação após cinco segundos.
 
 Se a mesma conta já tiver votado, o aplicativo informa isso antes de abrir uma nova sessão. A proteção central depende do Firebase. Os modos `--local` e `--memoria` não identificam participantes entre computadores.
 
 ## 5. Conferir a apuração
 
-No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada documento usa o formato `cargo_numero`, por exemplo `pres_11` ou `df_1111`, e apresenta `contagem`. Um contador é criado com zero quando a primeira votação válida daquele candidato é registrada. Voto de legenda, branco ou nulo não aumenta a contagem de um candidato. As regras bloqueiam a consulta dessa coleção pelos participantes.
+No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada documento usa o formato `cargo_numero`, por exemplo `pres_13` ou `df_1736`, e apresenta `contagem`. Um contador é criado com zero quando a primeira votação válida daquele candidato é registrada. Voto de legenda, branco ou nulo não aumenta a contagem de um candidato. As regras bloqueiam a consulta dessa coleção pelos participantes.
 
 IDs de resultado correspondentes às candidaturas atuais:
 
 ```text
-df_1111  df_2222  df_3333
-gov_44  gov_55  gov_66
-pres_11  pres_22  pres_33
+df_1736  df_5730  df_9462
+gov_14  gov_28  gov_37
+pres_13  pres_27  pres_39
 ```
 
-Documentos de apurações antigas no Firestore não são removidos quando o cadastro de candidatos muda. A lista acima mostra somente os IDs das candidaturas desta versão.
+Depois de atualizar o app, publique novamente as regras deste repositório em **Firestore Database → Regras**. A lista acima mostra os IDs desta versão. Documentos antigos no Firestore não são removidos automaticamente.
 
 O envio usa `documents:commit`: a sessão e os incrementos de contagem entram no mesmo lote atômico. Se faltar conexão depois da identificação, a votação permanece no arquivo local e é reenviada quando a conexão voltar. O Firestore aceita somente a primeira participação de cada conta.
 
 ## Observação sobre CPF
 
-O CPF funciona como identificador único do cadastro, mas o aplicativo não consulta a Receita Federal, não verifica titularidade e não substitui credenciamento presencial. Os dados de autenticação derivam do CPF no cliente; este projeto é destinado a uma simulação, não a uma eleição oficial.
+O número no formato CPF funciona como identificador único do cadastro. O aplicativo não valida dígitos verificadores, não consulta a Receita Federal e não verifica titularidade. A mesma sequência deriva a mesma conta Firebase, que não pode ser cadastrada duas vezes. Este projeto é uma simulação, não uma eleição oficial.

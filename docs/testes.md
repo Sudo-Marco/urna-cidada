@@ -22,12 +22,12 @@ Na execução desta revisão, **100 testes passaram e nenhum falhou**.
 
 | Bateria | Verificações |
 |---|---|
-| `ModeloTestes` | Candidatos, números, partidos, cargos e ordem dos cinco votos |
+| `ModeloTestes` | Candidatos, números, partidos, cargos e ordem dos três votos |
 | `UrnaServiceTestes` | Válido, legenda, branco, nulo, correção, sequência, gravação e repetição após erro |
 | `RepositorioTestes` | Memória, arquivo, formato TSV, duplicidade, arquivo inválido e reserva local |
 | `ControladorUrnaTestes` | Estados da tela, mensagens, fluxo de voto e gravação em segundo plano |
 | `PainelUrnaTestes` | Painel Swing, botões, estados, som e dimensões de janela |
-| `CpfIdentificadorTestes` | Formato, dígitos verificadores e identificador derivado |
+| `CpfIdentificadorTestes` | Onze algarismos no formato CPF, identificadores inventados e derivação técnica |
 | `AutenticacaoTestes` | Cadastro e login por CPF, conta existente e uso do token Firebase |
 | `FirestoreTestes` | Marca de participação, sessão UUID, incremento de totais, idempotência e erros HTTP |
 | `LocalPrimeiroTestes` | Gravação offline, sincronização posterior e recuo das tentativas |

@@ -240,8 +240,6 @@ public final class FirestoreRestVotoClient {
     private static String idResultado(String cargo, String numero) {
         String chave = switch (cargo.strip().toLowerCase(java.util.Locale.ROOT)) {
             case "deputado federal" -> "df";
-            case "deputado estadual" -> "de";
-            case "senador" -> "sen";
             case "governador" -> "gov";
             case "presidente" -> "pres";
             default -> throw new IllegalArgumentException("Cargo sem código de apuração: " + cargo);

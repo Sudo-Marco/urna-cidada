@@ -44,7 +44,7 @@ public final class AutenticacaoFirebase {
         return criarSessao(resposta);
     }
 
-    /** Inicia sessão usando as credenciais técnicas derivadas do CPF validado. */
+    /** Inicia sessão usando as credenciais técnicas derivadas do identificador informado. */
     public Sessao entrar(String cpf) throws RepositorioException {
         String resposta = postAuth("accounts:signInWithPassword", "{\"email\":" + aspas(CpfIdentificador.emailFirebase(cpf))
                 + ",\"password\":" + aspas(CpfIdentificador.senhaTecnicaFirebase(cpf))

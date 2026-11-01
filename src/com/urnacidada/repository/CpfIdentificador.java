@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.HexFormat;
 
-/** Valida o CPF informado e cria um identificador técnico sem transmitir seus dígitos ao Firebase. */
+/** Valida o formato do identificador e cria credenciais sem transmitir os dígitos ao Firebase. */
 public final class CpfIdentificador {
     private static final byte[] SALT = "urna-cidada-identificador-v1".getBytes(StandardCharsets.UTF_8);
     private static final byte[] CREDENCIAL_SALT = "urna-cidada-credencial-v1".getBytes(StandardCharsets.UTF_8);
@@ -16,11 +16,11 @@ public final class CpfIdentificador {
 
     public static String normalizar(String entrada) {
         if (entrada == null || !entrada.matches("[0-9.\\-\\s]+")) {
-            throw new IllegalArgumentException("Digite um CPF válido.");
+            throw new IllegalArgumentException("Digite 11 números no formato 000.000.000-00.");
         }
         String cpf = entrada.replaceAll("[^0-9]", "");
-        if (cpf.length() != 11 || cpf.chars().distinct().count() == 1 || !digitosVerificadoresValidos(cpf)) {
-            throw new IllegalArgumentException("O CPF informado não é válido.");
+        if (cpf.length() != 11) {
+            throw new IllegalArgumentException("Digite 11 números no formato 000.000.000-00.");
         }
         return cpf;
     }
@@ -51,17 +51,4 @@ public final class CpfIdentificador {
         }
     }
 
-    private static boolean digitosVerificadoresValidos(String cpf) {
-        int soma = 0;
-        for (int i = 0; i < 9; i++) soma += (cpf.charAt(i) - '0') * (10 - i);
-        int primeiro = (soma * 10) % 11;
-        if (primeiro == 10) primeiro = 0;
-        if (primeiro != cpf.charAt(9) - '0') return false;
-
-        soma = 0;
-        for (int i = 0; i < 10; i++) soma += (cpf.charAt(i) - '0') * (11 - i);
-        int segundo = (soma * 10) % 11;
-        if (segundo == 10) segundo = 0;
-        return segundo == cpf.charAt(10) - '0';
-    }
 }

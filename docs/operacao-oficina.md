@@ -31,7 +31,7 @@ Para apagar uma eleição, execute `scripts\administrar.bat` e entre com uma con
 
 ## Durante a votação
 
-Explique que esta é uma simulação educativa. Os cargos são Deputado Federal, Deputado Estadual, Senador, Governador e Presidente, nessa ordem. Há um voto para Senador. Os números e partidos seguem a lista em [regras-de-votacao.md](regras-de-votacao.md).
+Explique que esta é uma simulação educativa. Os cargos são Deputado Federal, Governador e Presidente, nessa ordem. Os números e partidos seguem a lista em [regras-de-votacao.md](regras-de-votacao.md).
 
 Ao confirmar Presidente, a urna salva a sessão, toca o sinal, diz “Você já votou. Obrigado por participar.” e, em cinco segundos, retorna à identificação do próximo participante. A tecla `Enter` confirma, `B` escolhe branco, `Backspace` corrige e as teclas numéricas inserem o voto.
 

@@ -222,12 +222,12 @@ final class PainelUrnaTestes {
 
         caso("lista fixa de candidatos aparece na lateral da tela", () -> {
             PainelUrna painel = new PainelUrna(new Gravador(), "teste");
-            painel.exibir(new EstadoTela(Modo.DIGITANDO, "DEPUTADO ESTADUAL", "CARGO 2 DE 5", 5,
+            painel.exibir(new EstadoTela(Modo.DIGITANDO, "GOVERNADOR", "CARGO 2 DE 3", 2,
                     "", "Digite o número do candidato", "", "", "", TipoMensagem.INFO, true));
             desenhar(painel, new Dimension(1366, 768));
             verdade(contemTexto(painel, "NÚMEROS DOS CANDIDATOS"), "título da lista fixa");
-            verdade(contemTexto(painel, "1111  Pedro Henrique Costa"), "candidatura federal na lista");
-            verdade(contemTexto(painel, "55  Camila Ferreira"), "candidatura ao governo na lista");
+            verdade(contemTexto(painel, "1736  Pedro Henrique Costa"), "candidatura federal na lista");
+            verdade(contemTexto(painel, "28  Camila Ferreira"), "candidatura ao governo na lista");
             verdade(achar(painel, "Números dos candidatos") == null, "a lista não depende de botão ou janela");
         });
 
@@ -237,7 +237,7 @@ final class PainelUrnaTestes {
                 for (var candidato : cargo.candidatos()) {
                     for (Dimension tamanho : tamanhos) {
                         PainelUrna painel = new PainelUrna(new Gravador(), "Modo local");
-                        painel.exibir(new EstadoTela(Modo.CANDIDATO, cargo.nome().toUpperCase(), "CARGO 1 DE 5",
+                        painel.exibir(new EstadoTela(Modo.CANDIDATO, cargo.nome().toUpperCase(), "CARGO 1 DE 3",
                                 cargo.digitos(), candidato.numero(), candidato.nome(), candidato.partido(),
                                 candidato.explicacaoCargo(), "Confira a escolha e confirme ou corrija.",
                                 TipoMensagem.SUCESSO, true));

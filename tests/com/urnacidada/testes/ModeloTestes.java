@@ -62,7 +62,7 @@ final class ModeloTestes {
 
         teste("cargo encontra candidato pelo número e devolve vazio se não existe", () -> {
             Cargo cargo = Eleicao.exemplo().cargos().get(0);
-            igual("Pedro Henrique Costa", cargo.buscarCandidato("1111").orElseThrow().nome());
+            igual("Pedro Henrique Costa", cargo.buscarCandidato("1736").orElseThrow().nome());
             verdade(cargo.buscarCandidato("99999").isEmpty(), "número inexistente");
         });
 
@@ -97,23 +97,26 @@ final class ModeloTestes {
                     new Cargo("deputado federal", 4, federal.candidatos()))));
         });
 
-        teste("eleição de exemplo tem os cinco cargos em ordem e os dígitos correspondentes", () -> {
+        teste("eleição de exemplo tem os três cargos votados em ordem e os dígitos correspondentes", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
-            igual(5, cargos.size());
-            igual(List.of("Deputado Federal", "Deputado Estadual", "Senador", "Governador", "Presidente"),
+            igual(3, cargos.size());
+            igual(List.of("Deputado Federal", "Governador", "Presidente"),
                     cargos.stream().map(Cargo::nome).toList());
-            igual(List.of(4, 5, 3, 2, 2), cargos.stream().map(Cargo::digitos).toList());
+            igual(List.of(4, 2, 2), cargos.stream().map(Cargo::digitos).toList());
         });
 
-        teste("candidatos pedidos usam os números correspondentes a cada cargo", () -> {
+        teste("eleição contém somente as nove candidaturas solicitadas", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
             igual(9, cargos.stream().mapToInt(c -> c.candidatos().size()).sum());
-            verdade(cargos.get(1).candidatos().isEmpty(), "Deputado Estadual sem candidaturas");
-            verdade(cargos.get(2).candidatos().isEmpty(), "Senador sem candidaturas");
-            igual("Gabriel Santos", cargos.get(3).buscarCandidato("44").orElseThrow().nome());
-            igual("Rafael Mendes", cargos.get(4).buscarCandidato("11").orElseThrow().nome());
-            igual("Desenvolvimento e Justiça Social (DJS)", cargos.get(3).buscarCandidato("66").orElseThrow().partido());
-            igual("Aliança pelo Progresso (PAP)", cargos.get(4).buscarCandidato("22").orElseThrow().partido());
+            igual("Pedro Henrique Costa", cargos.get(0).buscarCandidato("1736").orElseThrow().nome());
+            igual("Beatriz Rodrigues", cargos.get(0).buscarCandidato("5730").orElseThrow().nome());
+            igual("André Martins", cargos.get(0).buscarCandidato("9462").orElseThrow().nome());
+            igual("Gabriel Santos", cargos.get(1).buscarCandidato("14").orElseThrow().nome());
+            igual("Camila Ferreira", cargos.get(1).buscarCandidato("28").orElseThrow().nome());
+            igual("Lucas Almeida", cargos.get(1).buscarCandidato("37").orElseThrow().nome());
+            igual("Rafael Mendes", cargos.get(2).buscarCandidato("13").orElseThrow().nome());
+            igual("Eduardo Carvalho", cargos.get(2).buscarCandidato("27").orElseThrow().nome());
+            igual("Mariana Oliveira", cargos.get(2).buscarCandidato("39").orElseThrow().nome());
         });
 
         teste("candidaturas têm números, propostas e vices consistentes", () -> {
@@ -133,16 +136,16 @@ final class ModeloTestes {
 
         teste("novas candidaturas têm nomes, números, partidos e propostas", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
-            igual("Rafael Mendes", cargos.get(4).buscarCandidato("11").orElseThrow().nome());
-            igual("Eduardo Carvalho", cargos.get(4).buscarCandidato("22").orElseThrow().nome());
-            igual("Mariana Oliveira", cargos.get(4).buscarCandidato("33").orElseThrow().nome());
-            igual("Gabriel Santos", cargos.get(3).buscarCandidato("44").orElseThrow().nome());
-            igual("Camila Ferreira", cargos.get(3).buscarCandidato("55").orElseThrow().nome());
-            igual("Lucas Almeida", cargos.get(3).buscarCandidato("66").orElseThrow().nome());
-            igual("Pedro Henrique Costa", cargos.get(0).buscarCandidato("1111").orElseThrow().nome());
-            igual("Beatriz Rodrigues", cargos.get(0).buscarCandidato("2222").orElseThrow().nome());
-            igual("André Martins", cargos.get(0).buscarCandidato("3333").orElseThrow().nome());
-            verdade(cargos.get(4).buscarCandidato("11").orElseThrow().propostas().size() == 4,
+            igual("Rafael Mendes", cargos.get(2).buscarCandidato("13").orElseThrow().nome());
+            igual("Eduardo Carvalho", cargos.get(2).buscarCandidato("27").orElseThrow().nome());
+            igual("Mariana Oliveira", cargos.get(2).buscarCandidato("39").orElseThrow().nome());
+            igual("Gabriel Santos", cargos.get(1).buscarCandidato("14").orElseThrow().nome());
+            igual("Camila Ferreira", cargos.get(1).buscarCandidato("28").orElseThrow().nome());
+            igual("Lucas Almeida", cargos.get(1).buscarCandidato("37").orElseThrow().nome());
+            igual("Pedro Henrique Costa", cargos.get(0).buscarCandidato("1736").orElseThrow().nome());
+            igual("Beatriz Rodrigues", cargos.get(0).buscarCandidato("5730").orElseThrow().nome());
+            igual("André Martins", cargos.get(0).buscarCandidato("9462").orElseThrow().nome());
+            verdade(cargos.get(2).buscarCandidato("13").orElseThrow().propostas().size() == 4,
                     "propostas presidenciais mantidas");
         });
 

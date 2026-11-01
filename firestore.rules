@@ -23,12 +23,10 @@ service cloud.firestore {
     }
 
     function votosCorretos(votos) {
-      return votos is list && votos.size() == 5
+      return votos is list && votos.size() == 3
         && votoCorreto(votos[0], 'Deputado Federal')
-        && votoCorreto(votos[1], 'Deputado Estadual')
-        && votoCorreto(votos[2], 'Senador')
-        && votoCorreto(votos[3], 'Governador')
-        && votoCorreto(votos[4], 'Presidente');
+        && votoCorreto(votos[1], 'Governador')
+        && votoCorreto(votos[2], 'Presidente');
     }
 
     function votoCorreto(voto, cargo) {
@@ -47,36 +45,28 @@ service cloud.firestore {
     }
 
     function numeroLegenda(cargo, numero) {
-      return cargo == 'Deputado Federal' && numero in ['81', '82', '83', '11', '22', '33']
-        || cargo == 'Deputado Estadual' && numero == '81';
+      return cargo == 'Deputado Federal' && numero in ['17', '57', '94'];
     }
 
     function tamanhoNumero(cargo, numero) {
       return numero is string && numero.matches(cargo == 'Deputado Federal' ? '^[0-9]{4}$'
-        : cargo == 'Deputado Estadual' ? '^[0-9]{5}$'
-        : cargo == 'Senador' ? '^[0-9]{3}$' : '^[0-9]{2}$');
+        : '^[0-9]{2}$');
     }
 
     function numeroCandidato(cargo, numero) {
-      return cargo == 'Deputado Federal' && numero in ['8101', '8202', '8303', '1111', '2222', '3333']
-        || cargo == 'Deputado Estadual' && numero == '81001'
-        || cargo == 'Senador' && numero in ['820', '830', '833']
-        || cargo == 'Governador' && numero in ['84', '82', '83', '44', '55', '66']
-        || cargo == 'Presidente' && numero in ['81', '85', '83', '11', '22', '33'];
+      return cargo == 'Deputado Federal' && numero in ['1736', '5730', '9462']
+        || cargo == 'Governador' && numero in ['14', '28', '37']
+        || cargo == 'Presidente' && numero in ['13', '27', '39'];
     }
 
     function idResultado(cargo, numero) {
       return (cargo == 'Deputado Federal' ? 'df'
-        : cargo == 'Deputado Estadual' ? 'de'
-        : cargo == 'Senador' ? 'sen'
         : cargo == 'Governador' ? 'gov' : 'pres') + '_' + numero;
     }
 
     function indiceCargo(cargo) {
       return cargo == 'Deputado Federal' ? 0
-        : cargo == 'Deputado Estadual' ? 1
-        : cargo == 'Senador' ? 2
-        : cargo == 'Governador' ? 3 : 4;
+        : cargo == 'Governador' ? 1 : 2;
     }
 
     function votoDaSessao(sessaoId, cargo, numero) {
@@ -115,10 +105,8 @@ service cloud.firestore {
         && request.resource.data.impressao.matches('^[0-9a-f]{64}$')
         && votosCorretos(request.resource.data.votos)
         && (request.resource.data.votos[0].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Deputado Federal', request.resource.data.votos[0].numero))).data.ultimaSessaoId == sessaoId)
-        && (request.resource.data.votos[1].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Deputado Estadual', request.resource.data.votos[1].numero))).data.ultimaSessaoId == sessaoId)
-        && (request.resource.data.votos[2].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Senador', request.resource.data.votos[2].numero))).data.ultimaSessaoId == sessaoId)
-        && (request.resource.data.votos[3].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Governador', request.resource.data.votos[3].numero))).data.ultimaSessaoId == sessaoId)
-        && (request.resource.data.votos[4].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Presidente', request.resource.data.votos[4].numero))).data.ultimaSessaoId == sessaoId);
+        && (request.resource.data.votos[1].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Governador', request.resource.data.votos[1].numero))).data.ultimaSessaoId == sessaoId)
+        && (request.resource.data.votos[2].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Presidente', request.resource.data.votos[2].numero))).data.ultimaSessaoId == sessaoId);
 
       // IDs UUID não seguem UID nem CPF e não podem ser listados.
       allow get: if (autenticado() && uuidValido(sessaoId)) || administrador();

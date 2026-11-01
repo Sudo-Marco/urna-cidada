@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static com.urnacidada.testes.MiniTeste.*;
 
 final class AutenticacaoTestes {
-    private static final String CPF = "529.982.247-25";
+    private static final String CPF = "123.456.789-00";
     private AutenticacaoTestes() { }
 
     private static HttpServer servidor(String falha, AtomicInteger chamadas, StringBuilder corpos) throws Exception {
@@ -56,7 +56,7 @@ final class AutenticacaoTestes {
                 igual(1, chamadas.get());
                 verdade(corpos.toString().contains("accounts:signUp"), "cadastro solicitado");
                 verdade(corpos.toString().contains(CpfIdentificador.emailFirebase(CPF)), "identificador técnico derivado enviado");
-                verdade(!corpos.toString().contains("52998224725"), "CPF não enviado ao Firebase Auth");
+                verdade(!corpos.toString().contains("12345678900"), "CPF não enviado ao Firebase Auth");
                 verdade(corpos.toString().contains(CpfIdentificador.senhaTecnicaFirebase(CPF)), "credencial técnica derivada enviada ao endpoint HTTPS de Auth");
             } finally { server.stop(0); }
         });
