@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.11"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.12"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -33,7 +33,7 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
   echo 1. Extraia o ZIP inteiro para Documentos ou Area de Trabalho.
   echo 2. Abra a pasta UrnaCidada e de duplo clique em UrnaCidada.exe.
   echo 3. Com Firebase, identifique-se somente com CPF. No primeiro uso, escolha Primeiro acesso.
-  echo 4. Ao terminar, a urna toca o sinal, fala a mensagem de encerramento e retorna a identificacao em 5 segundos.
+  echo 4. Ao terminar, a urna toca o sinal tipo pilili, sem voz, e retorna a identificacao em 5 segundos.
   echo 5. Se o Firebase ficar indisponivel ao entrar, escolha Continuar neste computador; o voto ficara local.
   echo    Esse voto offline nao sera enviado automaticamente e so pode ser contado neste computador.
   echo 6. UrnaCidadaAdmin.exe abre a administracao: apuracao local, restaurar estrutura sem apagar votos ou reiniciar.

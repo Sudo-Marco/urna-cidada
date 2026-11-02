@@ -50,12 +50,12 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Consulta de números dos candidatos | ✅ Relação fixa no canto superior esquerdo da tela de votação |
 | Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
 | Identificação com máscara de CPF (11 algarismos) e bloqueio de cadastro repetido | ✅ Disponível quando o Firebase está configurado; não valida dígitos verificadores |
-| Encerramento automático | ✅ Sinal sonoro, mensagem falada e retorno à identificação em cinco segundos |
+| Encerramento automático | ✅ Sinal curto tipo “pilili”, sem voz, e retorno à identificação em cinco segundos |
 | Gravação local, fila e histórico anônimo | ✅ O histórico continua no computador depois da sincronização |
 | Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
 | Apuração local offline | ✅ A administração mostra a contagem dos votos salvos neste computador, sem acessar a rede |
 | Administração do Firestore | ✅ Restaura coleções sem apagar votos ou inicia uma nova rodada preservando contas |
-| Pacote portátil para Windows | ✅ Release `v1.0.11`, com tela inicial renovada, runtime Java e iniciador administrativo |
+| Pacote portátil para Windows | ✅ Release `v1.0.12`, com tela inicial renovada, sinal de encerramento sem voz, runtime Java e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -65,7 +65,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.11](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.11). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.12](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.12). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -141,7 +141,7 @@ flowchart TD
     C --> D[Presidente: 2 dígitos]
     D --> E{Confirma o último voto?}
     E -->|Sim| F[Grava localmente e sincroniza com Firestore se disponível]
-    F --> G[Sinal sonoro e mensagem falada]
+    F --> G[Sinal sonoro tipo pilili, sem voz]
     G --> H[Após 5 segundos, volta à identificação]
 ```
 

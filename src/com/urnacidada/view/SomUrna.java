@@ -1,10 +1,10 @@
 package com.urnacidada.view;
 
 import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.SourceDataLine;
-import java.util.concurrent.TimeUnit;
 
-/** Bipes e aviso falado. Falhas ou ausência de dispositivo de áudio não interrompem a votação. */
+/** Sinais sonoros da urna. Falhas ou ausência de dispositivo não interrompem a votação. */
 public final class SomUrna {
     private static volatile boolean silenciado;
     private SomUrna() { }
@@ -13,27 +13,46 @@ public final class SomUrna {
     public static void curto() { tocar(850, 45); }
     public static void fim() {
         if (silenciado) return;
-        Thread audio = new Thread(() -> {
-            tocar(620, 360);
-            falarFim();
-        }, "audio-fim-da-votacao");
+        Thread audio = new Thread(SomUrna::tocarPilili, "audio-fim-da-votacao");
         audio.setDaemon(true);
         audio.start();
     }
 
-    private static void falarFim() {
-        String script = "Add-Type -AssemblyName System.Speech; "
-                + "$voz=new-object System.Speech.Synthesis.SpeechSynthesizer; "
-                + "$pt=$voz.GetInstalledVoices() | Where-Object { $_.VoiceInfo.Culture.Name -eq 'pt-BR' } | Select-Object -First 1; "
-                + "if ($pt) { $voz.SelectVoice($pt.VoiceInfo.Name) }; "
-                + "$voz.Speak('Você já votou. Obrigado por participar.'); $voz.Dispose()";
+    /** Três notas ascendentes e curtas, lembrando o sinal clássico de encerramento da urna. */
+    private static void tocarPilili() {
+        if (silenciado) return;
+        final int taxa = 16_000;
+        final int[] frequencias = {740, 988, 1175};
+        final int[] duracoes = {95, 100, 300};
+        AudioFormat formato = new AudioFormat(taxa, 8, 1, true, false);
         try {
-            Process processo = new ProcessBuilder("powershell.exe", "-WindowStyle", "Hidden",
-                    "-NoProfile", "-NonInteractive", "-Command", script)
-                    .redirectErrorStream(true).redirectOutput(ProcessBuilder.Redirect.DISCARD).start();
-            if (!processo.waitFor(4, TimeUnit.SECONDS)) processo.destroyForcibly();
+            try (SourceDataLine linha = AudioSystem.getSourceDataLine(formato)) {
+                linha.open(formato);
+                linha.start();
+                for (int nota = 0; nota < frequencias.length; nota++) {
+                    if (silenciado) break;
+                    int amostras = taxa * duracoes[nota] / 1000;
+                    byte[] dados = new byte[amostras];
+                    for (int i = 0; i < amostras; i++) {
+                        double tempo = i / (double) taxa;
+                        double ataque = Math.min(1.0, i / (taxa * 0.008));
+                        double soltura = Math.min(1.0, (amostras - i) / (taxa * 0.018));
+                        double envelope = Math.min(ataque, soltura);
+                        double fundamental = Math.sin(2 * Math.PI * frequencias[nota] * tempo);
+                        double harmonico = Math.sin(4 * Math.PI * frequencias[nota] * tempo) * 0.18;
+                        dados[i] = (byte) ((fundamental + harmonico) * 58 * envelope);
+                    }
+                    linha.write(dados, 0, dados.length);
+                    if (nota < frequencias.length - 1) {
+                        int pausa = taxa * 24 / 1000;
+                        linha.write(new byte[pausa], 0, pausa);
+                    }
+                }
+                linha.drain();
+            }
         } catch (Exception ignorada) { }
     }
+
     private static void tocar(int frequencia, int milissegundos) {
         if (silenciado) return;
         try {
