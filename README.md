@@ -54,7 +54,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
 | Apuração local offline | ✅ A administração mostra a contagem dos votos salvos neste computador, sem acessar a rede |
 | Administração do Firestore | ✅ Restaura coleções sem apagar votos ou inicia uma nova rodada preservando contas |
-| Pacote portátil para Windows | ✅ Código atual `1.0.10`; a Release pública mais recente continua em `v1.0.8` |
+| Pacote portátil para Windows | ✅ Release `v1.0.10`, com runtime Java e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -64,7 +64,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** o pacote gerado a partir do código atual fica em `dist\UrnaCidada-Windows-x64.zip`. Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven. A última [Release pública](https://github.com/Sudo-Marco/urna-cidada/releases) ainda é a `v1.0.8`; para gerar o pacote atualizado, use `scripts\empacotar.bat`.
+**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.10](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.10). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
