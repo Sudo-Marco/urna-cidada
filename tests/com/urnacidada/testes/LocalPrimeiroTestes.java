@@ -54,7 +54,8 @@ final class LocalPrimeiroTestes {
             s.createContext("/v1/",e->{ int num=chamadas.incrementAndGet(); e.getRequestBody().readAllBytes();
                 boolean commit=e.getRequestURI().getPath().endsWith("/documents:commit");
                 if(commit) commits.incrementAndGet();
-                e.sendResponseHeaders(num==1?503:(commit?200:201),-1); e.close(); }); s.start();
+                boolean participante=e.getRequestMethod().equals("GET") && e.getRequestURI().getPath().contains("/documents/participantes/");
+                e.sendResponseHeaders(num==1?503:(participante?404:(commit?200:201)),-1); e.close(); }); s.start();
             Path p=Files.createTempDirectory("urna-offline-online").resolve("pendentes.tsv");
             FirestoreRestVotoClient c=cliente("http://127.0.0.1:"+s.getAddress().getPort()+"/v1/",Duration.ofSeconds(2));
             try(VotoRepositoryLocalPrimeiro repo=new VotoRepositoryLocalPrimeiro(new VotoRepositoryEmArquivo(p,"local"),c,true)) {
@@ -69,7 +70,7 @@ final class LocalPrimeiroTestes {
                     repo.sincronizarAgora();
                     Thread.sleep(10);
                 }
-                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(4,chamadas.get()); igual(1,commits.get());
+                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(5,chamadas.get()); igual(1,commits.get());
                 igual(0,new VotoRepositoryEmArquivo(p,"local").lerSessoes().size());
             } finally { s.stop(0); }
         });
@@ -78,7 +79,8 @@ final class LocalPrimeiroTestes {
             HttpServer s=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
             s.createContext("/v1/",e->{ chamadas.incrementAndGet(); e.getRequestBody().readAllBytes();
                 boolean commit=e.getRequestURI().getPath().endsWith("/documents:commit"); if(commit) commits.incrementAndGet();
-                e.sendResponseHeaders(commit?200:201,-1); e.close(); }); s.start();
+                boolean participante=e.getRequestMethod().equals("GET") && e.getRequestURI().getPath().contains("/documents/participantes/");
+                e.sendResponseHeaders(participante?404:(commit?200:201),-1); e.close(); }); s.start();
             Path p=Files.createTempDirectory("urna-inicio-pendente").resolve("pendentes.tsv");
             VotoRepositoryEmArquivo arquivo=new VotoRepositoryEmArquivo(p,"local");
             arquivo.salvarSessao("123e4567-e89b-12d3-a456-426614174000",votos());
@@ -86,7 +88,7 @@ final class LocalPrimeiroTestes {
             try(VotoRepositoryLocalPrimeiro repo=new VotoRepositoryLocalPrimeiro(arquivo,cliente,true)) {
                 long limite=System.currentTimeMillis()+4000;
                 while(!repo.estadoPersistencia().equals("Online · tudo enviado") && System.currentTimeMillis()<limite) Thread.sleep(10);
-                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(3,chamadas.get()); igual(1,commits.get()); igual(0,arquivo.lerSessoes().size());
+                igual("Online · tudo enviado",repo.estadoPersistencia()); igual(4,chamadas.get()); igual(1,commits.get()); igual(0,arquivo.lerSessoes().size());
             } finally { s.stop(0); }
         });
         teste("recuo aumenta progressivamente até cinco minutos", () -> {

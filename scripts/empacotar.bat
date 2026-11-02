@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.8"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.9"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -34,21 +34,26 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
   echo 2. Abra a pasta UrnaCidada e de duplo clique em UrnaCidada.exe.
   echo 3. Com Firebase, identifique-se somente com CPF. No primeiro uso, escolha Primeiro acesso.
   echo 4. Ao terminar, a urna toca o sinal, fala a mensagem de encerramento e retorna a identificacao em 5 segundos.
-  echo 5. Sem Firebase, a urna funciona localmente, sem bloqueio de repeticao entre computadores.
-  echo 6. UrnaCidadaAdmin.exe abre a limpeza administrativa; exige conta admin separada e permissao no Firestore.
-  echo    A limpeza apaga dados do Firestore e arquivos de voto apenas deste computador.
+  echo 5. Se o Firebase ficar indisponivel ao entrar, escolha Continuar neste computador; o voto ficara local.
+  echo    Esse voto offline nao sera enviado automaticamente e so pode ser contado neste computador.
+  echo 6. UrnaCidadaAdmin.exe abre a administracao: apuracao local offline ou reinicio pelo Firebase.
+  echo    Para reiniciar online, use a conta admin separada com permissao no Firestore.
+  echo    O reinicio zera a votacao e libera novamente os CPFs sem apagar as contas cadastradas.
   echo.
   echo DADOS
   echo Sem configuracao Firebase, os votos ficam no computador em modo local.
-  echo Com Firebase configurado e internet, a urna sincroniza as sessoes. Sem internet, mantem pendencias locais.
+  echo Com Firebase configurado e internet, a urna sincroniza as sessoes. Se a rede cair depois do login, guarda pendencias.
+  echo O historico anonimo fica no computador mesmo depois de sincronizar e aparece na apuracao local offline.
+  echo A apuracao local soma somente os votos deste computador; nao consulta o Firebase nem outras maquinas.
   echo Copie a pasta inteira para preservar os dados locais.
   echo Nunca envie urna.properties ao codigo-fonte.
   echo.
   echo Se o Windows bloquear o arquivo, use Propriedades e marque Desbloquear antes de abrir.
   echo O CPF nao e enviado nem gravado em texto; o app usa um identificador tecnico derivado do numero.
   echo A identificacao serve para a simulacao e nao consulta uma base oficial de titulares.
-  echo O botao administrativo apaga sessoes, contadores e marcas de voto; esta acao nao pode ser desfeita.
-  echo Votos pendentes em outros computadores podem voltar a ser enviados quando a conexao retornar.
+  echo O reset administrativo remove as sessoes, zera os nove contadores, rearma os participantes e preserva as colecoes.
+  echo Contas dos CPFs, documentos de participantes e administradores permanecem no Firebase. Use Entrar depois do reset.
+  echo Votos e historicos locais de outros computadores continuam apenas naquelas maquinas.
 ) > dist\pacote-portatil\UrnaCidada\LEIA-ME.txt
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command "Compress-Archive -Path 'dist\pacote-portatil\UrnaCidada' -DestinationPath 'dist\UrnaCidada-Windows-x64.zip' -Force"

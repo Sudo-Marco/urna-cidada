@@ -22,6 +22,17 @@ public final class FirestoreAdminClient {
     private static final Pattern ADMIN_ATIVO = Pattern.compile(
             "\"ativo\"\\s*:\\s*\\{\\s*\"booleanValue\"\\s*:\\s*true\\s*}");
     private static final int PAGE_SIZE = 500;
+    private static final String DOCUMENTO_CONTROLE = "_controle";
+    private static final List<ResultadoInicial> RESULTADOS_INICIAIS = List.of(
+            new ResultadoInicial("Deputado Federal", "1736", "df_1736"),
+            new ResultadoInicial("Deputado Federal", "5730", "df_5730"),
+            new ResultadoInicial("Deputado Federal", "9462", "df_9462"),
+            new ResultadoInicial("Governador", "14", "gov_14"),
+            new ResultadoInicial("Governador", "28", "gov_28"),
+            new ResultadoInicial("Governador", "37", "gov_37"),
+            new ResultadoInicial("Presidente", "13", "pres_13"),
+            new ResultadoInicial("Presidente", "27", "pres_27"),
+            new ResultadoInicial("Presidente", "39", "pres_39"));
 
     private final String projectId;
     private final String apiKey;
@@ -43,26 +54,87 @@ public final class FirestoreAdminClient {
         return ADMIN_ATIVO.matcher(resposta.body()).find();
     }
 
-    /** Remove sessões, contadores e marcas de participação. Mantém os registros de administradores. */
-    public int apagarDadosVotacao() throws RepositorioException {
-        List<Documento> documentos = new ArrayList<>();
-        for (String colecao : List.of("sessoes", "resultados", "participantes")) {
-            for (String id : listarIds(colecao)) documentos.add(new Documento(colecao, id));
-        }
-
-        int removidos = 0;
+    /** Apaga os votos, zera a apuração e rearma os participantes sem excluir contas ou coleções. */
+    public ResultadoLimpeza limparVotacao() throws RepositorioException {
+        List<String> sessoes = listarIds("sessoes");
+        List<String> resultados = listarIds("resultados");
+        List<String> participantes = listarIds("participantes");
+        int sessoesRemovidas = 0;
+        int participantesRearmados = 0;
         try {
-            for (Documento documento : documentos) {
-                HttpResponse<String> resposta = enviar("DELETE", documento(documento.colecao(), documento.id()), null);
-                if (resposta.statusCode() == 404) continue;
-                exigirSucesso(resposta, "O Firestore não autorizou a remoção dos dados.");
-                removidos++;
+            for (String id : sessoes) {
+                if (id.equals(DOCUMENTO_CONTROLE)) continue;
+                apagarDocumento("sessoes", id);
+                sessoesRemovidas++;
             }
-            return removidos;
+            for (String id : resultados) apagarDocumento("resultados", id);
+            for (ResultadoInicial resultado : RESULTADOS_INICIAIS) criarResultadoZero(resultado);
+            for (String uid : participantes) {
+                if (uid.equals(DOCUMENTO_CONTROLE)) continue;
+                atualizarMarcador(uid);
+                participantesRearmados++;
+            }
+            garantirDocumentoControle("sessoes", "{\"fields\":{\"tipo\":{\"stringValue\":\"CONTROLE\"}}}");
+            garantirDocumentoControle("participantes", "{\"fields\":{\"votou\":{\"booleanValue\":false},\"tipo\":{\"stringValue\":\"CONTROLE\"}}}");
+            return new ResultadoLimpeza(sessoesRemovidas, participantesRearmados);
         } catch (RepositorioException erro) {
-            throw new RepositorioException("A limpeza do Firestore parou após remover " + removidos
-                    + " documentos. Confira as regras e a conexão antes de tentar novamente.", erro);
+            throw new RepositorioException("A limpeza da votação parou no Firestore. Os registros de administradores e participantes foram preservados. "
+                    + "Publique as regras atualizadas e tente novamente.", erro);
         }
+    }
+
+    private void apagarDocumento(String colecao, String id) throws RepositorioException {
+        HttpResponse<String> resposta = enviar("DELETE", documento(colecao, id), null);
+        if (resposta.statusCode() == 404) return;
+        exigirSucesso(resposta, "O Firestore não autorizou a remoção dos votos.");
+    }
+
+    private void criarResultadoZero(ResultadoInicial resultado) throws RepositorioException {
+        String caminho = "projects/" + segmento(projectId)
+                + "/databases/(default)/documents/resultados?documentId=" + segmento(resultado.id())
+                + "&key=" + segmento(apiKey);
+        String corpo = "{\"fields\":{\"cargo\":{\"stringValue\":" + aspas(resultado.cargo())
+                + "},\"numero\":{\"stringValue\":" + aspas(resultado.numero())
+                + "},\"contagem\":{\"integerValue\":\"0\"},\"ultimaSessaoId\":{\"nullValue\":null}}}";
+        HttpResponse<String> resposta = enviar("POST", ENDPOINT.resolve(caminho), corpo);
+        if (resposta.statusCode() == 409) {
+            atualizarResultadoZero(resultado);
+            return;
+        }
+        exigirSucesso(resposta, "Não foi possível preparar o contador " + resultado.id() + ".");
+    }
+
+    private void atualizarResultadoZero(ResultadoInicial resultado) throws RepositorioException {
+        URI uri = ENDPOINT.resolve("projects/" + segmento(projectId)
+                + "/databases/(default)/documents/resultados/" + segmento(resultado.id())
+                + "?key=" + segmento(apiKey));
+        String corpo = "{\"fields\":{\"cargo\":{\"stringValue\":" + aspas(resultado.cargo())
+                + "},\"numero\":{\"stringValue\":" + aspas(resultado.numero())
+                + "},\"contagem\":{\"integerValue\":\"0\"},\"ultimaSessaoId\":{\"nullValue\":null}}}";
+        HttpResponse<String> resposta = enviar("PATCH", uri, corpo);
+        exigirSucesso(resposta, "Não foi possível zerar o contador " + resultado.id() + ".");
+    }
+
+    private void atualizarMarcador(String uid) throws RepositorioException {
+        URI uri = ENDPOINT.resolve("projects/" + segmento(projectId)
+                + "/databases/(default)/documents/participantes/" + segmento(uid)
+                + "?key=" + segmento(apiKey) + "&updateMask.fieldPaths=votou");
+        HttpResponse<String> resposta = enviar("PATCH", uri,
+                "{\"fields\":{\"votou\":{\"booleanValue\":false}}}");
+        exigirSucesso(resposta, "Não foi possível rearmar um participante para a próxima votação.");
+    }
+
+    private void garantirDocumentoControle(String colecao, String corpo) throws RepositorioException {
+        URI consulta = documento(colecao, DOCUMENTO_CONTROLE);
+        HttpResponse<String> existente = enviar("GET", consulta, null);
+        if (existente.statusCode() == 200) return;
+        if (existente.statusCode() != 404) exigirSucesso(existente, "Não foi possível consultar a coleção " + colecao + ".");
+        String caminho = "projects/" + segmento(projectId)
+                + "/databases/(default)/documents/" + colecao
+                + "?documentId=" + segmento(DOCUMENTO_CONTROLE) + "&key=" + segmento(apiKey);
+        HttpResponse<String> resposta = enviar("POST", ENDPOINT.resolve(caminho), corpo);
+        if (resposta.statusCode() == 409) return;
+        exigirSucesso(resposta, "Não foi possível manter a coleção " + colecao + " visível no Firestore.");
     }
 
     private List<String> listarIds(String colecao) throws RepositorioException {
@@ -99,6 +171,7 @@ public final class FirestoreAdminClient {
         try {
             HttpRequest.Builder builder = HttpRequest.newBuilder(uri).timeout(Duration.ofSeconds(15))
                     .header("Authorization", "Bearer " + sessao.token());
+            if (corpo != null) builder.header("Content-Type", "application/json; charset=utf-8");
             if (corpo == null) builder.method(metodo, HttpRequest.BodyPublishers.noBody());
             else builder.method(metodo, HttpRequest.BodyPublishers.ofString(corpo, StandardCharsets.UTF_8));
             return http.send(builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -125,5 +198,10 @@ public final class FirestoreAdminClient {
         return URLEncoder.encode(valor, StandardCharsets.UTF_8).replace("+", "%20");
     }
 
-    private record Documento(String colecao, String id) { }
+    private static String aspas(String valor) {
+        return "\"" + valor.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    }
+
+    public record ResultadoLimpeza(int sessoesRemovidas, int participantesRearmados) { }
+    private record ResultadoInicial(String cargo, String numero, String id) { }
 }

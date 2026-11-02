@@ -111,6 +111,9 @@ public final class AutenticacaoFirebase {
     }
 
     private static String mensagemErro(String erro, int status) {
+        if (status == 408 || status == 429 || status >= 500) {
+            return "Firebase Authentication indisponível (HTTP " + status + ").";
+        }
         if (erro.contains("EMAIL_EXISTS")) return "Este CPF já tem cadastro. Escolha Entrar.";
         if (erro.contains("INVALID_EMAIL")) return "O Firebase rejeitou o identificador técnico do CPF. Atualize a urna e tente novamente.";
         if (erro.contains("EMAIL_NOT_FOUND")) return "Conta não encontrada. Confira o CPF ou escolha Primeiro acesso.";

@@ -14,6 +14,8 @@ Aplicação de simulação eleitoral educativa, feita em Java 17 com interface S
 | Impedir segunda votação da mesma conta no Firestore | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
 | Contabilizar votos válidos por candidato sem somar branco, nulo ou legenda | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
 | Manter votos localmente quando a internet falhar e sincronizar depois | `repository/VotoRepositoryLocalPrimeiro.java` |
+| Apurar votos arquivados neste computador sem acessar a rede | `service/ApuracaoLocal.java`, `Main.java` |
+| Reiniciar votação sem remover contas CPF ou coleções do Firestore | `repository/FirestoreAdminClient.java`, `firestore.rules` |
 | Tocar sinal, falar a mensagem de encerramento e retornar à identificação após cinco segundos | `view/SomUrna.java`, `view/TelaUrna.java` |
 | Distribuir uma versão Windows com runtime Java incluído | `scripts/empacotar.bat`, `.github/workflows/publicar-release.yml` |
 
@@ -21,7 +23,7 @@ Aplicação de simulação eleitoral educativa, feita em Java 17 com interface S
 
 O app exige onze algarismos no formato visual `000.000.000-00`, mas não verifica dígitos verificadores nem titularidade. O valor pode ser inventado para a simulação. Em seguida, deriva um identificador técnico para o Firebase Authentication; não envia nem guarda o valor em texto. O Firebase impede que o mesmo identificador crie mais de uma conta.
 
-No Firestore, `participantes/{uid}` guarda apenas a marca de uso. Os três votos são armazenados em `sessoes/{uuid-aleatorio}`, sem o identificador digitado e sem o UID. Os totais ficam em `resultados/{cargo}_{numero}`. No modo local, não há bloqueio central entre computadores.
+No Firestore, `participantes/{uid}` guarda apenas se a conta votou na rodada atual. Um reset administrativo altera essa marca para `false`, preservando o cadastro. Os três votos são armazenados em `sessoes/{uuid-aleatorio}`, sem o identificador digitado e sem o UID. Os totais ficam em `resultados/{cargo}_{numero}`. No modo local, não há bloqueio central entre computadores.
 
 ## Candidaturas
 

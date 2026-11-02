@@ -30,6 +30,8 @@ public final class FirestoreRestVotoClient {
     private final AutenticacaoFirebase.Sessao autenticacao;
     private static final Pattern IMPRESSAO_EXISTENTE = Pattern.compile(
             "\\\"impressao\\\"\\s*:\\s*\\{\\s*\\\"stringValue\\\"\\s*:\\s*\\\"([0-9a-f]{64})\\\"");
+    private static final Pattern MARCADOR_VOTO = Pattern.compile(
+            "\\\"votou\\\"\\s*:\\s*\\{\\s*\\\"booleanValue\\\"\\s*:\\s*(true|false)\\s*}");
 
     public FirestoreRestVotoClient(String projectId, String apiKey) {
         this(projectId, apiKey, ENDPOINT, Duration.ofSeconds(5), Duration.ofSeconds(10), null);
@@ -67,6 +69,11 @@ public final class FirestoreRestVotoClient {
             throw new FalhaFirestore(FalhaFirestore.Tipo.CONFIGURACAO,
                     "A sincronização com Firestore exige identificação do participante.", null);
         }
+        MarcadorParticipante marcador = lerMarcadorParticipante(timeout);
+        if (marcador.votou()) {
+            throw new FalhaFirestore(FalhaFirestore.Tipo.USUARIO_JA_VOTOU,
+                    "Este CPF já concluiu uma votação. Cada CPF cadastrado pode votar uma vez.", null);
+        }
         String fingerprint = impressao(votos);
         for (Voto voto : votos) {
             if (voto.tipo() == com.urnacidada.model.TipoVoto.VALIDO) {
@@ -79,7 +86,8 @@ public final class FirestoreRestVotoClient {
         URI uri = endpointBase.resolve(caminho);
         HttpRequest requisicao = construir(uri, timeout)
                 .header("Content-Type", "application/json; charset=utf-8")
-                .POST(HttpRequest.BodyPublishers.ofString(jsonCommit(sessaoId, votos, fingerprint), StandardCharsets.UTF_8))
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        jsonCommit(sessaoId, votos, fingerprint, marcador.existe()), StandardCharsets.UTF_8))
                 .build();
         try {
             HttpResponse<String> resposta = http.send(requisicao, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -154,7 +162,13 @@ public final class FirestoreRestVotoClient {
             throws RepositorioException {
         String caminho = "projects/" + segmento(projectId) + "/databases/(default)/documents/sessoes/"
                 + segmento(sessaoId) + "?key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
-        HttpRequest request = construir(endpointBase.resolve(caminho), timeout).GET().build();
+        HttpRequest request;
+        try {
+            request = construir(endpointBase.resolve(caminho), timeout).GET().build();
+        } catch (RepositorioException e) {
+            throw new FalhaFirestore(FalhaFirestore.Tipo.TRANSITORIA,
+                    "Sem conexão para verificar o participante no Firestore.", e);
+        }
         try {
             HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (response.statusCode() != 200) return false;
@@ -176,15 +190,24 @@ public final class FirestoreRestVotoClient {
     }
 
     private boolean participanteJaVotou(Duration timeout) throws RepositorioException {
+        return lerMarcadorParticipante(timeout).votou();
+    }
+
+    private MarcadorParticipante lerMarcadorParticipante(Duration timeout) throws RepositorioException {
         if (autenticacao == null) throw new FalhaFirestore(FalhaFirestore.Tipo.CONFIGURACAO,
                 "A consulta exige identificação do participante.", null);
         String caminho = "projects/" + segmento(projectId) + "/databases/(default)/documents/participantes/"
                 + segmento(autenticacao.uid()) + "?key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
         HttpRequest request = construir(endpointBase.resolve(caminho), timeout).GET().build();
         try {
-            HttpResponse<Void> response = http.send(request, HttpResponse.BodyHandlers.discarding());
-            if (response.statusCode() == 200) return true;
-            if (response.statusCode() == 404) return false;
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() == 200) {
+                Matcher marcador = MARCADOR_VOTO.matcher(response.body());
+                if (!marcador.find()) throw new FalhaFirestore(FalhaFirestore.Tipo.CONFIGURACAO,
+                        "O registro do participante está em formato inválido no Firestore.", null);
+                return new MarcadorParticipante(true, Boolean.parseBoolean(marcador.group(1)));
+            }
+            if (response.statusCode() == 404) return new MarcadorParticipante(false, false);
             if (response.statusCode() == 408 || response.statusCode() == 429 || response.statusCode() >= 500) {
                 throw new FalhaFirestore(FalhaFirestore.Tipo.TRANSITORIA,
                         "Não foi possível verificar se o CPF já votou. Confira a conexão e tente novamente.", null);
@@ -212,14 +235,15 @@ public final class FirestoreRestVotoClient {
                 + "},\"contagem\":{\"integerValue\":\"0\"},\"ultimaSessaoId\":{\"nullValue\":null}}}";
     }
 
-    private String jsonCommit(String sessaoId, List<Voto> votos, String fingerprint) {
+    private String jsonCommit(String sessaoId, List<Voto> votos, String fingerprint, boolean marcadorExiste) {
         String participante = "projects/" + segmento(projectId) + "/databases/(default)/documents/participantes/"
                 + segmento(autenticacao.uid());
         String sessao = "projects/" + segmento(projectId) + "/databases/(default)/documents/sessoes/"
                 + segmento(sessaoId);
         StringBuilder body = new StringBuilder("{\"writes\":[{\"update\":{\"name\":")
                 .append(aspas(participante)).append(",\"fields\":{\"votou\":{\"booleanValue\":true}}},")
-                .append("\"currentDocument\":{\"exists\":false}},{\"update\":{\"name\":")
+                .append("\"currentDocument\":{\"exists\":").append(marcadorExiste)
+                .append("}},{\"update\":{\"name\":")
                 .append(aspas(sessao)).append(",\"fields\":{\"impressao\":{\"stringValue\":")
                 .append(aspas(fingerprint)).append("},\"votos\":")
                 .append(valorVotos(votos)).append("}},\"currentDocument\":{\"exists\":false}}");
@@ -246,6 +270,8 @@ public final class FirestoreRestVotoClient {
         };
         return chave + "_" + numero;
     }
+
+    private record MarcadorParticipante(boolean existe, boolean votou) { }
 
     private static String impressao(List<Voto> votos) {
         try {

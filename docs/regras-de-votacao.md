@@ -45,8 +45,10 @@ Os números, partidos e propostas abaixo estão centralizados em `src/com/urnaci
 
 ## Persistência e apuração
 
-Com Firebase, a coleção `participantes/{uid}` registra somente `votou: true`. Cada sessão fica em `sessoes/{uuid-aleatorio}` e contém uma impressão digital e os três votos. O UID e o identificador informado não fazem parte do documento de votos. As regras permitem uma marca de participação por conta e não permitem listar sessões.
+Com Firebase, a coleção `participantes/{uid}` registra somente se a conta já votou na rodada atual. O reset administrativo altera `votou` para `false` sem remover o cadastro. Cada sessão fica em `sessoes/{uuid-aleatorio}` e contém uma impressão digital e os três votos. O UID e o identificador informado não fazem parte do documento de votos. As regras permitem uma votação por conta em cada rodada e não permitem que participantes listem sessões.
 
 Votos válidos atualizam `resultados/{cargo}_{numero}`. O total aumenta no mesmo lote atômico que cria a sessão. Voto de legenda, branco e nulo não incrementam contadores de candidatura. Veja a [configuração Firebase](firebase-configuracao.md) para os campos e os IDs de resultado.
 
-Uma conta administrativa separada, marcada por `administradores/{uid}` com `ativo: true`, pode apagar os documentos de `participantes`, `sessoes` e `resultados`. A regra não permite que o aplicativo crie ou altere os marcadores de administrador.
+Uma conta administrativa separada, marcada por `administradores/{uid}` com `ativo: true`, pode remover as sessões de voto, zerar os nove contadores e rearmar os marcadores dos participantes. As contas do Firebase Authentication e os documentos de participantes são preservados. Documentos técnicos `_controle` mantêm `sessoes` e `participantes` visíveis quando não há votos. A regra não permite que o aplicativo crie ou altere os marcadores de administrador.
+
+Cada computador mantém um histórico local anônimo após sincronizar os votos. A opção **Apuração local offline** soma os registros desse histórico, sem acessar o Firebase. A apuração local não reúne dados de outras máquinas.

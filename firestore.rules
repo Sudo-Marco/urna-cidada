@@ -84,29 +84,48 @@ service cloud.firestore {
       allow get: if (autenticado() && request.auth.uid == uid) || administrador();
       allow list: if administrador();
 
-      // O documento guarda somente o fato de que aquela conta já participou.
+      // O documento guarda somente se a conta já votou na rodada atual.
       allow create: if autenticado()
         && request.auth.uid == uid
         && request.resource.data.keys().hasAll(['votou'])
         && request.resource.data.keys().hasOnly(['votou'])
-        && request.resource.data.votou == true;
-      allow update: if false;
-      allow delete: if administrador();
+        && request.resource.data.votou == true
+        || administrador()
+        && uid == '_controle'
+        && request.resource.data.keys().hasAll(['votou', 'tipo'])
+        && request.resource.data.keys().hasOnly(['votou', 'tipo'])
+        && request.resource.data.votou == false
+        && request.resource.data.tipo == 'CONTROLE';
+      allow update: if (autenticado()
+          && request.auth.uid == uid
+          && resource.data.votou == false
+          && request.resource.data.keys().hasAll(['votou'])
+          && request.resource.data.keys().hasOnly(['votou'])
+          && request.resource.data.votou == true)
+        || (administrador()
+          && uid != '_controle'
+          && request.resource.data.votou == false);
+      allow delete: if false;
     }
 
     match /sessoes/{sessaoId} {
-      allow create: if autenticado()
-        && uuidValido(sessaoId)
-        && !exists(/databases/$(database)/documents/participantes/$(request.auth.uid))
-        && marcadorDoParticipanteCriado()
-        && request.resource.data.keys().hasAll(['impressao', 'votos'])
-        && request.resource.data.keys().hasOnly(['impressao', 'votos'])
-        && request.resource.data.impressao is string
-        && request.resource.data.impressao.matches('^[0-9a-f]{64}$')
-        && votosCorretos(request.resource.data.votos)
-        && (request.resource.data.votos[0].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Deputado Federal', request.resource.data.votos[0].numero))).data.ultimaSessaoId == sessaoId)
-        && (request.resource.data.votos[1].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Governador', request.resource.data.votos[1].numero))).data.ultimaSessaoId == sessaoId)
-        && (request.resource.data.votos[2].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Presidente', request.resource.data.votos[2].numero))).data.ultimaSessaoId == sessaoId);
+      allow create: if (autenticado()
+          && uuidValido(sessaoId)
+          && (!exists(/databases/$(database)/documents/participantes/$(request.auth.uid))
+            || get(/databases/$(database)/documents/participantes/$(request.auth.uid)).data.votou == false)
+          && marcadorDoParticipanteCriado()
+          && request.resource.data.keys().hasAll(['impressao', 'votos'])
+          && request.resource.data.keys().hasOnly(['impressao', 'votos'])
+          && request.resource.data.impressao is string
+          && request.resource.data.impressao.matches('^[0-9a-f]{64}$')
+          && votosCorretos(request.resource.data.votos)
+          && (request.resource.data.votos[0].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Deputado Federal', request.resource.data.votos[0].numero))).data.ultimaSessaoId == sessaoId)
+          && (request.resource.data.votos[1].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Governador', request.resource.data.votos[1].numero))).data.ultimaSessaoId == sessaoId)
+          && (request.resource.data.votos[2].tipo != 'VALIDO' || getAfter(/databases/$(database)/documents/resultados/$(idResultado('Presidente', request.resource.data.votos[2].numero))).data.ultimaSessaoId == sessaoId))
+        || (administrador()
+          && sessaoId == '_controle'
+          && request.resource.data.keys().hasOnly(['tipo'])
+          && request.resource.data.tipo == 'CONTROLE');
 
       // IDs UUID não seguem UID nem CPF e não podem ser listados.
       allow get: if (autenticado() && uuidValido(sessaoId)) || administrador();
@@ -119,22 +138,37 @@ service cloud.firestore {
       // A apuração fica disponível aos responsáveis pelo projeto no Console Firebase.
       allow read: if administrador();
 
-      allow create: if autenticado()
+      allow create: if (autenticado()
         && request.resource.data.keys().hasAll(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
         && request.resource.data.keys().hasOnly(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
         && request.resource.data.contagem == 0
         && request.resource.data.ultimaSessaoId == null
         && numeroCandidato(request.resource.data.cargo, request.resource.data.numero)
-        && resultadoId == idResultado(request.resource.data.cargo, request.resource.data.numero);
+        && resultadoId == idResultado(request.resource.data.cargo, request.resource.data.numero))
+        || (administrador()
+          && request.resource.data.keys().hasAll(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
+          && request.resource.data.keys().hasOnly(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
+          && request.resource.data.contagem == 0
+          && request.resource.data.ultimaSessaoId == null
+          && numeroCandidato(request.resource.data.cargo, request.resource.data.numero)
+          && resultadoId == idResultado(request.resource.data.cargo, request.resource.data.numero));
 
-      allow update: if autenticado()
-        && marcadorDoParticipanteCriado()
-        && request.resource.data.keys().hasOnly(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
-        && request.resource.data.cargo == resource.data.cargo
-        && request.resource.data.numero == resource.data.numero
-        && request.resource.data.contagem == resource.data.contagem + 1
-        && uuidValido(request.resource.data.ultimaSessaoId)
-        && votoDaSessao(request.resource.data.ultimaSessaoId, resource.data.cargo, resource.data.numero);
+      allow update: if (autenticado()
+          && marcadorDoParticipanteCriado()
+          && request.resource.data.keys().hasOnly(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
+          && request.resource.data.cargo == resource.data.cargo
+          && request.resource.data.numero == resource.data.numero
+          && request.resource.data.contagem == resource.data.contagem + 1
+          && uuidValido(request.resource.data.ultimaSessaoId)
+          && votoDaSessao(request.resource.data.ultimaSessaoId, resource.data.cargo, resource.data.numero))
+        || (administrador()
+          && request.resource.data.keys().hasAll(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
+          && request.resource.data.keys().hasOnly(['cargo', 'numero', 'contagem', 'ultimaSessaoId'])
+          && request.resource.data.cargo == resource.data.cargo
+          && request.resource.data.numero == resource.data.numero
+          && request.resource.data.contagem == 0
+          && request.resource.data.ultimaSessaoId == null
+          && numeroCandidato(resource.data.cargo, resource.data.numero));
 
       allow delete: if administrador();
     }

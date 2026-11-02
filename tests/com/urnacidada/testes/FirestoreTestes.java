@@ -32,6 +32,13 @@ final class FirestoreTestes {
     private static HttpServer servidor(int statusCommit, String hashLido, AtomicInteger chamadas,
                                        AtomicInteger commits, StringBuilder corpos,
                                        StringBuilder autorizacoes, boolean atrasar) throws Exception {
+        return servidor(statusCommit, hashLido, chamadas, commits, corpos, autorizacoes, atrasar, false);
+    }
+
+    private static HttpServer servidor(int statusCommit, String hashLido, AtomicInteger chamadas,
+                                       AtomicInteger commits, StringBuilder corpos,
+                                       StringBuilder autorizacoes, boolean atrasar,
+                                       boolean participanteJaVotou) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         server.createContext("/v1/", exchange -> {
             chamadas.incrementAndGet();
@@ -52,7 +59,9 @@ final class FirestoreTestes {
                 if (hashLido != null) content = ("{\"fields\":{\"impressao\":{\"stringValue\":\"" + hashLido + "\"}}}")
                         .getBytes(StandardCharsets.UTF_8);
             } else if ("GET".equals(metodo) && caminho.contains("/documents/participantes/")) {
-                status = hashLido == null ? 404 : 200;
+                status = participanteJaVotou ? 200 : 404;
+                if (participanteJaVotou) content = "{\"fields\":{\"votou\":{\"booleanValue\":true}}}"
+                        .getBytes(StandardCharsets.UTF_8);
             } else {
                 status = statusCommit >= 400 && statusCommit != 409 ? statusCommit : 201;
             }
@@ -107,7 +116,7 @@ final class FirestoreTestes {
             HttpServer server = servidor(200, null, chamadas, commits, corpos, autorizacoes, false);
             try {
                 cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos());
-                igual(3, chamadas.get());
+                igual(4, chamadas.get());
                 igual(1, commits.get());
                 verdade(corpos.toString().contains("df_1736") && corpos.toString().contains("pres_13"), "IDs dos candidatos no Firestore");
                 verdade(corpos.toString().contains("increment") && corpos.toString().contains("\"integerValue\":\"1\""), "contador incrementado atomicamente");
@@ -127,23 +136,24 @@ final class FirestoreTestes {
             try {
                 cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos());
                 igual(1, commits.get());
-                igual(4, chamadas.get());
+                igual(5, chamadas.get());
             } finally { server.stop(0); }
         });
 
-        teste("HTTP 409 com outra sessão informa que o CPF já votou", () -> {
+        teste("marca de participante usada impede uma nova votação", () -> {
             AtomicInteger chamadas = new AtomicInteger(), commits = new AtomicInteger();
-            HttpServer server = servidor(409, "f".repeat(64), chamadas, commits, null, null, false);
+            HttpServer server = servidor(409, "f".repeat(64), chamadas, commits, null, null, false, true);
             try {
                 FalhaFirestore falha = lanca(FalhaFirestore.class,
                         () -> cliente(server, Duration.ofSeconds(2)).criarSessao(SESSAO, votos()));
                 igual(FalhaFirestore.Tipo.USUARIO_JA_VOTOU, falha.tipo());
+                igual(0, commits.get());
             } finally { server.stop(0); }
         });
 
         teste("consulta de pré-voto detecta CPF já usado pela marca do participante", () -> {
             AtomicInteger chamadas = new AtomicInteger();
-            HttpServer server = servidor(200, "f".repeat(64), chamadas, new AtomicInteger(), null, null, false);
+            HttpServer server = servidor(200, "f".repeat(64), chamadas, new AtomicInteger(), null, null, false, true);
             try { verdade(cliente(server, Duration.ofSeconds(2)).participanteJaVotou(), "documento já existe"); }
             finally { server.stop(0); }
         });

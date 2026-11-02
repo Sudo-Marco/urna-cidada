@@ -50,9 +50,10 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
 | Identificação com máscara de CPF (11 algarismos) e bloqueio de cadastro repetido | ✅ Disponível quando o Firebase está configurado; não valida dígitos verificadores |
 | Encerramento automático | ✅ Sinal sonoro, mensagem falada e retorno à identificação em cinco segundos |
-| Gravação local e fila de pendências para sincronização | ✅ Implementada; o fluxo offline→online tem cobertura automatizada com servidor HTTP local falso |
-| Apuração no Cloud Firestore | ✅ Contadores por candidato atualizados junto com cada sessão; regras em `firestore.rules` |
-| Limpeza administrativa | ✅ Comando separado, conta Firebase administrativa e confirmação em duas etapas |
+| Gravação local, fila e histórico anônimo | ✅ O histórico continua no computador depois da sincronização |
+| Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
+| Apuração local offline | ✅ A administração mostra a contagem dos votos salvos neste computador, sem acessar a rede |
+| Reinício administrativo | ✅ Apaga sessões e contagens, libera os participantes para uma nova rodada e preserva contas e coleções |
 | Pacote portátil para Windows | ✅ Publicado na Release `v1.0.8`, com runtime Java, Firebase e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
@@ -91,9 +92,15 @@ No terminal integrado do VS Code, aberto na pasta do projeto, execute `.\iniciar
 | `scripts\iniciar.bat --local` | Gravação somente no computador | Arquivo local de votos |
 | `scripts\iniciar.bat --memoria` | Demonstração sem persistência | Só na memória |
 | `scripts\iniciar.bat` | Modo padrão local-primeiro | Arquivo local; com Firebase configurado e internet, sincroniza com o Firestore |
-| `scripts\administrar.bat` | Administração protegida do Firebase | Apaga dados da eleição no Firestore e arquivos de voto deste computador |
+| `scripts\administrar.bat` | Administração da urna | Apura votos deste computador offline ou reinicia a votação no Firebase |
 
-A urna grava a sessão localmente antes de tentar enviá-la. Sem internet, ela mantém a sessão pendente no computador e tenta sincronizar automaticamente quando a conexão volta. Sem configuração válida do Firebase, continua funcionando em modo local.
+A urna grava a sessão localmente antes de tentar enviá-la. Quando o Firestore fica indisponível depois da identificação, mantém a votação pendente e a sincroniza quando a conexão volta. Se o Firebase Authentication estiver indisponível ao entrar, a urna oferece continuar no modo offline; o voto fica protegido por um identificador derivado do CPF e só neste computador, sem envio automático. O histórico anônimo permanece no computador mesmo depois do envio, para a apuração local offline. Também é possível abrir diretamente `scripts\iniciar.bat --local`.
+
+Em `scripts\administrar.bat`, escolha **Apuração local offline** para somar os votos guardados neste computador. A primeira apuração offline exige um acesso administrativo bem-sucedido com o Firebase conectado nesse computador. O arquivo local guarda somente um verificador da senha administrativa. A apuração não inclui dados de outros computadores nem consulta a nuvem.
+
+Ao escolher **Zerar votação no Firebase**, o programa remove as sessões, zera os nove contadores e muda os marcadores `votou` para `false`. As contas Firebase dos CPFs, os documentos em `participantes` e os administradores são mantidos. Depois do reset, quem já tinha cadastro deve escolher **Entrar**, não **Primeiro acesso**. Controles sem voto mantêm as coleções `sessoes` e `participantes` visíveis no Console Firestore.
+
+Máquinas que estavam sem conexão podem conservar votos na fila de envio. Limpe os dados locais dessas máquinas antes de reconectá-las, para que votos da rodada anterior não sejam enviados de novo.
 
 Para o Firestore, configure `urna.properties` ao lado do programa ou use as variáveis indicadas no [guia de configuração](docs/firebase-configuracao.md). Esse arquivo é ignorado pelo Git: não o envie ao GitHub.
 
@@ -212,8 +219,8 @@ A regra de votação não conhece a tela nem o banco de dados. O diagrama está 
 
 - O campo usa o formato visual de CPF, mas aceita sequências inventadas de 11 algarismos e não verifica titularidade. O bloqueio central de cadastro repetido depende do Firebase Authentication.
 - A proteção contra voto repetido entre computadores depende de autenticação e regras do Firebase. Os modos `--local` e `--memoria` não fazem esse bloqueio centralizado.
-- A apuração fica na coleção `resultados` do Firestore e pode ser consultada pela equipe responsável no Console Firebase.
-- O acesso administrativo usa uma conta Firebase separada, marcada em `administradores/{uid}`. A limpeza local alcança somente o computador em que o comando é executado; máquinas offline mantêm seus próprios arquivos.
+- A apuração remota fica na coleção `resultados`; a apuração local soma somente o histórico anônimo guardado no computador atual.
+- O acesso administrativo remoto usa uma conta Firebase separada, marcada em `administradores/{uid}`. A limpeza apaga os votos locais apenas do computador em que é executada; outras máquinas precisam ser limpas antes de reconectar filas pendentes.
 - O pacote pronto é para Windows 64 bits. Para executar o código-fonte, é necessário JDK 17 ou superior.
 - A oficina e a avaliação de impacto ainda não aconteceram; os arquivos de `docs/` são modelos de trabalho.
 

@@ -19,6 +19,7 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
     private static final long INTERVALO_MAXIMO_SEGUNDOS = 300;
 
     private final VotoRepositoryEmArquivo pendentes;
+    private final VotoRepositoryEmArquivo historico;
     private final FirestoreRestVotoClient cliente;
     private final ScheduledExecutorService sincronizador;
     private final AtomicBoolean sincronizando = new AtomicBoolean();
@@ -47,7 +48,18 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
                                        boolean configuracaoValida,
                                        String avisoConfiguracao,
                                        boolean sincronizarAoIniciar) {
+        this(pendentes, historicoPadrao(pendentes), cliente, configuracaoValida,
+                avisoConfiguracao, sincronizarAoIniciar);
+    }
+
+    public VotoRepositoryLocalPrimeiro(VotoRepositoryEmArquivo pendentes,
+                                       VotoRepositoryEmArquivo historico,
+                                       FirestoreRestVotoClient cliente,
+                                       boolean configuracaoValida,
+                                       String avisoConfiguracao,
+                                       boolean sincronizarAoIniciar) {
         this.pendentes = pendentes;
+        this.historico = historico;
         this.cliente = cliente;
         this.configuracaoValida = configuracaoValida;
         this.sincronizador = Executors.newSingleThreadScheduledExecutor(tarefa -> {
@@ -66,6 +78,7 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
 
     @Override
     public void salvarSessao(String sessaoId, List<Voto> votos) throws RepositorioException {
+        historico.salvarSessao(sessaoId, votos); // histórico anônimo não é removido ao sincronizar
         pendentes.salvarSessao(sessaoId, votos); // fonte de verdade: sempre local primeiro
         if (configuracaoValida) {
             aviso.set("Votação guardada neste computador; envio ao Firebase em segundo plano.");
@@ -133,6 +146,15 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
         return !pendentes.lerSessoes().isEmpty();
     }
 
+    /** Indica se este identificador já tem uma sessão no histórico local. */
+    public boolean temVotoNoHistorico() throws RepositorioException {
+        return !historico.lerSessoes().isEmpty();
+    }
+
+    public List<VotoRepositoryEmArquivo.SessaoSalva> lerHistorico() throws RepositorioException {
+        return historico.lerSessoes();
+    }
+
     private void atualizarEstadoPendente() {
         try {
             int votos = pendentes.lerSessoes().stream().mapToInt(s -> s.votos().size()).sum();
@@ -167,6 +189,13 @@ public final class VotoRepositoryLocalPrimeiro implements VotoRepository, AutoCl
 
     public static long proximoIntervalo(long atual) {
         return Math.min(INTERVALO_MAXIMO_SEGUNDOS, atual * 2);
+    }
+
+    private static VotoRepositoryEmArquivo historicoPadrao(VotoRepositoryEmArquivo pendentes) {
+        java.nio.file.Path arquivo = pendentes.arquivo();
+        String nome = arquivo.getFileName().toString().replaceFirst("^votos-pendentes", "votos-historico");
+        if (nome.equals(arquivo.getFileName().toString())) nome = "votos-historico-" + nome;
+        return new VotoRepositoryEmArquivo(arquivo.resolveSibling(nome), "Histórico local");
     }
 
     @Override

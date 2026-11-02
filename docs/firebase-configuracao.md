@@ -9,20 +9,22 @@ O aplicativo pede onze algarismos no formato visual `000.000.000-00` (por exempl
 | Local | Documento | Conteúdo |
 |---|---|---|
 | Firebase Authentication | Conta técnica | UID, identificador derivado da sequência digitada e credencial protegida pelo Firebase |
-| Firestore | `participantes/{uid}` | Apenas `votou: true`; criado uma vez por conta |
+| Firestore | `participantes/{uid}` | Apenas `votou: true` na rodada atual; após o reset, fica `votou: false` |
 | Firestore | `sessoes/{uuid-aleatorio}` | Impressão digital e três votos; ID sem identificador ou UID |
 | Firestore | `resultados/{cargo}_{numero}` | Contagem agregada e ID aleatório da última sessão que alterou o total |
 | Firestore | `administradores/{uid}` | `ativo: true` para uma conta administrativa separada |
+| Firestore | `sessoes/_controle`, `participantes/_controle` | Documentos técnicos sem voto ou CPF, que mantêm as coleções visíveis após um reset |
 | Computador | `votos-pendentes-{uid}.tsv` | Sessões que ainda aguardam sincronização |
+| Computador | `votos-historico-{identificador}.tsv` | Histórico anônimo local, identificado por UID ou hash local, mantido para apuração offline |
 
-O documento de participação e a sessão são gravados juntos. As regras impedem a criação de outra marca para o mesmo UID e verificam que cada incremento de contador corresponde ao voto na sessão do mesmo lote. Participantes não podem listar nem consultar sessões ou resultados. A equipe responsável consulta os totais no Console Firebase.
+O documento de participação e a sessão são gravados juntos. Na rodada atual, as regras impedem a criação de uma segunda votação pela mesma conta e verificam que cada incremento de contador corresponde ao voto na sessão do mesmo lote. Participantes não podem listar nem consultar sessões ou resultados. A equipe responsável consulta os totais no Console Firebase.
 
 ## 1. Preparar o Firebase
 
 1. Crie um projeto em [Firebase Console](https://console.firebase.google.com/).
 2. Em **Authentication → Sign-in method**, ative **Email/Password**. Não é necessário configurar envio de email: o endereço usado pela aplicação é técnico e não recebe mensagens.
 3. Crie o banco Cloud Firestore `(default)`.
-4. Em **Firestore Database → Regras**, publique o conteúdo atualizado de [`firestore.rules`](../firestore.rules). Esta versão aceita sessões com três votos e a lista atual de candidatos.
+4. Em **Firestore Database → Regras**, publique o conteúdo atualizado de [`firestore.rules`](../firestore.rules). Esta versão aceita sessões com três votos, o reset dos marcadores e os documentos técnicos que mantêm as coleções visíveis.
 
 ## 2. Configurar a aplicação
 
@@ -44,22 +46,28 @@ Para montar o pacote de Release com Firebase, configure `FIREBASE_PROJECT_ID` em
 3. Em **Firestore Database → Data**, crie o documento `administradores/{UID}` com o campo booleano `ativo` igual a `true`.
 4. Publique as regras de [`firestore.rules`](../firestore.rules), que impedem os clientes da urna de criar ou alterar documentos de administrador.
 
-No código-fonte, execute `scripts\administrar.bat`. No ZIP do Windows, abra `UrnaCidadaAdmin.exe`. Entre com o e-mail e a senha da conta administrativa. A ferramenta confere o UID no Firestore e só então mostra **Apagar dados salvos**.
+No código-fonte, execute `scripts\administrar.bat`. No ZIP do Windows, abra `UrnaCidadaAdmin.exe`. O menu permite abrir a apuração offline deste computador ou entrar no Firebase para consultar a apuração local ou reiniciar a votação. A conta precisa ter um documento `administradores/{uid}` com `ativo: true` para alterar dados remotos.
 
-A limpeza remove os documentos das coleções `participantes`, `sessoes` e `resultados`, além dos arquivos de voto no computador que executa a ferramenta. Ela mantém `administradores` e logs. Antes de excluir, o administrador confirma a ação e digita `APAGAR`. Os arquivos locais de outros computadores não são removidos; votos que ainda aguardam sincronização podem voltar ao Firestore quando essas máquinas se conectarem.
+A primeira apuração offline neste computador exige um acesso administrativo concluído com o Firebase conectado. A ferramenta grava localmente um verificador PBKDF2 da senha para autenticar apenas a consulta offline. Os votos são lidos do histórico anônimo do computador; não há chamada ao Firebase durante essa apuração.
+
+O reset remove os documentos de voto da coleção `sessoes`, zera os nove documentos de `resultados` e altera `participantes/{uid}.votou` para `false`. Ele mantém as contas no Firebase Authentication, os documentos de participantes, os administradores e as coleções visíveis. Depois do reset, participantes já cadastrados escolhem **Entrar** com o mesmo CPF; não precisam fazer outro cadastro. Os arquivos de votação do computador que executa o reset são apagados. Outros computadores mantêm seus arquivos locais até que também sejam limpos.
+
+Máquinas que estavam offline ainda podem ter votações na fila local. Limpe os dados dessas máquinas antes de reconectá-las para impedir que sessões da rodada anterior sejam enviadas novamente.
 
 ## 4. Cadastrar e votar
 
 1. Abra a aplicação e escolha **Primeiro acesso**.
 2. Informe onze algarismos no formato `000.000.000-00`. Podem ser números inventados; os dígitos verificadores não são calculados. O cadastro já abre a votação e não pede senha.
-3. Nos próximos acessos, escolha **Entrar** e informe a mesma sequência de onze algarismos.
+3. Nos próximos acessos, escolha **Entrar** e informe a mesma sequência de onze algarismos. Após um reset administrativo, use também **Entrar**: a conta Firebase continua cadastrada.
 4. Depois de confirmar o último cargo, a sessão é gravada localmente e sincronizada. A urna toca o sinal, fala a mensagem de encerramento e retorna à tela de identificação após cinco segundos.
 
-Se a mesma conta já tiver votado, o aplicativo informa isso antes de abrir uma nova sessão. A proteção central depende do Firebase. Os modos `--local` e `--memoria` não identificam participantes entre computadores.
+Se a mesma conta já tiver votado na rodada atual, o aplicativo informa isso antes de abrir outra sessão. Quando a conexão cai depois do login, os votos são guardados localmente e sincronizados mais tarde. Se o Firebase Authentication estiver fora do ar ao entrar, a urna oferece continuar somente neste computador; esse voto não é enviado automaticamente. O comando `scripts\iniciar.bat --local` também abre a urna sem conexão. Os modos offline não identificam participantes entre computadores.
 
 ## 5. Conferir a apuração
 
-No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada documento usa o formato `cargo_numero`, por exemplo `pres_13` ou `df_1736`, e apresenta `contagem`. Um contador é criado com zero quando a primeira votação válida daquele candidato é registrada. Voto de legenda, branco ou nulo não aumenta a contagem de um candidato. As regras bloqueiam a consulta dessa coleção pelos participantes.
+No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada documento usa o formato `cargo_numero`, por exemplo `pres_13` ou `df_1736`, e apresenta `contagem`. Depois de reiniciar a votação, os nove contadores aparecem com valor zero. Voto de legenda, branco ou nulo não aumenta a contagem de um candidato. As regras bloqueiam a consulta dessa coleção pelos participantes.
+
+Para consultar os votos locais, abra `scripts\administrar.bat`, escolha **Apuração local offline** e confirme com a credencial administrativa já usada neste computador. A contagem inclui votos arquivados localmente, mesmo quando já foram enviados ao Firestore. Ela abrange somente este computador.
 
 IDs de resultado correspondentes às candidaturas atuais:
 
