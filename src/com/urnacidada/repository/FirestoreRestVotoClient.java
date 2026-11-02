@@ -189,6 +189,39 @@ public final class FirestoreRestVotoClient {
         return participanteJaVotou(timeoutRequisicao);
     }
 
+    /** Cria o marcador inicial deste participante para manter o cadastro visível no Firestore. */
+    public void garantirParticipanteRegistrado() throws RepositorioException {
+        if (autenticacao == null) throw new FalhaFirestore(FalhaFirestore.Tipo.CONFIGURACAO,
+                "A consulta exige identificação do participante.", null);
+        if (lerMarcadorParticipante(timeoutRequisicao).existe()) return;
+        String caminho = "projects/" + segmento(projectId)
+                + "/databases/(default)/documents/participantes?documentId="
+                + segmento(autenticacao.uid()) + "&key=" + URLEncoder.encode(apiKey, StandardCharsets.UTF_8);
+        URI uri = endpointBase.resolve(caminho);
+        HttpRequest request = construir(uri, timeoutRequisicao)
+                .header("Content-Type", "application/json; charset=utf-8")
+                .POST(HttpRequest.BodyPublishers.ofString(
+                        "{\"fields\":{\"votou\":{\"booleanValue\":false}}}", StandardCharsets.UTF_8))
+                .build();
+        try {
+            HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            int status = response.statusCode();
+            if ((status >= 200 && status < 300) || status == 409) return;
+            if (status == 408 || status == 429 || status >= 500) {
+                throw new FalhaFirestore(FalhaFirestore.Tipo.TRANSITORIA,
+                        "Não foi possível atualizar o cadastro local no Firestore.", null);
+            }
+            throw new FalhaFirestore(FalhaFirestore.Tipo.CONFIGURACAO,
+                    "O Firestore não autorizou a atualização do participante (HTTP " + status + ").", null);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new FalhaFirestore(FalhaFirestore.Tipo.TRANSITORIA, "Atualização do cadastro interrompida.", e);
+        } catch (IOException e) {
+            throw new FalhaFirestore(FalhaFirestore.Tipo.TRANSITORIA,
+                    "Sem conexão para registrar o participante no Firestore.", e);
+        }
+    }
+
     private boolean participanteJaVotou(Duration timeout) throws RepositorioException {
         return lerMarcadorParticipante(timeout).votou();
     }

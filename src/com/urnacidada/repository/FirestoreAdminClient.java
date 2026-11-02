@@ -10,7 +10,9 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,6 +56,18 @@ public final class FirestoreAdminClient {
         return ADMIN_ATIVO.matcher(resposta.body()).find();
     }
 
+    /** Recria documentos estruturais ausentes sem alterar sessões, participantes ou contagens existentes. */
+    public int prepararEstrutura() throws RepositorioException {
+        Set<String> existentes = new HashSet<>(listarIds("resultados"));
+        int contadoresCriados = 0;
+        for (ResultadoInicial resultado : RESULTADOS_INICIAIS) {
+            if (!existentes.contains(resultado.id()) && criarResultadoZero(resultado, false)) contadoresCriados++;
+        }
+        garantirDocumentoControle("sessoes", "{\"fields\":{\"tipo\":{\"stringValue\":\"CONTROLE\"}}}");
+        garantirDocumentoControle("participantes", "{\"fields\":{\"votou\":{\"booleanValue\":false},\"tipo\":{\"stringValue\":\"CONTROLE\"}}}");
+        return contadoresCriados;
+    }
+
     /** Apaga os votos, zera a apuração e rearma os participantes sem excluir contas ou coleções. */
     public ResultadoLimpeza limparVotacao() throws RepositorioException {
         List<String> sessoes = listarIds("sessoes");
@@ -68,7 +82,7 @@ public final class FirestoreAdminClient {
                 sessoesRemovidas++;
             }
             for (String id : resultados) apagarDocumento("resultados", id);
-            for (ResultadoInicial resultado : RESULTADOS_INICIAIS) criarResultadoZero(resultado);
+            for (ResultadoInicial resultado : RESULTADOS_INICIAIS) criarResultadoZero(resultado, true);
             for (String uid : participantes) {
                 if (uid.equals(DOCUMENTO_CONTROLE)) continue;
                 atualizarMarcador(uid);
@@ -89,7 +103,7 @@ public final class FirestoreAdminClient {
         exigirSucesso(resposta, "O Firestore não autorizou a remoção dos votos.");
     }
 
-    private void criarResultadoZero(ResultadoInicial resultado) throws RepositorioException {
+    private boolean criarResultadoZero(ResultadoInicial resultado, boolean zerarSeExistir) throws RepositorioException {
         String caminho = "projects/" + segmento(projectId)
                 + "/databases/(default)/documents/resultados?documentId=" + segmento(resultado.id())
                 + "&key=" + segmento(apiKey);
@@ -98,10 +112,11 @@ public final class FirestoreAdminClient {
                 + "},\"contagem\":{\"integerValue\":\"0\"},\"ultimaSessaoId\":{\"nullValue\":null}}}";
         HttpResponse<String> resposta = enviar("POST", ENDPOINT.resolve(caminho), corpo);
         if (resposta.statusCode() == 409) {
-            atualizarResultadoZero(resultado);
-            return;
+            if (zerarSeExistir) atualizarResultadoZero(resultado);
+            return false;
         }
         exigirSucesso(resposta, "Não foi possível preparar o contador " + resultado.id() + ".");
+        return true;
     }
 
     private void atualizarResultadoZero(ResultadoInicial resultado) throws RepositorioException {

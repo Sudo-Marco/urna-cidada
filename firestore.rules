@@ -89,7 +89,7 @@ service cloud.firestore {
         && request.auth.uid == uid
         && request.resource.data.keys().hasAll(['votou'])
         && request.resource.data.keys().hasOnly(['votou'])
-        && request.resource.data.votou == true
+        && request.resource.data.votou in [true, false]
         || administrador()
         && uid == '_controle'
         && request.resource.data.keys().hasAll(['votou', 'tipo'])

@@ -137,6 +137,12 @@ public final class Main {
                     return;
                 }
                 try {
+                    consulta.garantirParticipanteRegistrado();
+                } catch (com.urnacidada.repository.FalhaFirestore falha) {
+                    if (falha.tipo() != com.urnacidada.repository.FalhaFirestore.Tipo.TRANSITORIA) throw falha;
+                    LogUrna.logger().info("Sem conexão para atualizar o cadastro no Firestore; tentativa local permitida.");
+                }
+                try {
                     if (consulta.participanteJaVotou()) {
                         local.close();
                         repositorio = null;
@@ -235,7 +241,16 @@ public final class Main {
                 .emailFirebase(cpf).substring(4, 64);
         try {
             if (escolha == 0) return autenticacao.entrar(cpf);
-            return autenticacao.cadastrar(cpf);
+            try {
+                return autenticacao.cadastrar(cpf);
+            } catch (com.urnacidada.repository.RepositorioException erroCadastro) {
+                if (erroCadastro.getMessage() == null
+                        || !erroCadastro.getMessage().startsWith("Este CPF já tem cadastro.")) throw erroCadastro;
+                DialogosUrna.mensagem(null,
+                        "Este CPF já tem uma conta. A urna vai reutilizar esse cadastro para a nova votação.",
+                        "Cadastro existente", JOptionPane.INFORMATION_MESSAGE);
+                return autenticacao.entrar(cpf);
+            }
         } catch (com.urnacidada.repository.RepositorioException e) {
             if (falhaDeConexao(e.getMessage())) {
                 int escolhaOffline = DialogosUrna.opcoes(null,
@@ -352,13 +367,22 @@ public final class Main {
 
             int acao = DialogosUrna.opcoes(null, "Conta administrativa confirmada.",
                     "Administração da urna", JOptionPane.QUESTION_MESSAGE,
-                    new Object[]{"Apuração local deste computador", "Zerar votação no Firebase", "Cancelar"},
+                    new Object[]{"Apuração local deste computador", "Restaurar estrutura do Firestore (preservar votos)",
+                            "Zerar votação no Firebase", "Cancelar"},
                     "Apuração local deste computador");
             if (acao == 0) {
                 mostrarApuracaoLocal(dados);
                 return;
             }
-            if (acao != 1 || !confirmarApagamento()) return;
+            if (acao == 1) {
+                int contadores = administrador.prepararEstrutura();
+                DialogosUrna.mensagem(null,
+                        "Estrutura pronta. " + contadores + " contadores ausentes foram criados com zero. "
+                                + "Sessões, participantes e contagens que já existiam foram preservados.",
+                        "Estrutura do Firestore", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+            if (acao != 2 || !confirmarApagamento()) return;
 
             FirestoreAdminClient.ResultadoLimpeza limpeza = administrador.limparVotacao();
             int arquivos = CaminhosAplicacao.apagarArquivosDeVoto(dados);

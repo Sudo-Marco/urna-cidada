@@ -9,7 +9,7 @@ O aplicativo pede onze algarismos no formato visual `000.000.000-00` (por exempl
 | Local | Documento | Conteúdo |
 |---|---|---|
 | Firebase Authentication | Conta técnica | UID, identificador derivado da sequência digitada e credencial protegida pelo Firebase |
-| Firestore | `participantes/{uid}` | Apenas `votou: true` na rodada atual; após o reset, fica `votou: false` |
+| Firestore | `participantes/{uid}` | UID e marca `votou: false` ou `true` para a rodada atual |
 | Firestore | `sessoes/{uuid-aleatorio}` | Impressão digital e três votos; ID sem identificador ou UID |
 | Firestore | `resultados/{cargo}_{numero}` | Contagem agregada e ID aleatório da última sessão que alterou o total |
 | Firestore | `administradores/{uid}` | `ativo: true` para uma conta administrativa separada |
@@ -17,7 +17,7 @@ O aplicativo pede onze algarismos no formato visual `000.000.000-00` (por exempl
 | Computador | `votos-pendentes-{uid}.tsv` | Sessões que ainda aguardam sincronização |
 | Computador | `votos-historico-{identificador}.tsv` | Histórico anônimo local, identificado por UID ou hash local, mantido para apuração offline |
 
-O documento de participação e a sessão são gravados juntos. Na rodada atual, as regras impedem a criação de uma segunda votação pela mesma conta e verificam que cada incremento de contador corresponde ao voto na sessão do mesmo lote. Participantes não podem listar nem consultar sessões ou resultados. A equipe responsável consulta os totais no Console Firebase.
+O documento de participação aparece quando a pessoa entra; a sessão e a mudança de `votou` para `true` são gravadas juntas ao confirmar o voto. Na rodada atual, as regras impedem uma segunda votação pela mesma conta e verificam que cada incremento de contador corresponde ao voto na sessão do mesmo lote. Participantes não podem listar nem consultar sessões ou resultados. A equipe responsável consulta os totais no Console Firebase.
 
 ## 1. Preparar o Firebase
 
@@ -46,11 +46,13 @@ Para montar o pacote de Release com Firebase, configure `FIREBASE_PROJECT_ID` em
 3. Em **Firestore Database → Data**, crie o documento `administradores/{UID}` com o campo booleano `ativo` igual a `true`.
 4. Publique as regras de [`firestore.rules`](../firestore.rules), que impedem os clientes da urna de criar ou alterar documentos de administrador.
 
-No código-fonte, execute `scripts\administrar.bat`. No ZIP do Windows, abra `UrnaCidadaAdmin.exe`. O menu permite abrir a apuração offline deste computador ou entrar no Firebase para consultar a apuração local ou reiniciar a votação. A conta precisa ter um documento `administradores/{uid}` com `ativo: true` para alterar dados remotos.
+No código-fonte, execute `scripts\administrar.bat`. No ZIP do Windows, abra `UrnaCidadaAdmin.exe`. O menu permite abrir a apuração offline deste computador ou entrar no Firebase para consultar votos, restaurar documentos estruturais ausentes sem apagar dados ou reiniciar a votação. A conta precisa ter um documento `administradores/{uid}` com `ativo: true` para alterar dados remotos.
+
+Se o Console Firestore mostrar somente `administradores`, publique estas regras e, no menu administrativo, escolha **Restaurar estrutura do Firestore (preservar votos)**. Isso cria os nove contadores zerados e os documentos que mantêm `sessoes` e `participantes` visíveis sem apagar votos existentes. Contas de CPF aparecem em **Authentication → Users**; os documentos `participantes/{uid}` são criados quando cada conta abre a urna.
 
 A primeira apuração offline neste computador exige um acesso administrativo concluído com o Firebase conectado. A ferramenta grava localmente um verificador PBKDF2 da senha para autenticar apenas a consulta offline. Os votos são lidos do histórico anônimo do computador; não há chamada ao Firebase durante essa apuração.
 
-O reset remove os documentos de voto da coleção `sessoes`, zera os nove documentos de `resultados` e altera `participantes/{uid}.votou` para `false`. Ele mantém as contas no Firebase Authentication, os documentos de participantes, os administradores e as coleções visíveis. Depois do reset, participantes já cadastrados escolhem **Entrar** com o mesmo CPF; não precisam fazer outro cadastro. Os arquivos de votação do computador que executa o reset são apagados. Outros computadores mantêm seus arquivos locais até que também sejam limpos.
+O reset remove os documentos de voto da coleção `sessoes`, zera os nove documentos de `resultados` e altera `participantes/{uid}.votou` para `false`. Ele mantém as contas no Firebase Authentication, os documentos de participantes, os administradores e as coleções visíveis. Depois do reset, participantes já cadastrados podem escolher **Entrar** com o mesmo CPF; não precisam criar outra conta. Se escolherem **Primeiro acesso**, a aplicação identifica o cadastro existente e entra nele. Os arquivos de votação do computador que executa o reset são apagados. Outros computadores mantêm seus arquivos locais até que também sejam limpos.
 
 Máquinas que estavam offline ainda podem ter votações na fila local. Limpe os dados dessas máquinas antes de reconectá-las para impedir que sessões da rodada anterior sejam enviadas novamente.
 

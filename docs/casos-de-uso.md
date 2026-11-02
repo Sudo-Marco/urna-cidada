@@ -10,7 +10,7 @@
 
 ## Identificar participante e votar
 
-1. Na tela de identificação, escolha **Primeiro acesso** para cadastrar o CPF ou **Entrar** para usar um cadastro existente.
+1. Na tela de identificação, escolha **Primeiro acesso** para cadastrar o CPF ou **Entrar** para usar um cadastro existente. Se o CPF já estiver cadastrado, **Primeiro acesso** reutiliza a conta existente.
 2. A urna confere se a conta já possui uma marca de participação. Se já votou, o fluxo termina com uma mensagem.
 3. O participante escolhe um candidato, voto de legenda, branco ou nulo em Deputado Federal, Governador e Presidente.
 4. Depois de Presidente, a urna grava os três votos localmente e envia a sessão e os incrementos de contagem juntos ao Firestore, quando disponível.

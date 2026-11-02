@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.9"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.10"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -36,7 +36,7 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
   echo 4. Ao terminar, a urna toca o sinal, fala a mensagem de encerramento e retorna a identificacao em 5 segundos.
   echo 5. Se o Firebase ficar indisponivel ao entrar, escolha Continuar neste computador; o voto ficara local.
   echo    Esse voto offline nao sera enviado automaticamente e so pode ser contado neste computador.
-  echo 6. UrnaCidadaAdmin.exe abre a administracao: apuracao local offline ou reinicio pelo Firebase.
+  echo 6. UrnaCidadaAdmin.exe abre a administracao: apuracao local, restaurar estrutura sem apagar votos ou reiniciar.
   echo    Para reiniciar online, use a conta admin separada com permissao no Firestore.
   echo    O reinicio zera a votacao e libera novamente os CPFs sem apagar as contas cadastradas.
   echo.
