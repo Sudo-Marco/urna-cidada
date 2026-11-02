@@ -10,8 +10,8 @@ import com.urnacidada.repository.VotoRepositoryEmMemoria;
 import com.urnacidada.repository.VotoRepositoryLocalPrimeiro;
 import com.urnacidada.service.ApuracaoLocal;
 import com.urnacidada.view.TelaUrna;
+import com.urnacidada.view.TelaIdentificacao;
 
-import javax.swing.JFormattedTextField;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.JTextArea;
@@ -20,7 +20,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
-import javax.swing.text.MaskFormatter;
 import java.awt.GridLayout;
 import java.awt.GraphicsEnvironment;
 import java.io.IOException;
@@ -219,28 +218,13 @@ public final class Main {
 
     private static AutenticacaoFirebase.Sessao autenticar(AutenticacaoFirebase autenticacao)
             throws com.urnacidada.repository.RepositorioException {
-        Object[] opcoes = {"Entrar", "Primeiro acesso", "Cancelar"};
-        int escolha = DialogosUrna.opcoes(null,
-                "Identifique-se somente com seu CPF. Cada CPF cadastrado pode votar uma vez; não é necessária senha.",
-                "Urna Cidadã — participante", JOptionPane.QUESTION_MESSAGE, opcoes, opcoes[0]);
-        if (escolha == 2 || escolha < 0) return null;
-        JFormattedTextField campoCpf = campoCpf();
-        JPanel painelCpf = new JPanel(new GridLayout(2, 1, 4, 4));
-        painelCpf.add(new JLabel("CPF (000.000.000-00)"));
-        painelCpf.add(campoCpf);
-        int resultado = DialogosUrna.confirmar(null, painelCpf, "Identificação do participante",
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-        if (resultado != JOptionPane.OK_OPTION) return null;
-        String cpf;
-        try { cpf = com.urnacidada.repository.CpfIdentificador.normalizar(campoCpf.getText()); }
-        catch (IllegalArgumentException erro) {
-            DialogosUrna.mensagem(null, erro.getMessage(), "Identificador inválido", JOptionPane.ERROR_MESSAGE);
-            return null;
-        }
+        TelaIdentificacao.Resultado identificacao = TelaIdentificacao.exibir();
+        if (identificacao == null) return null;
+        String cpf = identificacao.cpf();
         identificadorLocalOffline = com.urnacidada.repository.CpfIdentificador
                 .emailFirebase(cpf).substring(4, 64);
         try {
-            if (escolha == 0) return autenticacao.entrar(cpf);
+            if (!identificacao.primeiroAcesso()) return autenticacao.entrar(cpf);
             try {
                 return autenticacao.cadastrar(cpf);
             } catch (com.urnacidada.repository.RepositorioException erroCadastro) {
@@ -426,21 +410,6 @@ public final class Main {
     }
 
     private record CredencialAdministrador(String email, char[] senha) { }
-
-    private static JFormattedTextField campoCpf() {
-        try {
-            MaskFormatter mascara = new MaskFormatter("###.###.###-##");
-            mascara.setPlaceholderCharacter(' ');
-            mascara.setValidCharacters("0123456789");
-            mascara.setAllowsInvalid(false);
-            mascara.setCommitsOnValidEdit(true);
-            JFormattedTextField campo = new JFormattedTextField(mascara);
-            campo.setColumns(14);
-            return campo;
-        } catch (java.text.ParseException e) {
-            throw new IllegalStateException("Não foi possível preparar o campo de CPF.", e);
-        }
-    }
 
     private static boolean confirmarApagamento() {
         int confirmacao = DialogosUrna.confirmar(null,
