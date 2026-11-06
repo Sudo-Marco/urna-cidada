@@ -17,6 +17,8 @@ if exist build\classes rmdir /s /q build\classes
 mkdir build\classes
 "%JAVA_HOME%\bin\javac.exe" --release 17 -encoding UTF-8 -d build\classes -sourcepath src src\com\urnacidada\Main.java
 if errorlevel 1 goto :fail
+if exist src\main\resources\nul xcopy /e /i /q /y src\main\resources\* build\classes\ >nul
+if errorlevel 1 goto :fail
 if not exist dist mkdir dist
 "%JAVA_HOME%\bin\jar.exe" --create --file dist\urna-cidada.jar --main-class com.urnacidada.Main -C build\classes .
 if errorlevel 1 goto :fail

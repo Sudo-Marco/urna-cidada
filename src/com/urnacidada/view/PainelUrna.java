@@ -8,6 +8,7 @@ import com.urnacidada.model.Eleicao;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -26,6 +27,13 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -61,6 +69,7 @@ public final class PainelUrna extends JPanel {
     private final JLabel progresso = rotulo(13, Font.BOLD, CINZA);
     private final JLabel instrucaoCargo = rotulo(13, Font.BOLD, CINZA);
     private final JLabel cargo = rotulo(26, Font.BOLD, AZUL);
+    private final JLabel retrato = new JLabel("", SwingConstants.CENTER);
     private final JPanel caixas = new JPanel(new FlowLayout(FlowLayout.CENTER, 6, 0));
     private final JTextPane titulo = criarTexto();
     private final JTextPane detalhe = criarTexto();
@@ -73,6 +82,7 @@ public final class PainelUrna extends JPanel {
     private final JButton btnConfirma = botao("CONFIRMA", new Color(0x1E7B4F));
     private final JButton btnNova = botao("Iniciar nova votação", AZUL);
     private final JButton btnDicas = botao("Dicas contra desinformação", AZUL);
+    private final Map<String, ImageIcon> cacheRetratos = new HashMap<>();
 
     public PainelUrna(AcoesUrna acoes, String descricaoDaGravacao) {
         this(acoes, descricaoDaGravacao, Eleicao.exemplo());
@@ -95,6 +105,9 @@ public final class PainelUrna extends JPanel {
         progresso.setText(e.progresso());
         cargo.setText(e.cargo());
         montarCaixas(e.posicoes(), e.digitado());
+        ImageIcon foto = carregarRetrato(e);
+        retrato.setIcon(foto);
+        retrato.setVisible(foto != null);
 
         definirTexto(titulo, e.titulo(), fonteTitulo(e.modo()), corTitulo(e.modo()));
         definirTexto(detalhe, e.detalhe(), fonteDetalhe(e.modo()), corDetalhe(e.modo()));
@@ -204,22 +217,53 @@ public final class PainelUrna extends JPanel {
         instrucaoCargo.setText("SEU VOTO PARA");
         instrucaoCargo.setHorizontalAlignment(SwingConstants.CENTER);
         cargo.setHorizontalAlignment(SwingConstants.CENTER);
+        retrato.setName("retrato-candidato");
+        retrato.setPreferredSize(new Dimension(120, 146));
+        retrato.setMinimumSize(new Dimension(120, 146));
+        retrato.setMaximumSize(new Dimension(120, 146));
+        retrato.setVisible(false);
         caixas.setOpaque(false);
 
         linha(tela, progresso, 0, 0, 0, 0);
         linha(tela, instrucaoCargo, 1, 0, 20, 0);
-        linha(tela, cargo, 2, 0, 0, 4);
-        linha(tela, caixas, 3, 0, 0, 8);
-        linha(tela, titulo, 4, 0, 66, 0);
-        linha(tela, detalhe, 5, 0, 34, 4);
-        linha(tela, explicacao, 6, 0, 56, 0);
+        linha(tela, cargo, 2, 0, 0, 2);
+        linha(tela, retrato, 3, 0, 146, 0);
+        linha(tela, caixas, 4, 0, 60, 0);
+        linha(tela, titulo, 5, 0, 52, 0);
+        linha(tela, detalhe, 6, 0, 30, 4);
+        linha(tela, explicacao, 7, 0, 44, 0);
         JLabel comandos = rotulo(11, Font.PLAIN, CINZA);
         comandos.setText("Aperte VERDE para CONFIRMAR · LARANJA para CORRIGIR");
         comandos.setHorizontalAlignment(SwingConstants.CENTER);
-        linha(tela, comandos, 7, 0, 24, 0);
-        linha(tela, new JLabel(), 8, 1.0, 0, 0); // empurra a mensagem para o rodapé da tela
-        linha(tela, mensagem, 9, 0, 84, 6);
+        linha(tela, comandos, 8, 0, 24, 0);
+        linha(tela, new JLabel(), 9, 1.0, 0, 0); // empurra a mensagem para o rodapé da tela
+        linha(tela, mensagem, 10, 0, 72, 6);
         return tela;
+    }
+
+    private ImageIcon carregarRetrato(EstadoTela estado) {
+        if (estado.modo() != Modo.CANDIDATO) return null;
+        String numero = eleicao.cargos().stream()
+                .filter(c -> c.nome().equalsIgnoreCase(estado.cargo()))
+                .flatMap(c -> c.candidatos().stream())
+                .filter(c -> c.numero().equals(estado.digitado()))
+                .map(Candidato::numero)
+                .findFirst().orElse(null);
+        if (numero == null) return null;
+        if (cacheRetratos.containsKey(numero)) return cacheRetratos.get(numero);
+
+        String caminho = "/com/urnacidada/candidatos/" + numero + ".jpg";
+        try (InputStream recurso = PainelUrna.class.getResourceAsStream(caminho)) {
+            if (recurso == null) return null;
+            BufferedImage imagem = ImageIO.read(recurso);
+            if (imagem == null) return null;
+            Image redimensionada = imagem.getScaledInstance(120, 146, Image.SCALE_SMOOTH);
+            ImageIcon icone = new ImageIcon(redimensionada);
+            cacheRetratos.put(numero, icone);
+            return icone;
+        } catch (IOException ignorada) {
+            return null;
+        }
     }
 
     private static void linha(JPanel pai, java.awt.Component filho, int linha, double pesoVertical,

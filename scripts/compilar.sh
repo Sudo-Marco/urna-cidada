@@ -7,4 +7,5 @@ mkdir -p build/classes dist
 rm -rf build/classes
 mkdir -p build/classes
 javac --release 17 -encoding UTF-8 -d build/classes -sourcepath src src/com/urnacidada/Main.java
+if [ -d src/main/resources ]; then cp -R src/main/resources/. build/classes/; fi
 jar --create --file dist/urna-cidada.jar --main-class com.urnacidada.Main -C build/classes .

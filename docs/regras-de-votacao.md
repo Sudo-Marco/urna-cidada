@@ -1,6 +1,6 @@
 # Regras de votação
 
-Os três cargos aparecem nesta ordem: Deputado Federal, Governador e Presidente. Os nove números são únicos entre todas as candidaturas. A tela de votação mantém a relação de candidatos no canto superior esquerdo.
+Os três cargos aparecem nesta ordem: Deputado Federal, Governador e Presidente. Os nove números são únicos entre todas as candidaturas. A tela de votação mantém a relação de candidatos no canto superior esquerdo. Quando um número válido é reconhecido, exibe o retrato individual centralizado acima dos campos numéricos, com nome e partido abaixo da sequência digitada.
 
 ## Escolha em cada cargo
 
