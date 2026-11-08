@@ -27,7 +27,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
-import java.awt.Image;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import java.io.IOException;
@@ -229,7 +228,7 @@ public final class PainelUrna extends JPanel {
         linha(tela, cargo, 2, 0, 0, 2);
         linha(tela, retrato, 3, 0, 146, 0);
         linha(tela, caixas, 4, 0, 60, 0);
-        linha(tela, titulo, 5, 0, 52, 0);
+        linha(tela, titulo, 5, 0, 60, 0);
         linha(tela, detalhe, 6, 0, 30, 4);
         linha(tela, explicacao, 7, 0, 44, 0);
         JLabel comandos = rotulo(11, Font.PLAIN, CINZA);
@@ -257,8 +256,22 @@ public final class PainelUrna extends JPanel {
             if (recurso == null) return null;
             BufferedImage imagem = ImageIO.read(recurso);
             if (imagem == null) return null;
-            Image redimensionada = imagem.getScaledInstance(120, 146, Image.SCALE_SMOOTH);
-            ImageIcon icone = new ImageIcon(redimensionada);
+            int larguraDoRetrato = 120;
+            int alturaDoRetrato = 146;
+            double escala = Math.min(
+                    (double) larguraDoRetrato / imagem.getWidth(),
+                    (double) alturaDoRetrato / imagem.getHeight());
+            int largura = Math.max(1, (int) Math.round(imagem.getWidth() * escala));
+            int altura = Math.max(1, (int) Math.round(imagem.getHeight() * escala));
+            BufferedImage retratoCentralizado = new BufferedImage(
+                    larguraDoRetrato, alturaDoRetrato, BufferedImage.TYPE_INT_ARGB);
+            java.awt.Graphics2D g = retratoCentralizado.createGraphics();
+            g.setRenderingHint(java.awt.RenderingHints.KEY_INTERPOLATION,
+                    java.awt.RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+            g.drawImage(imagem, (larguraDoRetrato - largura) / 2,
+                    (alturaDoRetrato - altura) / 2, largura, altura, null);
+            g.dispose();
+            ImageIcon icone = new ImageIcon(retratoCentralizado);
             cacheRetratos.put(numero, icone);
             return icone;
         } catch (IOException ignorada) {

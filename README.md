@@ -46,7 +46,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Votação em três cargos (Deputado Federal, Governador e Presidente), com branco, nulo, legenda e correção | ✅ Implementada e coberta por testes automáticos |
 | Candidatos de demonstração | ✅ Nove candidaturas, distribuídas pelos três cargos |
 | Interface Swing, teclado na tela, atalhos e avisos | ✅ Implementada em Java |
-| Fotos dos candidatos | ✅ Retrato individual aparece centralizado acima dos números quando a candidatura é reconhecida |
+| Fotos dos candidatos | ✅ Nove retratos da nova colagem aparecem centralizados, sem distorção ou corte dos rostos |
 | Tela inicial de identificação | ✅ Entrar, primeiro acesso e CPF reunidos em uma interface personalizada |
 | Consulta de números dos candidatos | ✅ Relação fixa no canto superior esquerdo da tela de votação |
 | Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
@@ -56,7 +56,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
 | Apuração local offline | ✅ A administração mostra a contagem dos votos salvos neste computador, sem acessar a rede |
 | Administração do Firestore | ✅ Restaura coleções sem apagar votos ou inicia uma nova rodada preservando contas |
-| Pacote portátil para Windows | ✅ Release `v1.0.13`, com fotos dos candidatos, tela inicial renovada, sinal sem voz, runtime Java e iniciador administrativo |
+| Pacote portátil para Windows | ✅ Release `v1.0.14`, com novos retratos, tela inicial renovada, sinal sem voz, runtime Java e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -66,7 +66,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.13](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.13). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.14](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.14). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -155,6 +155,12 @@ Os cargos permanecem na ordem mostrada no fluxo e definem quantos dígitos o cam
 | Presidente | 2 | 13 — Rafael Mendes; 27 — Eduardo Carvalho; 39 — Mariana Oliveira | Renovação Nacional (PRN); Aliança pelo Progresso (PAP); Movimento Popular Democrático (MPD) |
 
 Ao digitar um número reconhecido, o retrato individual do candidato aparece centralizado acima dos campos numéricos, e o nome e partido aparecem abaixo. Os números permanecem centralizados na tela e não são incorporados às imagens. Um número completo que não corresponda ao cargo atual é tratado como voto nulo. As propostas e os partidos estão em [regras-de-votacao.md](docs/regras-de-votacao.md).
+
+### Retratos usados na votação
+
+As imagens foram recortadas da nova colagem enviada para o projeto. A urna mantém a proporção de cada foto e a centraliza no espaço acima dos números, sem alterar nomes, cargos, números ou partidos.
+
+![Prévia dos nove retratos usados na urna](docs/previa-fotos-candidatos.png)
 
 - **Voto válido:** número completo de uma candidatura fictícia.
 - **Voto de legenda:** opção disponível nos cargos proporcionais.
