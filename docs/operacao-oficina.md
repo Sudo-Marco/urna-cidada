@@ -29,7 +29,7 @@ Sem configuração Firebase, a urna funciona no computador e não identifica par
 
 Para reiniciar uma votação, execute `scripts\administrar.bat` e entre com uma conta administrativa separada. O UID precisa ter um documento `administradores/{uid}` com `ativo: true`. O reset remove sessões, zera os nove contadores e altera os marcadores `votou` para `false`; mantém contas de CPF, documentos de participantes, administradores e coleções do Firestore. Os votos locais deste computador também são removidos.
 
-O mesmo menu oferece **Apuração local offline**. Na primeira utilização, entre uma vez com a conta administrativa enquanto há conexão para preparar o acesso local. Depois, a apuração pode ser aberta sem rede usando a mesma conta e senha. Ela conta os votos anônimos armazenados neste computador, inclusive os que já foram sincronizados. O ZIP do Windows inclui o iniciador `UrnaCidadaAdmin.exe`.
+O mesmo menu oferece **Apuração local offline**. Na primeira utilização, entre uma vez com a conta administrativa enquanto há conexão para preparar o acesso local. Depois, a apuração pode ser aberta sem rede usando a mesma conta e senha. O painel organiza em abas os cargos e mostra votos por candidatura, votos de legenda, brancos, nulos, totais e os mais e menos votados. A consulta agrega os votos e não exibe dados de participantes. O ZIP do Windows inclui `UrnaCidadaAdmin.exe`, além do iniciador principal.
 
 ## Durante a votação
 

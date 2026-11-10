@@ -54,9 +54,9 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Encerramento automático | ✅ Reproduz o áudio de encerramento enviado para o projeto e volta à identificação em cinco segundos |
 | Gravação local, fila e histórico anônimo | ✅ O histórico continua no computador depois da sincronização |
 | Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
-| Apuração local offline | ✅ A administração mostra a contagem dos votos salvos neste computador, sem acessar a rede |
+| Apuração local offline | ✅ Painel separado por cargo, com votos por candidato e legenda, totais e destaques de mais e menos votado |
 | Administração do Firestore | ✅ Restaura coleções sem apagar votos ou inicia uma nova rodada preservando contas |
-| Pacote portátil para Windows | ✅ Release `v1.0.15`, com novos retratos, nomes inspirados nos personagens, áudio de encerramento, runtime Java e iniciador administrativo |
+| Pacote portátil para Windows | ✅ Release `v1.0.16`, com painel offline detalhado, lançador administrativo, runtime Java e dados de demonstração atualizados |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -66,7 +66,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.15](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.15). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.16](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.16). Extraia o ZIP. Abra `UrnaCidada.exe` para votar ou `UrnaCidadaAdmin.exe` para acessar o painel do administrador; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -98,7 +98,7 @@ No terminal integrado do VS Code, aberto na pasta do projeto, execute `.\iniciar
 
 A urna grava a sessão localmente antes de tentar enviá-la. Quando o Firestore fica indisponível depois da identificação, mantém a votação pendente e a sincroniza quando a conexão volta. Se o Firebase Authentication estiver indisponível ao entrar, a urna oferece continuar no modo offline; o voto fica protegido por um identificador derivado do CPF e só neste computador, sem envio automático. O histórico anônimo permanece no computador mesmo depois do envio, para a apuração local offline. Também é possível abrir diretamente `scripts\iniciar.bat --local`.
 
-Em `scripts\administrar.bat`, escolha **Apuração local offline** para somar os votos guardados neste computador. A primeira apuração offline exige um acesso administrativo bem-sucedido com o Firebase conectado nesse computador. O arquivo local guarda somente um verificador da senha administrativa. A apuração não inclui dados de outros computadores nem consulta a nuvem.
+Em `scripts\administrar.bat`, escolha **Apuração local offline** para abrir o painel de resultados deste computador. As abas separam Deputado Federal, Governador e Presidente; cada uma mostra os votos nominais por candidato, votos de legenda, brancos, nulos e totais, além de destacar quem tem mais e menos votos no cargo. Empates aparecem juntos. A apuração inclui somente o histórico deste computador e não consulta a nuvem. A primeira utilização administrativa requer preparar o acesso local enquanto há conexão com o Firebase.
 
 No menu Firebase da administração, **Restaurar estrutura do Firestore** cria os contadores ou documentos de controle que estiverem faltando sem apagar votos existentes. **Zerar votação no Firebase** remove as sessões, zera os nove contadores e muda os marcadores `votou` para `false`. As contas Firebase dos CPFs, os documentos de participantes e os administradores são mantidos. Depois do reset, quem já tinha cadastro pode escolher **Entrar**; se escolher **Primeiro acesso**, a urna reutiliza automaticamente a conta existente. Controles sem voto mantêm as coleções `sessoes` e `participantes` visíveis no Console Firestore.
 
@@ -122,7 +122,7 @@ sh scripts/testar.sh
 
 ## GitHub
 
-O pacote portátil para Windows está na página [Releases](https://github.com/Sudo-Marco/urna-cidada/releases). O ZIP inclui runtime Java; não exige instalar JDK, VS Code, Git ou Maven. O arquivo `UrnaCidadaAdmin.exe` abre o acesso administrativo; ele exige uma conta separada e autorizada no Firestore. O workflow do GitHub executa a suíte de testes e monta o pacote a cada tag `v*`. Para desenvolvimento e execução a partir do código, leia [docs/operacao-oficina.md](docs/operacao-oficina.md).
+O pacote portátil para Windows está na página [Releases](https://github.com/Sudo-Marco/urna-cidada/releases). O ZIP inclui runtime Java, `UrnaCidada.exe` e `UrnaCidadaAdmin.exe`; não exige instalar JDK, VS Code, Git ou Maven. O lançador administrativo abre a apuração offline e as ferramentas do Firestore, conforme a conexão disponível. O workflow do GitHub executa a suíte de testes e confere a presença do lançador antes de montar o pacote a cada tag `v*`. Para desenvolvimento e execução a partir do código, leia [docs/operacao-oficina.md](docs/operacao-oficina.md).
 
 ### Atalhos do teclado do computador
 

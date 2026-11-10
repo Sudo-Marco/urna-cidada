@@ -51,4 +51,4 @@ Votos válidos atualizam `resultados/{cargo}_{numero}`. O total aumenta no mesmo
 
 Uma conta administrativa separada, marcada por `administradores/{uid}` com `ativo: true`, pode remover as sessões de voto, zerar os nove contadores e rearmar os marcadores dos participantes. As contas do Firebase Authentication e os documentos de participantes são preservados. Documentos técnicos `_controle` mantêm `sessoes` e `participantes` visíveis quando não há votos. A regra não permite que o aplicativo crie ou altere os marcadores de administrador.
 
-Cada computador mantém um histórico local anônimo após sincronizar os votos. A opção **Apuração local offline** soma os registros desse histórico, sem acessar o Firebase. A apuração local não reúne dados de outras máquinas.
+Cada computador mantém um histórico local anônimo após sincronizar os votos. A opção **Apuração local offline** mostra, em abas separadas, a contagem por candidatura e voto de legenda, totais de brancos e nulos, e os destaques de mais e menos votado em cada cargo. A consulta não acessa o Firebase, não associa votos a participantes e não reúne dados de outras máquinas.

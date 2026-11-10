@@ -14,7 +14,7 @@ Aplicação de simulação eleitoral educativa, feita em Java 17 com interface S
 | Impedir segunda votação da mesma conta no Firestore | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
 | Contabilizar votos válidos por candidato sem somar branco, nulo ou legenda | `repository/FirestoreRestVotoClient.java`, `firestore.rules` |
 | Manter votos localmente quando a internet falhar e sincronizar depois | `repository/VotoRepositoryLocalPrimeiro.java` |
-| Apurar votos arquivados neste computador sem acessar a rede | `service/ApuracaoLocal.java`, `Main.java` |
+| Consultar a apuração local por cargo, candidatura e legenda, com totais e ranking, sem acessar a rede | `service/ApuracaoLocal.java`, `view/PainelApuracaoLocal.java`, `Main.java` |
 | Reiniciar votação sem remover contas CPF ou coleções do Firestore | `repository/FirestoreAdminClient.java`, `firestore.rules` |
 | Tocar sinal, falar a mensagem de encerramento e retornar à identificação após cinco segundos | `view/SomUrna.java`, `view/TelaUrna.java` |
 | Distribuir uma versão Windows com runtime Java incluído | `scripts/empacotar.bat`, `.github/workflows/publicar-release.yml` |

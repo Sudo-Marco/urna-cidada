@@ -11,11 +11,10 @@ import com.urnacidada.repository.VotoRepositoryLocalPrimeiro;
 import com.urnacidada.service.ApuracaoLocal;
 import com.urnacidada.view.TelaUrna;
 import com.urnacidada.view.TelaIdentificacao;
+import com.urnacidada.view.PainelApuracaoLocal;
 
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.JTextArea;
-import javax.swing.JScrollPane;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JLabel;
@@ -397,11 +396,7 @@ public final class Main {
 
     private static void mostrarApuracaoLocal(Path dados) {
         try {
-            JTextArea texto = new JTextArea(ApuracaoLocal.gerarRelatorio(dados), 23, 52);
-            texto.setEditable(false);
-            texto.setCaretPosition(0);
-            DialogosUrna.mensagem(null, new JScrollPane(texto), "Apuração local offline",
-                    JOptionPane.INFORMATION_MESSAGE);
+            PainelApuracaoLocal.exibir(ApuracaoLocal.apurar(dados));
         } catch (Exception erro) {
             DialogosUrna.mensagem(null,
                     erro.getMessage() == null ? "Não foi possível ler os votos locais." : erro.getMessage(),

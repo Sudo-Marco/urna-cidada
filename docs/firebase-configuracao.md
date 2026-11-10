@@ -69,7 +69,7 @@ Se a mesma conta já tiver votado na rodada atual, o aplicativo informa isso ant
 
 No Console Firebase, abra o banco Firestore e a coleção `resultados`. Cada documento usa o formato `cargo_numero`, por exemplo `pres_13` ou `df_1736`, e apresenta `contagem`. Depois de reiniciar a votação, os nove contadores aparecem com valor zero. Voto de legenda, branco ou nulo não aumenta a contagem de um candidato. As regras bloqueiam a consulta dessa coleção pelos participantes.
 
-Para consultar os votos locais, abra `scripts\administrar.bat`, escolha **Apuração local offline** e confirme com a credencial administrativa já usada neste computador. A contagem inclui votos arquivados localmente, mesmo quando já foram enviados ao Firestore. Ela abrange somente este computador.
+Para consultar os votos locais, abra `scripts\administrar.bat`, escolha **Apuração local offline** e confirme com a credencial administrativa já usada neste computador. O painel separa os três cargos e lista votos nominais por candidato, legenda por partido, brancos, nulos, totais e os mais e menos votados. A contagem inclui votos arquivados localmente, mesmo quando já foram enviados ao Firestore, e abrange somente este computador.
 
 IDs de resultado correspondentes às candidaturas atuais:
 

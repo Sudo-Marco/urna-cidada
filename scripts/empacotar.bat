@@ -2,7 +2,7 @@
 chcp 65001 >nul
 setlocal
 cd /d "%~dp0.."
-if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.15"
+if not defined URNA_APP_VERSION set "URNA_APP_VERSION=1.0.16"
 
 call scripts\compilar.bat
 if errorlevel 1 exit /b 1
@@ -19,6 +19,7 @@ copy /y dist\urna-cidada.jar dist\entrada-portatil\urna-cidada.jar >nul
 echo Criando aplicativo portatil com Java incluido...
 jpackage --type app-image --name UrnaCidada --input dist\entrada-portatil --main-jar urna-cidada.jar --main-class com.urnacidada.Main --add-launcher "UrnaCidadaAdmin=scripts\administrador.properties" --app-version "%URNA_APP_VERSION%" --vendor "Projeto Urna Cidada" --dest dist\pacote-portatil
 if errorlevel 1 goto :package_error
+if not exist dist\pacote-portatil\UrnaCidada\UrnaCidadaAdmin.exe goto :admin_launcher_error
 
 copy /y urna.properties.example dist\pacote-portatil\UrnaCidada\app\urna.properties.example >nul
 if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.properties dist\pacote-portatil\UrnaCidada\app\urna.properties >nul
@@ -36,7 +37,9 @@ if /i "%INCLUIR_FIREBASE_RELEASE%"=="1" if exist urna.properties copy /y urna.pr
   echo 4. Ao terminar, a urna reproduz o audio de encerramento incluido e retorna a identificacao em 5 segundos.
   echo 5. Se o Firebase ficar indisponivel ao entrar, escolha Continuar neste computador; o voto ficara local.
   echo    Esse voto offline nao sera enviado automaticamente e so pode ser contado neste computador.
-  echo 6. UrnaCidadaAdmin.exe abre a administracao: apuracao local, restaurar estrutura sem apagar votos ou reiniciar.
+  echo 6. Abra UrnaCidadaAdmin.exe nesta pasta para acessar o painel do administrador.
+  echo    A apuracao offline separa os resultados por cargo, candidato e voto de legenda, com mais e menos votados.
+  echo    A tabela mostra somente contagens agregadas e nao relaciona votos a participantes.
   echo    Para reiniciar online, use a conta admin separada com permissao no Firestore.
   echo    O reinicio zera a votacao e libera novamente os CPFs sem apagar as contas cadastradas.
   echo.
@@ -71,6 +74,11 @@ exit /b 1
 
 :package_error
 echo ERRO ao criar o aplicativo portatil. Confira as mensagens do jpackage acima.
+pause
+exit /b 1
+
+:admin_launcher_error
+echo ERRO: o jpackage nao criou UrnaCidadaAdmin.exe. O pacote nao sera publicado sem o acesso administrativo.
 pause
 exit /b 1
 
