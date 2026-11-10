@@ -26,7 +26,7 @@ final class UrnaServiceTestes {
         caso("inicia na ordem dos três cargos", () -> {
             igual("Deputado Federal", urna.getCargoAtual().nome()); igual(1, urna.getNumeroCargoAtual()); igual(3, urna.getTotalCargos());
         });
-        caso("número válido encontra candidato federal", () -> { digitar(urna, "1736"); igual("Pedro Henrique Costa", urna.getCandidatoAtual().orElseThrow().nome()); });
+        caso("número válido encontra candidato federal", () -> { digitar(urna, "1736"); igual("Pablo Rodrigues", urna.getCandidatoAtual().orElseThrow().nome()); });
         caso("número incompleto não encontra candidato", () -> { digitar(urna, "173"); verdade(urna.getCandidatoAtual().isEmpty()); });
         caso("voto de legenda é permitido com dois dígitos de partido nos cargos proporcionais", () -> {
             digitar(urna, "17"); igual("Juventude e Inovação Brasileira (JIB)", urna.getPartidoLegendaAtual().orElseThrow());

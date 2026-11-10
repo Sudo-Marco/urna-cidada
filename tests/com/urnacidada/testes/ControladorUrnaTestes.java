@@ -36,7 +36,7 @@ final class ControladorUrnaTestes {
     static void executar() {
         grupo("Tela: estado apresentado pelo ControladorUrna");
         caso("inicia no primeiro dos três cargos", () -> { igual("DEPUTADO FEDERAL", ultimo().cargo()); igual("CARGO 1 DE 3", ultimo().progresso()); igual(4, ultimo().posicoes()); });
-        caso("candidato válido mostra nome, partido e explicação", () -> { digitar("1736"); igual(Modo.CANDIDATO, ultimo().modo()); igual("Pedro Henrique Costa", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); verdade(ultimo().explicacao().contains("proporcional")); });
+        caso("candidato válido mostra nome, partido e explicação", () -> { digitar("1736"); igual(Modo.CANDIDATO, ultimo().modo()); igual("Pablo Rodrigues", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); verdade(ultimo().explicacao().contains("proporcional")); });
         caso("número completo desconhecido avisa que será nulo", () -> { digitar("9999"); igual(Modo.NUMERO_ERRADO, ultimo().modo()); igual("VOTO NULO", ultimo().detalhe()); igual(TipoMensagem.AVISO, ultimo().tipoMensagem()); });
         caso("dois primeiros dígitos de partido mostram legenda", () -> { digitar("17"); igual("VOTO DE LEGENDA", ultimo().titulo()); igual("Juventude e Inovação Brasileira (JIB)", ultimo().detalhe()); });
         caso("branco mostra confirmação e não exige caixas", () -> { controlador.branco(); igual(Modo.BRANCO, ultimo().modo()); igual(0, ultimo().posicoes()); });

@@ -15,6 +15,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.text.MaskFormatter;
+import javax.swing.text.NavigationFilter;
+import javax.swing.text.Position;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
@@ -397,6 +399,21 @@ public final class TelaIdentificacao extends JDialog {
             mascara.setAllowsInvalid(false);
             mascara.setCommitsOnValidEdit(true);
             JFormattedTextField campo = new JFormattedTextField(mascara);
+            campo.setNavigationFilter(new NavigationFilter() {
+                private int proximaPosicao() {
+                    int quantidade = (int) campo.getText().chars().filter(Character::isDigit).count();
+                    int[] posicoes = {0, 1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14};
+                    return posicoes[Math.min(quantidade, 11)];
+                }
+
+                @Override public void setDot(FilterBypass fb, int dot, Position.Bias bias) {
+                    fb.setDot(proximaPosicao(), bias);
+                }
+
+                @Override public void moveDot(FilterBypass fb, int dot, Position.Bias bias) {
+                    fb.moveDot(proximaPosicao(), bias);
+                }
+            });
             campo.setFont(new Font("SansSerif", Font.PLAIN, 20));
             campo.setForeground(TEXTO);
             campo.setBackground(Color.WHITE);

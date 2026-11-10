@@ -62,7 +62,7 @@ final class ModeloTestes {
 
         teste("cargo encontra candidato pelo número e devolve vazio se não existe", () -> {
             Cargo cargo = Eleicao.exemplo().cargos().get(0);
-            igual("Pedro Henrique Costa", cargo.buscarCandidato("1736").orElseThrow().nome());
+            igual("Pablo Rodrigues", cargo.buscarCandidato("1736").orElseThrow().nome());
             verdade(cargo.buscarCandidato("99999").isEmpty(), "número inexistente");
         });
 
@@ -108,15 +108,15 @@ final class ModeloTestes {
         teste("eleição contém somente as nove candidaturas solicitadas", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
             igual(9, cargos.stream().mapToInt(c -> c.candidatos().size()).sum());
-            igual("Pedro Henrique Costa", cargos.get(0).buscarCandidato("1736").orElseThrow().nome());
-            igual("Beatriz Rodrigues", cargos.get(0).buscarCandidato("5730").orElseThrow().nome());
-            igual("André Martins", cargos.get(0).buscarCandidato("9462").orElseThrow().nome());
-            igual("Gabriel Santos", cargos.get(1).buscarCandidato("14").orElseThrow().nome());
-            igual("Camila Ferreira", cargos.get(1).buscarCandidato("28").orElseThrow().nome());
-            igual("Lucas Almeida", cargos.get(1).buscarCandidato("37").orElseThrow().nome());
-            igual("Rafael Mendes", cargos.get(2).buscarCandidato("13").orElseThrow().nome());
-            igual("Eduardo Carvalho", cargos.get(2).buscarCandidato("27").orElseThrow().nome());
-            igual("Mariana Oliveira", cargos.get(2).buscarCandidato("39").orElseThrow().nome());
+            igual("Pablo Rodrigues", cargos.get(0).buscarCandidato("1736").orElseThrow().nome());
+            igual("Peixonauta da Silva", cargos.get(0).buscarCandidato("5730").orElseThrow().nome());
+            igual("Cebolinha da Mônica", cargos.get(0).buscarCandidato("9462").orElseThrow().nome());
+            igual("The Rock Johnson", cargos.get(1).buscarCandidato("14").orElseThrow().nome());
+            igual("Chico Bento do Rosário", cargos.get(1).buscarCandidato("28").orElseThrow().nome());
+            igual("Kevin Hart Silva", cargos.get(1).buscarCandidato("37").orElseThrow().nome());
+            igual("Austin Mendes", cargos.get(2).buscarCandidato("13").orElseThrow().nome());
+            igual("Totem Carvalho", cargos.get(2).buscarCandidato("27").orElseThrow().nome());
+            igual("Abacatudo Oliveira", cargos.get(2).buscarCandidato("39").orElseThrow().nome());
         });
 
         teste("candidaturas têm números, propostas e vices consistentes", () -> {
@@ -136,15 +136,15 @@ final class ModeloTestes {
 
         teste("novas candidaturas têm nomes, números, partidos e propostas", () -> {
             List<Cargo> cargos = Eleicao.exemplo().cargos();
-            igual("Rafael Mendes", cargos.get(2).buscarCandidato("13").orElseThrow().nome());
-            igual("Eduardo Carvalho", cargos.get(2).buscarCandidato("27").orElseThrow().nome());
-            igual("Mariana Oliveira", cargos.get(2).buscarCandidato("39").orElseThrow().nome());
-            igual("Gabriel Santos", cargos.get(1).buscarCandidato("14").orElseThrow().nome());
-            igual("Camila Ferreira", cargos.get(1).buscarCandidato("28").orElseThrow().nome());
-            igual("Lucas Almeida", cargos.get(1).buscarCandidato("37").orElseThrow().nome());
-            igual("Pedro Henrique Costa", cargos.get(0).buscarCandidato("1736").orElseThrow().nome());
-            igual("Beatriz Rodrigues", cargos.get(0).buscarCandidato("5730").orElseThrow().nome());
-            igual("André Martins", cargos.get(0).buscarCandidato("9462").orElseThrow().nome());
+            igual("Austin Mendes", cargos.get(2).buscarCandidato("13").orElseThrow().nome());
+            igual("Totem Carvalho", cargos.get(2).buscarCandidato("27").orElseThrow().nome());
+            igual("Abacatudo Oliveira", cargos.get(2).buscarCandidato("39").orElseThrow().nome());
+            igual("The Rock Johnson", cargos.get(1).buscarCandidato("14").orElseThrow().nome());
+            igual("Chico Bento do Rosário", cargos.get(1).buscarCandidato("28").orElseThrow().nome());
+            igual("Kevin Hart Silva", cargos.get(1).buscarCandidato("37").orElseThrow().nome());
+            igual("Pablo Rodrigues", cargos.get(0).buscarCandidato("1736").orElseThrow().nome());
+            igual("Peixonauta da Silva", cargos.get(0).buscarCandidato("5730").orElseThrow().nome());
+            igual("Cebolinha da Mônica", cargos.get(0).buscarCandidato("9462").orElseThrow().nome());
             verdade(cargos.get(2).buscarCandidato("13").orElseThrow().propostas().size() == 4,
                     "propostas presidenciais mantidas");
         });

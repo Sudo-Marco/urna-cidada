@@ -51,12 +51,12 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Consulta de números dos candidatos | ✅ Relação fixa no canto superior esquerdo da tela de votação |
 | Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
 | Identificação com máscara de CPF (11 algarismos) e bloqueio de cadastro repetido | ✅ Disponível quando o Firebase está configurado; não valida dígitos verificadores |
-| Encerramento automático | ✅ Sinal curto tipo “pilili”, sem voz, e retorno à identificação em cinco segundos |
+| Encerramento automático | ✅ Reproduz o áudio de encerramento enviado para o projeto e volta à identificação em cinco segundos |
 | Gravação local, fila e histórico anônimo | ✅ O histórico continua no computador depois da sincronização |
 | Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
 | Apuração local offline | ✅ A administração mostra a contagem dos votos salvos neste computador, sem acessar a rede |
 | Administração do Firestore | ✅ Restaura coleções sem apagar votos ou inicia uma nova rodada preservando contas |
-| Pacote portátil para Windows | ✅ Release `v1.0.14`, com novos retratos, tela inicial renovada, sinal sem voz, runtime Java e iniciador administrativo |
+| Pacote portátil para Windows | ✅ Release `v1.0.15`, com novos retratos, nomes inspirados nos personagens, áudio de encerramento, runtime Java e iniciador administrativo |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -66,7 +66,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.14](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.14). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.15](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.15). Extraia o ZIP e abra `UrnaCidada.exe`; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -142,7 +142,7 @@ flowchart TD
     C --> D[Presidente: 2 dígitos]
     D --> E{Confirma o último voto?}
     E -->|Sim| F[Grava localmente e sincroniza com Firestore se disponível]
-    F --> G[Sinal sonoro tipo pilili, sem voz]
+    F --> G[Reprodução do áudio de encerramento enviado]
     G --> H[Após 5 segundos, volta à identificação]
 ```
 
@@ -150,15 +150,17 @@ Os cargos permanecem na ordem mostrada no fluxo e definem quantos dígitos o cam
 
 | Cargo | Dígitos | Candidaturas de exemplo | Partido fictício |
 |---|---:|---|---|
-| Deputado Federal | 4 | 1736 — Pedro Henrique Costa; 5730 — Beatriz Rodrigues; 9462 — André Martins | Juventude e Inovação Brasileira (JIB); Vozes da Cidadania (PVC); Aliança de Desenvolvimento Sustentável (ADS) |
-| Governador | 2 | 14 — Gabriel Santos; 28 — Camila Ferreira; 37 — Lucas Almeida | Força e Desenvolvimento Estadual (FDE); União pelo Futuro (PUF); Desenvolvimento e Justiça Social (DJS) |
-| Presidente | 2 | 13 — Rafael Mendes; 27 — Eduardo Carvalho; 39 — Mariana Oliveira | Renovação Nacional (PRN); Aliança pelo Progresso (PAP); Movimento Popular Democrático (MPD) |
+| Deputado Federal | 4 | 1736 — Pablo Rodrigues; 5730 — Peixonauta da Silva; 9462 — Cebolinha da Mônica | Juventude e Inovação Brasileira (JIB); Vozes da Cidadania (PVC); Aliança de Desenvolvimento Sustentável (ADS) |
+| Governador | 2 | 14 — The Rock Johnson; 28 — Chico Bento do Rosário; 37 — Kevin Hart Silva | Força e Desenvolvimento Estadual (FDE); União pelo Futuro (PUF); Desenvolvimento e Justiça Social (DJS) |
+| Presidente | 2 | 13 — Austin Mendes; 27 — Totem Carvalho; 39 — Abacatudo Oliveira | Renovação Nacional (PRN); Aliança pelo Progresso (PAP); Movimento Popular Democrático (MPD) |
 
 Ao digitar um número reconhecido, o retrato individual do candidato aparece centralizado acima dos campos numéricos, e o nome e partido aparecem abaixo. Os números permanecem centralizados na tela e não são incorporados às imagens. Um número completo que não corresponda ao cargo atual é tratado como voto nulo. As propostas e os partidos estão em [regras-de-votacao.md](docs/regras-de-votacao.md).
 
+O áudio enviado em `som-de-urna-eletronica.zip` foi convertido para WAV e incluído nos recursos do aplicativo. Assim, a reprodução não depende de um codec MP3 instalado no computador.
+
 ### Retratos usados na votação
 
-As imagens foram recortadas da nova colagem enviada para o projeto. A urna mantém a proporção de cada foto e a centraliza no espaço acima dos números, sem alterar nomes, cargos, números ou partidos.
+As imagens foram recortadas da colagem enviada para o projeto. A urna mantém a proporção de cada foto e a centraliza no espaço acima dos números. Os nomes de exibição fazem referência às personagens das imagens; cargos, números, partidos e propostas continuam no cadastro da simulação.
 
 ![Prévia dos nove retratos usados na urna](docs/previa-fotos-candidatos.png)
 

@@ -226,8 +226,8 @@ final class PainelUrnaTestes {
                     "", "Digite o número do candidato", "", "", "", TipoMensagem.INFO, true));
             desenhar(painel, new Dimension(1366, 768));
             verdade(contemTexto(painel, "NÚMEROS DOS CANDIDATOS"), "título da lista fixa");
-            verdade(contemTexto(painel, "1736  Pedro Henrique Costa"), "candidatura federal na lista");
-            verdade(contemTexto(painel, "28  Camila Ferreira"), "candidatura ao governo na lista");
+            verdade(contemTexto(painel, "1736  Pablo Rodrigues"), "candidatura federal na lista");
+            verdade(contemTexto(painel, "28  Chico Bento do Rosário"), "candidatura ao governo na lista");
             verdade(achar(painel, "Números dos candidatos") == null, "a lista não depende de botão ou janela");
         });
 

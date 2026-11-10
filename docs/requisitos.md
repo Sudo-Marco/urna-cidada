@@ -31,9 +31,9 @@ As nove candidaturas cadastradas usam números exclusivos:
 
 | Cargo | Números e nomes |
 |---|---|
-| Presidente | 13 Rafael Mendes; 27 Eduardo Carvalho; 39 Mariana Oliveira |
-| Governador | 14 Gabriel Santos; 28 Camila Ferreira; 37 Lucas Almeida |
-| Deputado Federal | 1736 Pedro Henrique Costa; 5730 Beatriz Rodrigues; 9462 André Martins |
+| Presidente | 13 Austin Mendes; 27 Totem Carvalho; 39 Abacatudo Oliveira |
+| Governador | 14 The Rock Johnson; 28 Chico Bento do Rosário; 37 Kevin Hart Silva |
+| Deputado Federal | 1736 Pablo Rodrigues; 5730 Peixonauta da Silva; 9462 Cebolinha da Mônica |
 
 As propostas e partidos estão em `Eleicao.exemplo()` e em [regras-de-votacao.md](regras-de-votacao.md). Deputado Estadual e Senador não fazem parte da votação.
 
