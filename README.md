@@ -15,11 +15,18 @@
 
 > ⚠️ **Aviso:** este é um projeto **educativo**. Não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Partidos, números e propostas fazem parte da simulação.
 
+![Captura real da Urna Cidadã em execução, no primeiro cargo e em modo de demonstração; os votos ficam somente na memória](docs/screenshots/urna-demo-memoria.jpg)
+
+*Captura do aplicativo em execução no modo `--memoria`, sem gravar votos ao fechar.*
+
 ## 📑 Sumário
 
 - [Sobre](#-sobre)
+- [Como rodar em 3 passos](#como-rodar-em-3-passos)
+- [Decisões técnicas](#decisões-técnicas)
 - [Situação do projeto](#-situação-do-projeto)
 - [Como executar](#️-como-executar)
+- [Roadmap](#roadmap)
 - [Como a votação funciona](#️-como-a-votação-funciona)
 - [Testes](#-testes)
 - [Estrutura](#-estrutura)
@@ -29,6 +36,7 @@
 - [Resultados da ação de extensão](#-resultados-da-ação-de-extensão)
 - [Como contribuir](#-como-contribuir)
 - [Equipe](#-equipe)
+- [Galeria](#galeria)
 
 ## 🎯 Sobre
 
@@ -36,6 +44,29 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 1. **O software:** uma urna de demonstração em Java 17 e Swing, com votação em três cargos: Deputado Federal, Governador e Presidente. Os dados são gravados primeiro no computador e, quando o Firebase está configurado e há internet, sincronizados com o Cloud Firestore.
 2. **A ação educativa:** uma oficina com estudantes do Ensino Médio para conversar sobre cidadania digital, uso responsável da internet e como identificar desinformação eleitoral.
+
+## Como rodar em 3 passos
+
+1. Instale um JDK 17 ou superior.
+2. Clone o repositório e entre na pasta:
+
+   ```powershell
+   git clone https://github.com/Sudo-Marco/urna-cidada.git
+   cd urna-cidada
+   ```
+
+3. No Windows, execute `.\demo.bat`: o script compila o código atual e abre a simulação sem persistir votos.
+
+   ```powershell
+   .\demo.bat
+   ```
+
+## Decisões técnicas
+
+- Java 17 e Swing mantêm o aplicativo desktop e a demonstração executáveis sem Maven.
+- A interface encaminha ações ao controlador e às regras de votação; a persistência fica atrás de repositórios intercambiáveis.
+- O modo de demonstração usa memória; os modos local e padrão gravam primeiro no computador. A sincronização com Firestore é opcional e usa a API REST com `HttpClient` do JDK.
+- Os dados de votação e partidos são fictícios. O projeto não pretende substituir uma urna oficial.
 
 ## 🚧 Situação do projeto
 
@@ -85,6 +116,10 @@ scripts\administrar.bat
 ```
 
 No terminal integrado do VS Code, aberto na pasta do projeto, execute `.\iniciar.bat`. O comando recompila o código Java atual e abre a urna. A tela inicial reúne o acesso e o primeiro cadastro em um formulário visual com CPF formatado. Durante a votação, os cargos e números dos candidatos ficam visíveis no canto superior esquerdo.
+
+## Roadmap
+
+O software está pronto para demonstração. Os próximos marcos da ação de extensão são realizar a oficina, aplicar o questionário de impacto e registrar os resultados; a oficina ainda não ocorreu e não há resultados a relatar.
 
 ### Modos de gravação
 
@@ -162,7 +197,7 @@ O áudio enviado em `som-de-urna-eletronica.zip` foi convertido para WAV e inclu
 
 As imagens foram recortadas da colagem enviada para o projeto. A urna mantém a proporção de cada foto e a centraliza no espaço acima dos números. Os nomes de exibição fazem referência às personagens das imagens; cargos, números, partidos e propostas continuam no cadastro da simulação.
 
-![Prévia dos nove retratos usados na urna](docs/previa-fotos-candidatos.png)
+*A colagem original dos nove retratos foi mantida na seção [Galeria](#galeria).*
 
 - **Voto válido:** número completo de uma candidatura fictícia.
 - **Voto de legenda:** opção disponível nos cargos proporcionais.
@@ -266,3 +301,9 @@ Antes de enviar código, rode `scripts\testar.bat` e confira o `git status`. Nã
 | **Cauã Reis** | Interface gráfica em Swing (tela, teclado e mensagens ao participante); verificação manual da tela e do teclado; testes de usabilidade no projetor da oficina |
 | **Vitória Alves** | Ação de extensão: material educativo sobre desinformação, questionário de impacto e alinhamento com os ODS; contato com a escola e condução da oficina; documentação pedagógica |
 | **Vitor dos Anjos Silva de Araujo** | Organização dos candidatos, definição dos números, criação dos partidos e propostas; testes e validações da urna para execução em outro computador |
+
+## Galeria
+
+### Retratos originais dos candidatos
+
+![Prévia dos nove retratos fictícios usados na votação, agrupados por cargo](docs/previa-fotos-candidatos.png)
