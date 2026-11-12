@@ -2,20 +2,29 @@
 
 # 🗳️ Urna Cidadã
 
+<p align="center"><picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/readme-header-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/brand/readme-header-light.svg" />
+  <img src="assets/brand/readme-header-light.svg" alt="Marca Sudo-Marco com o pintinho original do Synapse Pet sobre uma curva LIF." width="100%" />
+</picture></p>
+
 **Simulador educativo de votação feito em Java 17 e Swing para um projeto de extensão sobre cidadania digital e desinformação eleitoral.**
 
-![Java](https://img.shields.io/badge/Java-17%2B-orange?logo=openjdk&logoColor=white)
-![Interface](https://img.shields.io/badge/Interface-Java%20Swing-blue)
-![Banco](https://img.shields.io/badge/Banco-Cloud%20Firestore-FFCA28?logo=firebase&logoColor=black)
-![Build](https://img.shields.io/badge/Build-JDK%2017%2B-C71A36?logo=openjdk&logoColor=white)
-![Status](https://img.shields.io/badge/Software-vers%C3%A3o%20final-brightgreen)
-![Extens%C3%A3o](https://img.shields.io/badge/Oficina-a%20realizar-lightgrey)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/stack-badges-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/brand/stack-badges-light.svg" />
+  <img src="assets/brand/stack-badges-light.svg" alt="Java 17, Swing, Cloud Firestore e modo local." />
+</picture>
 
 </div>
 
 > ⚠️ **Aviso:** este é um projeto **educativo**. Não é um sistema eleitoral oficial e não tem relação com a Justiça Eleitoral. Partidos, números e propostas fazem parte da simulação.
 
-![Captura real da Urna Cidadã em execução, no primeiro cargo e em modo de demonstração; os votos ficam somente na memória](docs/screenshots/urna-demo-memoria.jpg)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/brand/demo-card-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="assets/brand/demo-card-light.svg" />
+  <img src="assets/brand/demo-card-light.svg" alt="Captura real da Urna Cidadã em execução no primeiro cargo e em modo de demonstração; os votos ficam somente na memória." width="100%" />
+</picture>
 
 *Captura do aplicativo em execução no modo `--memoria`, sem gravar votos ao fechar.*
 

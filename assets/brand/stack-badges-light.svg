@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 498 48" role="img" aria-labelledby="title desc">
+<title id="title">Tecnologias do projeto</title><desc id="desc">Tecnologias descritas neste repositório, em badges locais sem widgets externos.</desc>
+<defs><style>text { font: 13px Consolas,"Courier New",monospace; fill:#F1F2E8; font-weight:700; letter-spacing:.2px; }</style></defs>
+<rect x="16" y="8" width="88" height="32" rx="8" fill="#152126"/><text x="60.0" y="29" text-anchor="middle" class="badge">JAVA 17</text><rect x="114" y="8" width="68" height="32" rx="8" fill="#152126"/><text x="148.0" y="29" text-anchor="middle" class="badge">SWING</text><rect x="192" y="8" width="168" height="32" rx="8" fill="#152126"/><text x="276.0" y="29" text-anchor="middle" class="badge">CLOUD FIRESTORE</text><rect x="370" y="8" width="118" height="32" rx="8" fill="#152126"/><text x="429.0" y="29" text-anchor="middle" class="badge">MODO LOCAL</text>
+</svg>
