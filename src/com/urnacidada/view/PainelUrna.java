@@ -62,7 +62,6 @@ public final class PainelUrna extends JPanel {
     private final AcoesUrna acoes;
     private final Eleicao eleicao;
     private final JLabel persistencia = rotulo(11, Font.PLAIN, CINZA);
-    private boolean fimTocado;
     private boolean encerrarNoFim;
 
     private final JLabel progresso = rotulo(13, Font.BOLD, CINZA);
@@ -121,8 +120,6 @@ public final class PainelUrna extends JPanel {
         btnConfirma.setEnabled(e.controlesHabilitados());
         btnNova.setText(e.finalizada() && encerrarNoFim ? "Encerrar" : "Iniciar nova votação");
         btnNova.setVisible(e.finalizada() || e.modo() == Modo.AGUARDANDO_INICIO);
-        if (e.finalizada() && !fimTocado) SomUrna.fim();
-        fimTocado = e.finalizada();
 
         revalidate();
         repaint();

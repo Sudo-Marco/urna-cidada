@@ -51,12 +51,12 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 | Consulta de números dos candidatos | ✅ Relação fixa no canto superior esquerdo da tela de votação |
 | Início pelo terminal | ✅ `iniciar.bat` compila a versão atual e abre a urna sem usar o botão Run do VS Code |
 | Identificação com máscara de CPF (11 algarismos) e bloqueio de cadastro repetido | ✅ Disponível quando o Firebase está configurado; não valida dígitos verificadores |
-| Encerramento automático | ✅ Reproduz o áudio de encerramento enviado para o projeto e volta à identificação em cinco segundos |
+| Encerramento automático | ✅ Reproduz a gravação completa enviada; cinco segundos após o áudio, volta à identificação |
 | Gravação local, fila e histórico anônimo | ✅ O histórico continua no computador depois da sincronização |
 | Apuração no Cloud Firestore | ✅ Nove contadores por candidato atualizados junto com cada sessão |
 | Apuração local offline | ✅ Painel separado por cargo, com votos por candidato e legenda, totais e destaques de mais e menos votado |
 | Administração do Firestore | ✅ Restaura coleções sem apagar votos ou inicia uma nova rodada preservando contas |
-| Pacote portátil para Windows | ✅ Release `v1.0.16`, com painel offline detalhado, lançador administrativo, runtime Java e dados de demonstração atualizados |
+| Pacote portátil para Windows | ✅ Release `v1.0.18`, com painel offline detalhado, lançador administrativo e correção da reprodução do áudio final |
 | Documentação (requisitos, regras, casos de uso, arquitetura, testes e operação da oficina) | ✅ Disponível em `docs/` |
 | Material educativo e questionário de impacto | 📝 Modelos prontos; serão usados na oficina |
 | Oficina com estudantes | ⬜ A realizar |
@@ -66,7 +66,7 @@ Projeto de extensão da disciplina de **Programação Orientada a Objetos** (Ci�
 
 **Para compilar o código-fonte:** JDK 17 ou superior com `java`, `javac`, `jar` e `jpackage`. Maven não é necessário. Quem baixa o ZIP portátil em Releases não precisa instalar Java. Para configurar o Firestore no pacote, siga [firebase-configuracao.md](docs/firebase-configuracao.md).
 
-**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.16](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.16). Extraia o ZIP. Abra `UrnaCidada.exe` para votar ou `UrnaCidadaAdmin.exe` para acessar o painel do administrador; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
+**Para quem só vai usar a urna no Windows:** baixe `UrnaCidada-Windows-x64.zip` na [Release v1.0.18](https://github.com/Sudo-Marco/urna-cidada/releases/tag/v1.0.18). Extraia o ZIP. Abra `UrnaCidada.exe` para votar ou `UrnaCidadaAdmin.exe` para acessar o painel do administrador; o pacote inclui o runtime Java e não exige JDK, VS Code, Git ou Maven.
 
 ### Início rápido (Windows)
 
@@ -266,3 +266,4 @@ Antes de enviar código, rode `scripts\testar.bat` e confira o `git status`. Nã
 | **Cauã Reis** | Interface gráfica em Swing (tela, teclado e mensagens ao participante); verificação manual da tela e do teclado; testes de usabilidade no projetor da oficina |
 | **Vitória Alves** | Ação de extensão: material educativo sobre desinformação, questionário de impacto e alinhamento com os ODS; contato com a escola e condução da oficina; documentação pedagógica |
 | **Vitor dos Anjos Silva de Araujo** | Organização dos candidatos, definição dos números, criação dos partidos e propostas; testes e validações da urna para execução em outro computador |
+| **Filipe Araujo** | Participante e colaborador; ajudou na criação do slide e da apresentação, preparou as falas e os santinhos e contribuiu com ideias para a urna |

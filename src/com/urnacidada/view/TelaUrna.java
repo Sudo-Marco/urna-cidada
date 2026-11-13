@@ -58,6 +58,8 @@ public final class TelaUrna extends JFrame {
     private final Runnable aoFechar;
     private final Runnable aoReiniciar;
     private boolean reinicioAutomatico;
+    private boolean somFinalIniciado;
+    private boolean janelaEncerrada;
 
     public TelaUrna(Eleicao eleicao, VotoRepository repositorio) {
         this(eleicao, repositorio, repositorio.dicaPersistencia());
@@ -122,7 +124,13 @@ public final class TelaUrna extends JFrame {
     private void exibirEstado(EstadoTela estado) {
         painel.exibir(estado);
         painel.atualizarPersistencia(repositorio.estadoPersistencia(), dicaInicial);
-        if (estado.finalizada() && !timerProximoParticipante.isRunning()) timerProximoParticipante.restart();
+        if (estado.finalizada() && !somFinalIniciado) {
+            somFinalIniciado = true;
+            timerProximoParticipante.stop();
+            SomUrna.fim(() -> SwingUtilities.invokeLater(() -> {
+                if (!janelaEncerrada && isDisplayable()) timerProximoParticipante.restart();
+            }));
+        }
     }
 
     public void mostrarAvisoInicial() {
@@ -178,6 +186,7 @@ public final class TelaUrna extends JFrame {
     }
 
     private void encerrar() {
+        janelaEncerrada = true;
         gravacao.shutdown();
         timerEstado.stop();
         timerProximoParticipante.stop();
